@@ -1,0 +1,468 @@
+@import "tailwindcss";
+
+/* Design System: Wabi-Sabi Edition */
+:root {
+  /* Colors - Kintsugi (Light Theme) */
+  /* Warm, aged paper foundation - slightly darker for less brightness */
+  --color-bg-primary: #EBE8E4;
+  --color-bg-secondary: #E5E2DD;
+  --color-bg-tertiary: #D9D5CF;
+  --color-card-bg: rgba(255, 253, 250, 0.95);
+
+  /* Typography: Dark Sepia, not harsh black */
+  --color-text-primary: #3E3B36;
+  --color-text-secondary: #6B6862;
+  --color-text-tertiary: #8F8C86;
+
+  /* Accent: Terracotta / Lacquer Red */
+  --color-accent: #C25634;
+  --color-accent-hover: #A84828;
+  --color-accent-glow: rgba(194, 86, 52, 0.2);
+  --color-destructive: #B54A32;
+
+  /* Glass border for cards */
+  --glass-border: rgba(62, 59, 54, 0.12);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+  --space-10: 64px;
+
+  /* Typography */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, monospace;
+
+  /* Radii - Asymmetric organic */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-card: 2px 24px 4px 24px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(62, 59, 54, 0.08);
+  --shadow-md: 0 4px 20px rgba(62, 59, 54, 0.12);
+  --shadow-lg: 0 10px 40px rgba(62, 59, 54, 0.18);
+
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 300ms ease-out;
+  --transition-slow: 500ms cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* Paper texture opacity */
+  --noise-opacity: 0.04;
+}
+
+[data-theme="dark"] {
+  /* Midnight: Deep Forest (Dark Theme) */
+  /* A very deep, almost black green */
+  --color-bg-primary: #050A06;
+  --color-bg-secondary: #0A120B;
+  --color-bg-tertiary: #141E14;
+  --color-card-bg: rgba(20, 30, 20, 0.6);
+
+  /* Typography: Warm Off-White */
+  --color-text-primary: #EAE6D8;
+  --color-text-secondary: #8F968F;
+  --color-text-tertiary: #5A615A;
+
+  /* Accent: Antique Gold / Firefly Light */
+  --color-accent: #D4AF37;
+  --color-accent-hover: #E5C44A;
+  --color-accent-glow: rgba(212, 175, 55, 0.25);
+  --color-destructive: #E07A5F;
+
+  /* Gold glass border */
+  --glass-border: rgba(212, 175, 55, 0.15);
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 50px -10px rgba(0, 0, 0, 0.6);
+
+  --noise-opacity: 0.06;
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 300;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.6s ease, color 0.6s ease;
+}
+
+/* Paper texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+  opacity: var(--noise-opacity);
+  filter: grayscale(100%);
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Focus ring utility */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Ink settle animation for title */
+@keyframes ink-settle {
+  from {
+    opacity: 0.8;
+    transform: scale(0.98) translateY(-1px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-ink-settle {
+  animation: ink-settle 150ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Modal enter animation */
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* Tiptap Rich Text Editor Styles */
+.rich-text-editor {
+  width: 100%;
+}
+
+.rich-text-editor .ProseMirror {
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  font-weight: 300;
+  line-height: 1.9;
+  color: var(--color-text-primary);
+  outline: none;
+  min-height: 300px;
+}
+
+.rich-text-editor .ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+/* Placeholder */
+.rich-text-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Headings */
+.rich-text-editor .ProseMirror h1 {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.rich-text-editor .ProseMirror h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.rich-text-editor .ProseMirror h3 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Paragraphs */
+.rich-text-editor .ProseMirror p {
+  margin: 0;
+}
+
+/* Strong/Bold */
+.rich-text-editor .ProseMirror strong {
+  font-weight: 600;
+}
+
+/* Italic */
+.rich-text-editor .ProseMirror em {
+  font-style: italic;
+}
+
+/* Underline */
+.rich-text-editor .ProseMirror u {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Strikethrough */
+.rich-text-editor .ProseMirror s {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* Highlight */
+.rich-text-editor .ProseMirror mark {
+  background-color: var(--color-accent-glow);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* Lists */
+.rich-text-editor .ProseMirror ul,
+.rich-text-editor .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.rich-text-editor .ProseMirror ul {
+  list-style-type: disc;
+}
+
+.rich-text-editor .ProseMirror ol {
+  list-style-type: decimal;
+}
+
+.rich-text-editor .ProseMirror li {
+  margin: 0.25rem 0;
+}
+
+.rich-text-editor .ProseMirror li::marker {
+  color: var(--color-accent);
+}
+
+/* Blockquote */
+.rich-text-editor .ProseMirror blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1.25rem;
+  margin: 1.25rem 0;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+/* Code (inline) */
+.rich-text-editor .ProseMirror code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+}
+
+/* Code Block */
+.rich-text-editor .ProseMirror pre {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+  overflow-x: auto;
+}
+
+.rich-text-editor .ProseMirror pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Horizontal Rule */
+.rich-text-editor .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--glass-border);
+  margin: 2rem 0;
+}
+
+/* Links */
+.rich-text-editor .ProseMirror a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.rich-text-editor .ProseMirror a:hover {
+  color: var(--color-accent-hover);
+}
+
+/* Selection */
+.rich-text-editor .ProseMirror ::selection {
+  background: var(--color-accent-glow);
+}
+
+/* Note Card Preview - Scaled down rich text */
+.note-card-preview {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.note-card-preview > * + * {
+  margin-top: 0.4em;
+}
+
+.note-card-preview p {
+  margin: 0;
+}
+
+.note-card-preview h1,
+.note-card-preview h2,
+.note-card-preview h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.note-card-preview ul {
+  padding-left: 1.5rem;
+  margin: 0.25rem 0;
+  list-style: disc outside;
+}
+
+.note-card-preview ol {
+  padding-left: 1.5rem;
+  margin: 0.25rem 0;
+  list-style: decimal outside;
+}
+
+.note-card-preview li {
+  margin: 0.15rem 0;
+  display: list-item;
+}
+
+.note-card-preview li::marker {
+  color: var(--color-accent);
+}
+
+.note-card-preview blockquote {
+  border-left: 2px solid var(--color-accent);
+  padding-left: 0.75rem;
+  margin: 0.25rem 0;
+  font-style: italic;
+  color: var(--color-text-tertiary);
+}
+
+.note-card-preview code {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  background: var(--color-bg-secondary);
+  border-radius: 3px;
+  padding: 0.1em 0.3em;
+}
+
+.note-card-preview pre {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  overflow: hidden;
+}
+
+.note-card-preview strong {
+  font-weight: 600;
+}
+
+.note-card-preview em {
+  font-style: italic;
+}
+
+.note-card-preview a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
