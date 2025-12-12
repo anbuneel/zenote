@@ -67,15 +67,32 @@ export async function fetchNotes(filterTagIds?: string[]): Promise<Note[]> {
 export async function createNote(
   userId: string,
   title: string = '',
-  content: string = ''
+  content: string = '',
+  options?: { createdAt?: Date; updatedAt?: Date }
 ): Promise<Note> {
+  const insertData: {
+    user_id: string;
+    title: string;
+    content: string;
+    created_at?: string;
+    updated_at?: string;
+  } = {
+    user_id: userId,
+    title,
+    content,
+  };
+
+  // Preserve original timestamps if provided (e.g., during import)
+  if (options?.createdAt) {
+    insertData.created_at = options.createdAt.toISOString();
+  }
+  if (options?.updatedAt) {
+    insertData.updated_at = options.updatedAt.toISOString();
+  }
+
   const { data, error } = await supabase
     .from('notes')
-    .insert({
-      user_id: userId,
-      title,
-      content,
-    })
+    .insert(insertData)
     .select()
     .single();
 

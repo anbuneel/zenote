@@ -18,6 +18,7 @@ import {
   downloadMarkdownZip,
   markdownToHtml,
 } from './utils/exportImport';
+import { sanitizeHtml } from './utils/sanitize';
 import './App.css';
 
 function App() {
@@ -79,12 +80,19 @@ function App() {
         setNotes((prev) => {
           // Avoid duplicates
           if (prev.some((n) => n.id === newNote.id)) return prev;
+          // New notes from real-time don't have tags; they'll be fetched on next full load
           return [newNote, ...prev];
         });
       },
       (updatedNote) => {
         setNotes((prev) =>
-          prev.map((n) => (n.id === updatedNote.id ? updatedNote : n))
+          prev.map((n) => {
+            if (n.id === updatedNote.id) {
+              // Preserve existing tags since real-time events don't include them
+              return { ...updatedNote, tags: n.tags };
+            }
+            return n;
+          })
         );
       },
       (deletedId) => {
@@ -376,7 +384,19 @@ function App() {
         // Create notes
         let importedCount = 0;
         for (const noteData of data.notes) {
-          const newNote = await createNote(user.id, noteData.title, noteData.content);
+          // Sanitize content to prevent XSS from malicious backups
+          const sanitizedContent = sanitizeHtml(noteData.content);
+
+          // Preserve original timestamps if available
+          const options: { createdAt?: Date; updatedAt?: Date } = {};
+          if (noteData.createdAt) {
+            options.createdAt = new Date(noteData.createdAt);
+          }
+          if (noteData.updatedAt) {
+            options.updatedAt = new Date(noteData.updatedAt);
+          }
+
+          const newNote = await createNote(user.id, noteData.title, sanitizedContent, options);
 
           // Add tags to the note
           for (const tagName of noteData.tags) {
@@ -407,8 +427,8 @@ function App() {
           noteContent = lines.slice(1).join('\n').trim();
         }
 
-        // Convert markdown to HTML
-        const htmlContent = markdownToHtml(noteContent);
+        // Convert markdown to HTML and sanitize
+        const htmlContent = sanitizeHtml(markdownToHtml(noteContent));
 
         // Create the note
         const newNote = await createNote(user.id, title, htmlContent);
@@ -467,15 +487,20 @@ function App() {
     );
   }
 
-  // Determine which notes to display (with tag filtering)
-  const filteredNotes = selectedTagIds.length > 0
-    ? sortedNotes.filter((note) => {
-        const noteTagIds = note.tags.map((t) => t.id);
-        return selectedTagIds.every((tagId) => noteTagIds.includes(tagId));
-      })
-    : sortedNotes;
+  // Apply tag filtering to notes
+  const applyTagFilter = (notesToFilter: Note[]) => {
+    if (selectedTagIds.length === 0) return notesToFilter;
+    return notesToFilter.filter((note) => {
+      const noteTagIds = note.tags.map((t) => t.id);
+      return selectedTagIds.every((tagId) => noteTagIds.includes(tagId));
+    });
+  };
 
-  const displayNotes = searchResults !== null ? searchResults : filteredNotes;
+  // Determine which notes to display (search results also respect tag filters)
+  const filteredNotes = applyTagFilter(sortedNotes);
+  const displayNotes = searchResults !== null
+    ? applyTagFilter(searchResults)
+    : filteredNotes;
 
   // Library View
   if (view === 'library') {

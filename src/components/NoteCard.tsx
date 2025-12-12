@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Note } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { TagBadgeList } from './TagBadge';
+import { sanitizeHtml } from '../utils/sanitize';
 
 interface NoteCardProps {
   note: Note;
@@ -129,13 +130,13 @@ export function NoteCard({ note, onClick, onDelete }: NoteCardProps) {
         {note.title || 'Untitled'}
       </h3>
 
-      {/* Preview - Rendered HTML content */}
+      {/* Preview - Rendered HTML content (sanitized to prevent XSS) */}
       <div
         className="note-card-preview flex-1 overflow-hidden"
         style={{
           maxHeight: '6rem',
         }}
-        dangerouslySetInnerHTML={{ __html: note.content }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
       />
 
       {/* Footer: Tags + Timestamp */}
