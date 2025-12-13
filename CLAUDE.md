@@ -56,8 +56,32 @@ npm run dev      # Start development server
 npm run build    # Production build (tsc + vite build)
 npm run lint     # Run ESLint
 npm run preview  # Preview production build
-npx tsc --noEmit # Type check without emitting
+npm run typecheck # Type check without emitting
+npm run test     # Run tests in watch mode
+npm run test:run # Run tests once
+npm run check    # Full CI check: typecheck + lint + test + build
 ```
+
+## Development Workflow
+**IMPORTANT:** Always run `npm run check` before committing to ensure CI will pass.
+
+```bash
+# 1. Make changes
+# 2. Run full check (mirrors CI pipeline)
+npm run check
+
+# 3. If check passes, commit
+git add . && git commit -m "your message"
+
+# 4. Push
+git push
+```
+
+The `check` script runs the same steps as GitHub Actions CI:
+1. `typecheck` - TypeScript type checking
+2. `lint` - ESLint
+3. `test:run` - Vitest tests
+4. `build` - Production build
 
 ## Design System
 
