@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import type { Note, Tag, ViewMode, Theme } from './types';
 import { Header } from './components/Header';
 import { Library } from './components/Library';
-import { Editor } from './components/Editor';
 import { Auth } from './components/Auth';
+
+// Lazy load the Editor component (includes heavy Tiptap dependencies)
+const Editor = lazy(() => import('./components/Editor').then(module => ({ default: module.Editor })));
 import { TagFilterBar } from './components/TagFilterBar';
 import { TagModal } from './components/TagModal';
 import { SettingsModal } from './components/SettingsModal';
@@ -622,15 +624,34 @@ function App() {
   if (view === 'editor' && selectedNote) {
     return (
       <>
-        <Editor
-          note={selectedNote}
-          tags={tags}
-          onBack={handleBack}
-          onUpdate={handleNoteUpdate}
-          onDelete={handleNoteDelete}
-          onToggleTag={handleNoteTagToggle}
-          onCreateTag={handleAddTag}
-        />
+        <Suspense
+          fallback={
+            <div
+              className="min-h-screen flex items-center justify-center"
+              style={{ background: 'var(--color-bg-primary)' }}
+            >
+              <div className="text-center">
+                <div
+                  className="w-8 h-8 mx-auto mb-4 border-2 border-t-transparent rounded-full animate-spin"
+                  style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}
+                />
+                <p style={{ color: 'var(--color-text-secondary)', fontFamily: 'var(--font-body)' }}>
+                  Loading editor...
+                </p>
+              </div>
+            </div>
+          }
+        >
+          <Editor
+            note={selectedNote}
+            tags={tags}
+            onBack={handleBack}
+            onUpdate={handleNoteUpdate}
+            onDelete={handleNoteDelete}
+            onToggleTag={handleNoteTagToggle}
+            onCreateTag={handleAddTag}
+          />
+        </Suspense>
         {/* Tag Modal */}
         <TagModal
           isOpen={showTagModal}
