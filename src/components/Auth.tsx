@@ -57,9 +57,11 @@ interface AuthProps {
   onThemeToggle: () => void;
   initialMode?: AuthMode;
   onPasswordResetComplete?: () => void;
+  isModal?: boolean;
+  onClose?: () => void;
 }
 
-export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordResetComplete }: AuthProps) {
+export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordResetComplete, isModal = false, onClose }: AuthProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -165,45 +167,10 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
     }
   };
 
-  return (
+  // Auth card content (shared between modal and full page)
+  const authCard = (
     <div
-      className="min-h-screen flex items-center justify-center px-4 relative"
-      style={{ background: 'var(--color-bg-primary)' }}
-    >
-      {/* Theme Toggle */}
-      <button
-        onClick={onThemeToggle}
-        className="
-          absolute top-6 right-6
-          w-[44px] h-[44px]
-          rounded-full
-          flex items-center justify-center
-          border border-transparent
-          transition-all duration-300
-          focus:outline-none
-          focus:ring-2
-          focus:ring-[var(--color-accent)]
-          hover:text-[var(--color-accent)]
-          hover:-translate-y-0.5
-        "
-        style={{
-          color: 'var(--color-text-secondary)',
-        }}
-        aria-label="Toggle theme"
-      >
-        {theme === 'light' ? (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-          </svg>
-        ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-        )}
-      </button>
-
-      <div
-        className="w-full max-w-[400px] p-10"
+        className="w-[600px] max-w-full p-10"
         style={{
           background: 'var(--color-card-bg)',
           backdropFilter: 'blur(20px)',
@@ -603,6 +570,67 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
           )}
         </div>
       </div>
+  );
+
+  // Modal mode: wrap in overlay
+  if (isModal) {
+    return (
+      <div className="auth-modal-overlay" onClick={onClose}>
+        <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
+          {/* Close button */}
+          <button
+            className="auth-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          {authCard}
+        </div>
+      </div>
+    );
+  }
+
+  // Full page mode: wrap in page container with theme toggle
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center px-4 relative"
+      style={{ background: 'var(--color-bg-primary)' }}
+    >
+      {/* Theme Toggle */}
+      <button
+        onClick={onThemeToggle}
+        className="
+          absolute top-6 right-6
+          w-[44px] h-[44px]
+          rounded-full
+          flex items-center justify-center
+          border border-transparent
+          transition-all duration-300
+          focus:outline-none
+          focus:ring-2
+          focus:ring-[var(--color-accent)]
+          hover:text-[var(--color-accent)]
+          hover:-translate-y-0.5
+        "
+        style={{
+          color: 'var(--color-text-secondary)',
+        }}
+        aria-label="Toggle theme"
+      >
+        {theme === 'light' ? (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        ) : (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        )}
+      </button>
+      {authCard}
     </div>
   );
 }

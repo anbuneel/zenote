@@ -4,6 +4,7 @@ import type { Note, Tag, ViewMode, Theme } from './types';
 import { Header } from './components/Header';
 import { Library } from './components/Library';
 import { Auth } from './components/Auth';
+import { LandingPage } from './components/LandingPage';
 
 // Lazy load the Editor component (includes heavy Tiptap dependencies)
 const Editor = lazy(() => import('./components/Editor').then(module => ({ default: module.Editor })));
@@ -62,6 +63,10 @@ function App() {
 
   // Settings modal state
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  // Auth modal state (for landing page)
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('signup');
 
   // Debounce timer refs
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -512,9 +517,33 @@ function App() {
     );
   }
 
-  // Show auth screen if not logged in
+  // Show landing page with auth modal if not logged in
   if (!user) {
-    return <Auth theme={theme} onThemeToggle={handleThemeToggle} />;
+    return (
+      <>
+        <LandingPage
+          onStartWriting={() => {
+            setAuthModalMode('signup');
+            setShowAuthModal(true);
+          }}
+          onSignIn={() => {
+            setAuthModalMode('login');
+            setShowAuthModal(true);
+          }}
+          theme={theme}
+          onThemeToggle={handleThemeToggle}
+        />
+        {showAuthModal && (
+          <Auth
+            theme={theme}
+            onThemeToggle={handleThemeToggle}
+            initialMode={authModalMode}
+            isModal
+            onClose={() => setShowAuthModal(false)}
+          />
+        )}
+      </>
+    );
   }
 
   // Show loading while fetching notes
