@@ -68,13 +68,13 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
 
   return (
     <div
-      className="h-screen flex overflow-hidden"
+      className="min-h-screen flex flex-col md:flex-row overflow-hidden"
       style={{ background: 'var(--color-bg-primary)' }}
     >
       {/* Left Panel - Hero */}
-      <section className="w-[45%] flex flex-col">
-        {/* Left Header */}
-        <header className="px-8 py-5 shrink-0">
+      <section className="w-full md:w-[45%] flex flex-col">
+        {/* Header - unified on mobile, logo only on desktop */}
+        <header className="px-6 md:px-8 py-5 shrink-0 flex items-center justify-between">
           <h1
             className="text-[1.75rem] font-semibold tracking-tight"
             style={{
@@ -85,13 +85,42 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
           >
             Zenote
           </h1>
+          {/* Mobile only: theme toggle + sign in */}
+          <div className="flex items-center gap-3 md:hidden">
+            <button
+              onClick={onThemeToggle}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
+              style={{ color: 'var(--color-text-secondary)' }}
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={onSignIn}
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              Sign In
+            </button>
+          </div>
         </header>
 
         {/* Hero Content - Centered */}
-        <div className="flex-1 flex items-center px-8 lg:px-12">
+        <div className="flex-1 flex items-center px-6 md:px-8 lg:px-12 py-8 md:py-0">
           <div className="max-w-lg">
             <h2
-              className="text-4xl lg:text-[3.25rem] font-light leading-[1.1] mb-6"
+              className="text-3xl md:text-4xl lg:text-[3.25rem] font-light leading-[1.1] mb-4 md:mb-6"
               style={{
                 fontFamily: 'var(--font-display)',
                 color: 'var(--color-text-primary)',
@@ -101,7 +130,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
               A quiet space<br />for your mind.
             </h2>
             <p
-              className="text-base lg:text-lg mb-10 max-w-sm"
+              className="text-base lg:text-lg mb-8 md:mb-10 max-w-sm"
               style={{
                 fontFamily: 'var(--font-body)',
                 color: 'var(--color-text-secondary)',
@@ -142,7 +171,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
                   color: 'var(--color-text-tertiary)',
                 }}
               >
-                Free forever
+                For free
               </span>
             </div>
           </div>
@@ -151,21 +180,21 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
 
       {/* Right Panel - Demo & Preview */}
       <section
-        className="w-[55%] flex flex-col relative"
+        className="w-full md:w-[55%] flex flex-col relative flex-1"
         style={{
           background: 'var(--color-bg-secondary)',
         }}
       >
-        {/* Subtle divider line */}
+        {/* Subtle divider line - desktop only */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-px"
+          className="hidden md:block absolute left-0 top-0 bottom-0 w-px"
           style={{
             background: 'linear-gradient(to bottom, transparent, var(--glass-border) 20%, var(--glass-border) 80%, transparent)',
           }}
         />
 
-        {/* Right Header */}
-        <header className="px-10 py-5 flex items-center justify-end gap-3 shrink-0">
+        {/* Right Header - desktop only */}
+        <header className="hidden md:flex px-10 py-5 items-center justify-end gap-3 shrink-0">
           <button
             onClick={onThemeToggle}
             className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
@@ -208,11 +237,11 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
         </header>
 
         {/* Cards Container - Vertically Centered */}
-        <div className="flex-1 flex items-center justify-center px-10 py-8">
+        <div className="flex-1 flex items-center justify-center px-6 md:px-10 py-6 md:py-8">
           <div className="w-full max-w-3xl flex flex-col gap-6">
-            {/* Sample Cards Row - Matching real NoteCard styling */}
+            {/* Sample Cards Row - Hidden on mobile */}
             <div
-              className="grid grid-cols-2"
+              className="hidden md:grid grid-cols-2"
               style={{ gap: '28px' }}
             >
               {SAMPLE_NOTES.map((note, index) => (
@@ -224,8 +253,10 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     border: '1px solid var(--glass-border)',
+                    borderTop: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : undefined,
                     borderRadius: 'var(--radius-card)',
                     boxShadow: 'var(--shadow-md)',
+                    opacity: 0.7,
                   }}
                 >
                   {/* Accent line */}
@@ -285,13 +316,14 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
 
             {/* Demo Editor Card - Main Focus */}
             <div
-              className="p-10 relative flex flex-col"
+              className="p-6 md:p-10 relative flex flex-col"
               style={{
                 background: 'var(--color-card-bg)',
                 border: '1px solid var(--glass-border)',
+                borderTop: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : undefined,
                 borderRadius: 'var(--radius-card)',
                 boxShadow: 'var(--shadow-md)',
-                minHeight: '280px',
+                minHeight: '220px',
               }}
             >
               {/* Accent line */}
@@ -351,6 +383,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
                 [data-placeholder]:empty::before {
                   content: attr(data-placeholder);
                   color: var(--color-text-tertiary);
+                  font-family: var(--font-display);
                   font-style: italic;
                   pointer-events: none;
                 }

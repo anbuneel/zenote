@@ -170,7 +170,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
   // Auth card content (shared between modal and full page)
   const authCard = (
     <div
-        className="w-[600px] max-w-full p-10"
+        className="w-full max-w-[600px] p-6 md:p-10 mx-4 md:mx-0"
         style={{
           background: 'var(--color-card-bg)',
           backdropFilter: 'blur(20px)',
@@ -180,7 +180,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
       >
         {/* Logo/Title */}
         <h1
-          className="text-4xl font-semibold text-center mb-2"
+          className="text-3xl md:text-4xl font-semibold text-center mb-2"
           style={{
             fontFamily: 'var(--font-display)',
             color: 'var(--color-text-primary)',
@@ -190,7 +190,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
           Zenote
         </h1>
         <p
-          className="text-center mb-10"
+          className="text-center mb-6 md:mb-10"
           style={{
             fontFamily: 'var(--font-body)',
             color: 'var(--color-text-secondary)',
@@ -203,7 +203,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
         <form onSubmit={handleSubmit}>
           {/* Full Name - only shown during sign-up */}
           {mode === 'signup' && (
-            <div className="mb-5">
+            <div className="mb-4 md:mb-5">
               <label
                 className="block text-sm mb-2"
                 style={{
@@ -242,7 +242,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
 
           {/* Email - shown for login, signup, forgot */}
           {mode !== 'reset' && (
-            <div className="mb-5">
+            <div className="mb-4 md:mb-5">
               <label
                 className="block text-sm mb-2"
                 style={{
@@ -281,7 +281,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
 
           {/* Password - shown for login, signup, reset */}
           {mode !== 'forgot' && (
-            <div className="mb-5">
+            <div className="mb-4 md:mb-5">
               <label
                 className="block text-sm mb-2"
                 style={{
@@ -321,7 +321,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
 
           {/* Confirm Password - only for reset */}
           {mode === 'reset' && (
-            <div className="mb-5">
+            <div className="mb-4 md:mb-5">
               <label
                 className="block text-sm mb-2"
                 style={{
@@ -361,7 +361,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
 
           {/* Forgot Password Link - only for login */}
           {mode === 'login' && (
-            <div className="mb-6 text-right">
+            <div className="mb-4 md:mb-6 text-right">
               <button
                 type="button"
                 onClick={() => switchMode('forgot')}
@@ -435,7 +435,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
         {(mode === 'login' || mode === 'signup') && (
           <>
             {/* Divider */}
-            <div className="flex items-center my-6">
+            <div className="flex items-center my-4 md:my-6">
               <div
                 className="flex-1 h-px"
                 style={{ background: 'var(--glass-border)' }}
@@ -513,7 +513,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
         )}
 
         {/* Footer Links */}
-        <div className="text-center mt-6 text-sm" style={{ fontFamily: 'var(--font-body)' }}>
+        <div className="text-center mt-4 md:mt-6 text-sm" style={{ fontFamily: 'var(--font-body)' }}>
           {mode === 'login' && (
             <p style={{ color: 'var(--color-text-secondary)' }}>
               Don't have an account?{' '}

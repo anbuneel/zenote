@@ -182,6 +182,7 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Toast notifications (react-hot-toast)
 - [x] Network connectivity detection (offline/online alerts)
 - [x] Landing page with interactive demo (split-screen, localStorage persistence)
+- [x] Mobile responsive landing page and auth modal
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (GitHub, etc.)
@@ -217,6 +218,8 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 ## UI Layout
 
 ### Landing Page (Split-Screen)
+
+**Desktop (≥768px):**
 ```
 ┌─────────────────────────────────┬─────────────────────────────────────────────┐
 │ Zenote                          │                          [🌙] [Sign In]     │
@@ -229,16 +232,34 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 │                                 │  │ Try it here              [DEMO] │       │
 │  [Start Writing]  For free      │  │                                 │       │
 │                                 │  │ Start typing...                 │       │
-│                                 │  │                                 │       │
-│                                 │  │ Sign up to save your notes...   │       │
 │                                 │  └─────────────────────────────────┘       │
 └─────────────────────────────────┴─────────────────────────────────────────────┘
-
-Left panel (42%): Hero section with value prop and CTA
-Right panel (58%): Sample note cards + interactive demo editor
-- Demo content persists to localStorage (zenote-demo-content)
-- Auth opens as modal overlay
 ```
+
+**Mobile (<768px):**
+```
+┌─────────────────────────────┐
+│ Zenote          [🌙] [In]   │  ← Unified header
+├─────────────────────────────┤
+│                             │
+│   A quiet space             │
+│   for your mind.            │
+│                             │
+│   [Start Writing]  For free │
+│                             │
+├─────────────────────────────┤
+│   Try it here        [DEMO] │
+│                             │
+│   Start typing...           │
+│                             │
+└─────────────────────────────┘
+```
+
+- Left panel (45%): Hero section with value prop and CTA
+- Right panel (55%): Sample note cards + interactive demo editor
+- Demo content persists to localStorage (zenote-demo-content)
+- Auth opens as modal overlay (responsive, scrollable on mobile)
+- Mobile: Stacked layout, sample cards hidden, unified header
 
 ### Header (Three-Zone Layout)
 ```
