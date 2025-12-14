@@ -42,8 +42,7 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
         relative
         overflow-hidden
         cursor-pointer
-        p-10
-        flex flex-col
+        p-6 pb-5
         transition-all duration-500
         focus:outline-none
         focus:ring-2
@@ -84,11 +83,11 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
         "
       />
 
-      {/* Pin button - top-left corner */}
+      {/* Pin button - top-right corner */}
       <button
         onClick={handlePinClick}
         className={`
-          absolute top-3 left-3
+          absolute top-3 right-3
           w-8 h-8
           rounded-full
           flex items-center justify-center
@@ -125,10 +124,10 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
       {/* Title - sanitized to prevent XSS */}
       <h3
         className="
-          text-[1.8rem]
+          text-xl
           font-semibold
           line-clamp-2
-          mb-4
+          mb-3
           leading-tight
         "
         style={{
@@ -140,15 +139,12 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
 
       {/* Preview - Rendered HTML content (sanitized to prevent XSS) */}
       <div
-        className="note-card-preview flex-1 overflow-hidden"
-        style={{
-          maxHeight: '6rem',
-        }}
+        className="note-card-preview"
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
       />
 
       {/* Footer: Tags + Timestamp + Delete */}
-      <div className="flex items-center justify-between mt-auto pt-6">
+      <div className="flex items-center justify-between mt-4">
         {/* Tag badges */}
         <div className="flex-1 min-w-0">
           {note.tags && note.tags.length > 0 ? (

@@ -91,6 +91,7 @@ export function Library({ notes, onNoteClick, onNoteDelete, onTogglePin, searchQ
           px-12
           pt-4
           grid
+          items-start
         "
         style={{
           gap: '35px',

@@ -241,13 +241,13 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
           <div className="w-full max-w-3xl flex flex-col gap-6">
             {/* Sample Cards Row - Hidden on mobile */}
             <div
-              className="hidden md:grid grid-cols-2"
+              className="hidden md:grid grid-cols-2 items-start"
               style={{ gap: '28px' }}
             >
               {SAMPLE_NOTES.map((note, index) => (
                 <article
                   key={index}
-                  className="p-10 relative overflow-hidden flex flex-col"
+                  className="p-6 pb-5 relative overflow-hidden"
                   style={{
                     background: 'var(--color-card-bg)',
                     backdropFilter: 'blur(20px)',
@@ -270,7 +270,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
 
                   {/* Title */}
                   <h3
-                    className="text-[1.8rem] font-semibold line-clamp-2 mb-4 leading-tight"
+                    className="text-xl font-semibold line-clamp-2 mb-3 leading-tight"
                     style={{
                       fontFamily: 'var(--font-display)',
                       color: 'var(--color-text-primary)',
@@ -280,15 +280,12 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
                   </h3>
 
                   {/* Preview */}
-                  <div
-                    className="note-card-preview flex-1 overflow-hidden"
-                    style={{ maxHeight: '6rem' }}
-                  >
+                  <div className="note-card-preview">
                     <p>{note.preview}</p>
                   </div>
 
                   {/* Footer: Tag + Timestamp */}
-                  <div className="flex items-center justify-between mt-auto pt-6">
+                  <div className="flex items-center justify-between mt-4">
                     <span
                       className="text-xs px-2 py-1 rounded"
                       style={{

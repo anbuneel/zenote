@@ -290,17 +290,19 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 ### Note Card
 ```
 ┌─────────────────────────────────┐
-│ [📌]                            │  ← Pin button (top-left, appears on hover, filled when pinned)
-│                                 │
-│ Note Title                      │
+│ Note Title                  [📌]│  ← Pin button (top-right, appears on hover)
 │                                 │
 │ Rich content preview with       │
-│ formatting preserved:           │
-│ 1. Numbered lists               │
-│ 2. Bold, italic text            │
+│ formatting (4-line clamp)...    │
 │                                 │
-│ [tag] [tag]    JUST NOW    [🗑] │  ← Delete button (bottom-right, appears on hover)
+│ [tag] [tag]    JUST NOW    [🗑] │  ← Delete button (appears on hover)
 └─────────────────────────────────┘
+
+Card design: Compact "editorial index card" style
+- Padding: 24px sides, 20px bottom (p-6 pb-5)
+- Title: 1.25rem serif font
+- Preview: CSS line-clamp (4 lines)
+- Grid: Masonry-style (items-start) - cards size to content
 
 Pinned notes:
 - Pin icon is always visible and filled with accent color
