@@ -132,6 +132,7 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
           line-clamp-2
           mb-3
           leading-tight
+          shrink-0
         "
         style={{
           fontFamily: 'var(--font-display)',
@@ -147,7 +148,7 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
       />
 
       {/* Footer: Tags + Timestamp + Delete */}
-      <div className="flex items-center justify-between mt-auto pt-4">
+      <div className="flex items-center justify-between mt-auto pt-4 shrink-0">
         {/* Tag badges */}
         <div className="flex-1 min-w-0">
           {note.tags && note.tags.length > 0 ? (
