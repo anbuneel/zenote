@@ -1,3 +1,4 @@
+import Masonry from 'react-masonry-css';
 import type { Note } from '../types';
 import { NoteCard } from './NoteCard';
 
@@ -84,19 +85,14 @@ export function Library({ notes, onNoteClick, onNoteDelete, onTogglePin, searchQ
         scrollbarWidth: 'none',
       }}
     >
-      <div
-        className="
-          max-w-[1300px]
-          mx-auto
-          px-12
-          pt-4
-          grid
-          items-start
-        "
-        style={{
-          gap: '35px',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+      <Masonry
+        breakpointCols={{
+          default: 3,
+          1100: 2,
+          700: 1,
         }}
+        className="masonry-grid max-w-[1300px] mx-auto px-12 pt-4"
+        columnClassName="masonry-grid-column"
       >
         {notes.map((note) => (
           <NoteCard
@@ -107,7 +103,7 @@ export function Library({ notes, onNoteClick, onNoteDelete, onTogglePin, searchQ
             onTogglePin={onTogglePin}
           />
         ))}
-      </div>
+      </Masonry>
     </main>
   );
 }

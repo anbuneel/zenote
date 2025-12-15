@@ -463,10 +463,19 @@ body::before {
   font-weight: 300;
   line-height: 1.6;
   color: var(--color-text-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  position: relative;
+}
+
+/* Fade effect at bottom when content overflows */
+.note-card-preview::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--color-card-bg));
+  pointer-events: none;
 }
 
 .note-card-preview > * + * {
@@ -687,4 +696,20 @@ body::before {
     background: rgba(255, 255, 255, 0.2);
     transform: scale(1.05);
   }
+}
+
+/* Masonry Grid Layout */
+.masonry-grid {
+  display: flex;
+  width: auto;
+  margin-left: -20px; /* gutter offset */
+}
+
+.masonry-grid-column {
+  padding-left: 20px; /* gutter size */
+  background-clip: padding-box;
+}
+
+.masonry-grid-column > article {
+  margin-bottom: 20px; /* vertical gap between cards */
 }

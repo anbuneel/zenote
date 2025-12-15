@@ -43,6 +43,7 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
         overflow-hidden
         cursor-pointer
         p-6 pb-5
+        flex flex-col
         transition-all duration-500
         focus:outline-none
         focus:ring-2
@@ -58,6 +59,8 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
         borderRadius: 'var(--radius-card)',
         boxShadow: 'var(--shadow-md)',
         transitionTimingFunction: 'cubic-bezier(0.25, 0.8, 0.25, 1)',
+        minHeight: '200px',
+        maxHeight: '300px',
       }}
       role="button"
       tabIndex={0}
@@ -139,12 +142,12 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
 
       {/* Preview - Rendered HTML content (sanitized to prevent XSS) */}
       <div
-        className="note-card-preview"
+        className="note-card-preview flex-1 overflow-hidden"
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
       />
 
       {/* Footer: Tags + Timestamp + Delete */}
-      <div className="flex items-center justify-between mt-4">
+      <div className="flex items-center justify-between mt-auto pt-4">
         {/* Tag badges */}
         <div className="flex-1 min-w-0">
           {note.tags && note.tags.length > 0 ? (
@@ -173,7 +176,7 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
           {formatRelativeTime(note.updatedAt)}
         </time>
 
-        {/* Delete button - same size as pin button, right-aligned with pin */}
+        {/* Delete button - inline with footer, right-aligned with pin */}
         <button
           onClick={handleDeleteClick}
           className="
@@ -186,7 +189,7 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
             focus:outline-none
             focus:opacity-100
             hover:scale-110
-            ml-auto
+            ml-3
             -mr-3
             shrink-0
           "

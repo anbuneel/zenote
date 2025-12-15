@@ -247,7 +247,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
               {SAMPLE_NOTES.map((note, index) => (
                 <article
                   key={index}
-                  className="p-6 pb-5 relative overflow-hidden"
+                  className="p-6 pb-5 relative overflow-hidden flex flex-col"
                   style={{
                     background: 'var(--color-card-bg)',
                     backdropFilter: 'blur(20px)',
@@ -257,6 +257,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
                     borderRadius: 'var(--radius-card)',
                     boxShadow: 'var(--shadow-md)',
                     opacity: 0.7,
+                    minHeight: '200px',
                   }}
                 >
                   {/* Accent line */}
@@ -280,12 +281,19 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
                   </h3>
 
                   {/* Preview */}
-                  <div className="note-card-preview">
-                    <p>{note.preview}</p>
-                  </div>
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      color: 'var(--color-text-secondary)',
+                      fontWeight: 300,
+                    }}
+                  >
+                    {note.preview}
+                  </p>
 
                   {/* Footer: Tag + Timestamp */}
-                  <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center justify-between mt-auto pt-4">
                     <span
                       className="text-xs px-2 py-1 rounded"
                       style={{

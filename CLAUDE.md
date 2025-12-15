@@ -10,6 +10,7 @@ Zenote is a calm, distraction-free note-taking application inspired by Japanese 
 - **Frontend:** React 19 + TypeScript + Vite
 - **Styling:** Tailwind CSS v4 with CSS custom properties
 - **Rich Text:** Tiptap (ProseMirror-based)
+- **Layout:** react-masonry-css (Pinterest-style card grid)
 - **Backend:** Supabase (PostgreSQL + Auth + Real-time)
 - **Fonts:** Cormorant Garamond (display), Inter (body)
 
@@ -22,7 +23,7 @@ src/
 │   ├── LandingPage.tsx    # Split-screen landing page with interactive demo
 │   ├── ErrorBoundary.tsx  # Error boundary for graceful error handling
 │   ├── Header.tsx         # App header with search, profile menu, settings
-│   ├── Library.tsx        # Notes grid view
+│   ├── Library.tsx        # Notes masonry grid view
 │   ├── NoteCard.tsx       # Individual note card with tag badges
 │   ├── RichTextEditor.tsx # Tiptap editor wrapper
 │   ├── SettingsModal.tsx  # Settings modal (profile, password, theme)
