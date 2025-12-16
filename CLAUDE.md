@@ -157,7 +157,7 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Real-time sync across tabs/devices
 - [x] Note creation, editing, deletion
 - [x] Delete notes directly from card view (with confirmation)
-- [x] Auto-save with debounce and visual indicator
+- [x] Auto-save with debounce (1.5s after typing stops) and "Saving..." → "Saved ✓" indicator
 - [x] Search functionality (Cmd/Ctrl+K)
 - [x] Tag-based organization (multiple tags per note)
 - [x] Tag filtering (filter bar below header, clears search)
@@ -184,6 +184,11 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Network connectivity detection (offline/online alerts)
 - [x] Landing page with interactive demo (split-screen, localStorage persistence)
 - [x] Mobile responsive landing page and auth modal
+- [x] Sticky formatting toolbar in editor (stays visible while scrolling)
+- [x] Created/edited timestamps displayed below note title
+- [x] Smart cursor focus (title for new notes, end of content for existing)
+- [x] Slash commands (/date, /time, /now, /divider) for quick inserts
+- [x] Keyboard shortcut Cmd/Ctrl+N to create new note
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (GitHub, etc.)
@@ -279,8 +284,26 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 
 ### Editor Header (Breadcrumb with Save Indicator)
 ```
-[Zenote] / [Note Title]                        [Unsaved/Saving...]  [🗑]
+[Zenote] / [Note Title]                        [Saving.../Saved ✓]  [🗑]
 ```
+
+### Keyboard Shortcuts
+| Shortcut | Action | Context |
+|----------|--------|---------|
+| `Cmd/Ctrl + N` | Create new note | Library |
+| `Cmd/Ctrl + K` | Focus search | Library |
+| `Escape` | Save and go back | Editor |
+| `Cmd/Ctrl + B` | Bold | Editor |
+| `Cmd/Ctrl + I` | Italic | Editor |
+| `Cmd/Ctrl + U` | Underline | Editor |
+
+### Slash Commands (type `/` in editor)
+| Command | Inserts |
+|---------|---------|
+| `/date` | Current date (e.g., "Dec 16, 2024") |
+| `/time` | Current time (e.g., "3:30 PM") |
+| `/now` | Date and time (e.g., "Dec 16, 2024 at 3:30 PM") |
+| `/divider` | Horizontal line |
 
 ### Tag Filter Bar (below header)
 ```

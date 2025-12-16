@@ -7,11 +7,14 @@ import Highlight from '@tiptap/extension-highlight';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { useEffect } from 'react';
+import { SlashCommand } from './SlashCommand';
 
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
   onBlur?: () => void;
+  noteId?: string; // Used to reset editor when switching notes
+  autoFocus?: boolean; // Focus editor at end of content on mount
 }
 
 function ToolbarButton({
@@ -68,7 +71,7 @@ function ToolbarDivider() {
   );
 }
 
-export function RichTextEditor({ content, onChange, onBlur }: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -90,6 +93,7 @@ export function RichTextEditor({ content, onChange, onBlur }: RichTextEditorProp
       TaskItem.configure({
         nested: true,
       }),
+      SlashCommand,
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -105,12 +109,24 @@ export function RichTextEditor({ content, onChange, onBlur }: RichTextEditorProp
     },
   });
 
-  // Update content when prop changes (e.g., switching notes)
+  // Update content only when switching to a different note
+  // We use noteId in the dependency array to avoid resetting cursor on every save
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
+    if (editor && noteId) {
       editor.commands.setContent(content);
     }
-  }, [content, editor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteId, editor]);
+
+  // Auto-focus at end of content when autoFocus is true
+  useEffect(() => {
+    if (editor && autoFocus) {
+      // Small delay to ensure editor is fully rendered
+      setTimeout(() => {
+        editor.commands.focus('end');
+      }, 0);
+    }
+  }, [editor, autoFocus]);
 
   if (!editor) {
     return null;
@@ -118,7 +134,7 @@ export function RichTextEditor({ content, onChange, onBlur }: RichTextEditorProp
 
   return (
     <div className="rich-text-editor">
-      {/* Toolbar */}
+      {/* Toolbar - sticky below header */}
       <div
         className="
           flex items-center gap-0.5
@@ -126,6 +142,7 @@ export function RichTextEditor({ content, onChange, onBlur }: RichTextEditorProp
           mb-2
           rounded-lg
           flex-wrap
+          sticky top-16 z-10
         "
         style={{
           background: 'var(--color-bg-secondary)',

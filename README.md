@@ -25,7 +25,7 @@ A calm, distraction-free note-taking app inspired by Japanese stationery and wab
 - **Personalized Avatar** - Profile shows your initials from name or email
 - **Settings Page** - Update display name, change password, toggle theme
 - **Password Reset** - Forgot password flow with email recovery
-- **Auto-save Indicator** - Visual feedback when changes are being saved
+- **Smart Auto-save** - Auto-saves 1.5s after you stop typing with "Saving..." → "Saved ✓" indicator
 - **Google Sign-In** - Quick authentication via Google OAuth
 - **Secure** - User authentication with row-level security
 - **Error Boundary** - Graceful error handling with user-friendly recovery UI
@@ -38,6 +38,10 @@ A calm, distraction-free note-taking app inspired by Japanese stationery and wab
 - **Test Coverage** - Comprehensive tests with Vitest and React Testing Library
 - **CI/CD Pipeline** - Automated testing and builds via GitHub Actions
 - **Code Splitting** - Lazy-loaded editor for faster initial page loads
+- **Sticky Toolbar** - Formatting toolbar stays visible while scrolling long notes
+- **Slash Commands** - Type `/date`, `/time`, `/now`, or `/divider` to insert content
+- **Keyboard Shortcuts** - `Cmd/Ctrl+N` for new note, `Cmd/Ctrl+K` for search, `Escape` to go back
+- **Note Timestamps** - Created and edited dates displayed in the editor
 
 ## Tech Stack
 
@@ -172,6 +176,7 @@ src/
 │   ├── Library.tsx        # Notes grid view
 │   ├── NoteCard.tsx       # Individual note card
 │   ├── RichTextEditor.tsx # Tiptap editor wrapper
+│   ├── SlashCommand.tsx   # Slash commands extension (/date, /time, /now)
 │   ├── SettingsModal.tsx  # Settings modal (profile, password, theme)
 │   ├── TagBadge.tsx       # Small tag badge for note cards
 │   ├── TagFilterBar.tsx   # Horizontal tag filter strip

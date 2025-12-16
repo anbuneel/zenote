@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Note, Tag } from '../types';
 import { RichTextEditor } from './RichTextEditor';
 import { TagSelector } from './TagSelector';
+import { formatShortDate, formatRelativeTime } from '../utils/formatTime';
 
 interface EditorProps {
   note: Note;
@@ -13,13 +14,16 @@ interface EditorProps {
   onCreateTag?: () => void;
 }
 
+type SaveStatus = 'idle' | 'saving' | 'saved';
+
 export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, onCreateTag }: EditorProps) {
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const titleRef = useRef<HTMLTextAreaElement>(null);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [currentNoteId, setCurrentNoteId] = useState(note.id);
 
   // Reset local state when switching to a different note
@@ -32,13 +36,11 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note.id]);
 
-  // Track unsaved changes
-  const hasUnsavedChanges = title !== note.title || content !== note.content;
-
-  const handleSave = useCallback(() => {
+  // Perform the actual save
+  const performSave = useCallback(() => {
     if (title === note.title && content === note.content) return;
 
-    setIsSaving(true);
+    setSaveStatus('saving');
     onUpdate({
       ...note,
       title,
@@ -46,34 +48,63 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
       updatedAt: new Date(),
     });
 
-    // Clear any existing timeout
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
+    // Clear any existing saved indicator timeout
+    if (savedIndicatorTimeoutRef.current) {
+      clearTimeout(savedIndicatorTimeoutRef.current);
     }
 
-    // Show "Saving" indicator briefly, then hide it
-    // The actual save is debounced in App.tsx (500ms), so we show for 800ms total
-    saveTimeoutRef.current = setTimeout(() => {
-      setIsSaving(false);
-    }, 800);
+    // Show "Saved" briefly after saving, then hide
+    savedIndicatorTimeoutRef.current = setTimeout(() => {
+      setSaveStatus('saved');
+      // Hide the "Saved" indicator after 2 seconds
+      savedIndicatorTimeoutRef.current = setTimeout(() => {
+        setSaveStatus('idle');
+      }, 2000);
+    }, 500); // Wait for server save (debounced in App.tsx)
   }, [title, content, note, onUpdate]);
 
+  // Auto-save when content changes (debounced)
+  useEffect(() => {
+    // Don't auto-save if nothing changed
+    if (title === note.title && content === note.content) return;
+
+    // Clear any existing auto-save timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Schedule auto-save after 1.5 seconds of inactivity
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      performSave();
+    }, 1500);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [title, content, note.title, note.content, performSave]);
+
+  // Handle Escape key to save and go back
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        handleSave();
+        performSave();
         onBack();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, onBack]);
+  }, [performSave, onBack]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      if (savedIndicatorTimeoutRef.current) {
+        clearTimeout(savedIndicatorTimeoutRef.current);
       }
     };
   }, []);
@@ -98,12 +129,24 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
     }
   };
 
-  // Auto-resize title on mount
+  // Check if note has meaningful content (not just empty HTML)
+  const hasContent = (() => {
+    const stripped = note.content.replace(/<[^>]*>/g, '').trim();
+    return stripped.length > 0;
+  })();
+
+  // Auto-resize title on mount and handle initial focus
   useEffect(() => {
     if (titleRef.current) {
       titleRef.current.style.height = 'auto';
       titleRef.current.style.height = titleRef.current.scrollHeight + 'px';
+
+      // Focus title if note is empty (new note)
+      if (!hasContent) {
+        titleRef.current.focus();
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = () => {
@@ -134,10 +177,10 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
         style={{ background: 'var(--color-bg-primary)' }}
       >
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 min-w-0">
+        <nav className="flex items-baseline gap-2 min-w-0">
           {/* App Name - Clickable to go back */}
           <button
-            onClick={() => { handleSave(); onBack(); }}
+            onClick={() => { performSave(); onBack(); }}
             className="
               shrink-0
               transition-colors duration-200
@@ -179,16 +222,20 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
           </span>
 
           {/* Save Status Indicator */}
-          {(isSaving || hasUnsavedChanges) && (
+          {saveStatus !== 'idle' && (
             <span
-              className="shrink-0 ml-3 text-xs px-2 py-1 rounded-full flex items-center gap-1.5"
+              className={`
+                shrink-0 ml-3 text-xs px-2 py-1 rounded-full flex items-center gap-1.5
+                transition-opacity duration-300
+                ${saveStatus === 'saved' ? 'opacity-80' : 'opacity-100'}
+              `}
               style={{
                 fontFamily: 'var(--font-body)',
-                color: isSaving ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
-                background: isSaving ? 'var(--color-accent-glow)' : 'var(--color-bg-secondary)',
+                color: saveStatus === 'saving' ? 'var(--color-accent)' : 'var(--color-success, #22c55e)',
+                background: saveStatus === 'saving' ? 'var(--color-accent-glow)' : 'rgba(34, 197, 94, 0.1)',
               }}
             >
-              {isSaving ? (
+              {saveStatus === 'saving' ? (
                 <>
                   <span
                     className="w-2 h-2 rounded-full animate-pulse"
@@ -198,11 +245,10 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
                 </>
               ) : (
                 <>
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ background: 'var(--color-text-tertiary)' }}
-                  />
-                  Unsaved
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Saved
                 </>
               )}
             </span>
@@ -241,8 +287,7 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
 
       {/* Editor Content */}
       <main
-        className="flex-1 overflow-y-auto"
-        style={{ scrollbarWidth: 'none' }}
+        className="flex-1"
       >
         <div className="max-w-[800px] mx-auto px-10 pb-40">
           {/* Title */}
@@ -251,7 +296,7 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
             value={title}
             onChange={handleTitleChange}
             onKeyDown={handleTitleKeyDown}
-            onBlur={handleSave}
+            onBlur={performSave}
             placeholder="Untitled"
             className="
               w-full
@@ -273,6 +318,17 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
             rows={1}
           />
 
+          {/* Timestamps */}
+          <div
+            className="text-xs mb-3"
+            style={{
+              fontFamily: 'var(--font-body)',
+              color: 'var(--color-text-tertiary)',
+            }}
+          >
+            Created {formatShortDate(note.createdAt)} · Edited {formatRelativeTime(note.updatedAt)}
+          </div>
+
           {/* Tag Selector */}
           <div className="mb-3">
             <TagSelector
@@ -287,7 +343,9 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
           <RichTextEditor
             content={content}
             onChange={handleContentChange}
-            onBlur={handleSave}
+            onBlur={performSave}
+            noteId={note.id}
+            autoFocus={hasContent}
           />
         </div>
       </main>

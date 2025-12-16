@@ -194,6 +194,24 @@ function App() {
     }
   };
 
+  // Keyboard shortcut: Cmd/Ctrl + N to create new note
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger in library view when user is logged in
+      if (!user || view !== 'library') return;
+
+      // Check for Cmd+N (Mac) or Ctrl+N (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        handleNewNote();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, view]);
+
   // Debounced note update
   const handleNoteUpdate = useCallback((updatedNote: Note) => {
     // Update local state immediately for responsiveness
