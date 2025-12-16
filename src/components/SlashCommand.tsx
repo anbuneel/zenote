@@ -245,14 +245,16 @@ export const SlashCommand = Extension.create({
               });
 
               popup = document.createElement('div');
-              popup.style.position = 'absolute';
+              popup.style.position = 'fixed';
               popup.style.zIndex = '50';
               document.body.appendChild(popup);
               popup.appendChild(component.element);
 
-              const { left, bottom } = props.clientRect?.() || { left: 0, bottom: 0 };
-              popup.style.left = `${left}px`;
-              popup.style.top = `${bottom + 8}px`;
+              const rect = props.clientRect?.();
+              if (rect) {
+                popup.style.left = `${rect.left}px`;
+                popup.style.top = `${rect.bottom + 8}px`;
+              }
             },
 
             onUpdate: (props: SuggestionProps) => {
@@ -266,9 +268,11 @@ export const SlashCommand = Extension.create({
               }
 
               if (popup && props.clientRect) {
-                const { left, bottom } = props.clientRect() || { left: 0, bottom: 0 };
-                popup.style.left = `${left}px`;
-                popup.style.top = `${bottom + 8}px`;
+                const rect = props.clientRect();
+                if (rect) {
+                  popup.style.left = `${rect.left}px`;
+                  popup.style.top = `${rect.bottom + 8}px`;
+                }
               }
             },
 

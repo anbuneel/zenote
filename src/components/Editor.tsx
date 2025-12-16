@@ -54,13 +54,15 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
     }
 
     // Show "Saved" briefly after saving, then hide
-    savedIndicatorTimeoutRef.current = setTimeout(() => {
+    const savedTimeoutId = setTimeout(() => {
       setSaveStatus('saved');
       // Hide the "Saved" indicator after 2 seconds
-      savedIndicatorTimeoutRef.current = setTimeout(() => {
+      const hideTimeoutId = setTimeout(() => {
         setSaveStatus('idle');
       }, 2000);
+      savedIndicatorTimeoutRef.current = hideTimeoutId;
     }, 500); // Wait for server save (debounced in App.tsx)
+    savedIndicatorTimeoutRef.current = savedTimeoutId;
   }, [title, content, note, onUpdate]);
 
   // Auto-save when content changes (debounced)
@@ -231,8 +233,8 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
               `}
               style={{
                 fontFamily: 'var(--font-body)',
-                color: saveStatus === 'saving' ? 'var(--color-accent)' : 'var(--color-success, #22c55e)',
-                background: saveStatus === 'saving' ? 'var(--color-accent-glow)' : 'rgba(34, 197, 94, 0.1)',
+                color: saveStatus === 'saving' ? 'var(--color-accent)' : 'var(--color-success)',
+                background: saveStatus === 'saving' ? 'var(--color-accent-glow)' : 'var(--color-success-glow)',
               }}
             >
               {saveStatus === 'saving' ? (

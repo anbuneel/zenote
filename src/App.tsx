@@ -182,17 +182,17 @@ function App() {
     setSelectedNoteId(null);
   };
 
-  const handleNewNote = async () => {
+  const handleNewNote = useCallback(async () => {
     if (!user) return;
     try {
       const newNote = await createNote(user.id);
-      setNotes([newNote, ...notes]);
+      setNotes((prev) => [newNote, ...prev]);
       setSelectedNoteId(newNote.id);
       setView('editor');
     } catch (error) {
       console.error('Failed to create note:', error);
     }
-  };
+  }, [user]);
 
   // Keyboard shortcut: Cmd/Ctrl + N to create new note
   useEffect(() => {
@@ -209,8 +209,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, view]);
+  }, [user, view, handleNewNote]);
 
   // Debounced note update
   const handleNoteUpdate = useCallback((updatedNote: Note) => {
