@@ -20,6 +20,10 @@
   --color-accent-glow: rgba(194, 86, 52, 0.2);
   --color-destructive: #B54A32;
 
+  /* Success: Sage green */
+  --color-success: #3D7A4A;
+  --color-success-glow: rgba(61, 122, 74, 0.15);
+
   /* Glass border for cards */
   --glass-border: rgba(62, 59, 54, 0.12);
 
@@ -76,6 +80,10 @@
   --color-accent-hover: #E5C44A;
   --color-accent-glow: rgba(212, 175, 55, 0.25);
   --color-destructive: #E07A5F;
+
+  /* Success: Forest green */
+  --color-success: #4CAF50;
+  --color-success-glow: rgba(76, 175, 80, 0.2);
 
   /* Gold glass border */
   --glass-border: rgba(212, 175, 55, 0.15);

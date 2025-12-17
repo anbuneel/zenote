@@ -182,17 +182,34 @@ function App() {
     setSelectedNoteId(null);
   };
 
-  const handleNewNote = async () => {
+  const handleNewNote = useCallback(async () => {
     if (!user) return;
     try {
       const newNote = await createNote(user.id);
-      setNotes([newNote, ...notes]);
+      setNotes((prev) => [newNote, ...prev]);
       setSelectedNoteId(newNote.id);
       setView('editor');
     } catch (error) {
       console.error('Failed to create note:', error);
     }
-  };
+  }, [user]);
+
+  // Keyboard shortcut: Cmd/Ctrl + N to create new note
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger in library view when user is logged in
+      if (!user || view !== 'library') return;
+
+      // Check for Cmd+N (Mac) or Ctrl+N (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        handleNewNote();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [user, view, handleNewNote]);
 
   // Debounced note update
   const handleNoteUpdate = useCallback((updatedNote: Note) => {
