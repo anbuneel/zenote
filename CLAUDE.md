@@ -19,19 +19,25 @@ Zenote is a calm, distraction-free note-taking application inspired by Japanese 
 src/
 ├── components/
 │   ├── Auth.tsx           # Login/signup/Google OAuth/password reset UI (supports modal mode)
+│   ├── ChangelogPage.tsx  # Version history page with categorized changes
 │   ├── Editor.tsx         # Note editor with rich text + tag selector + save indicator
-│   ├── LandingPage.tsx    # Split-screen landing page with interactive demo
 │   ├── ErrorBoundary.tsx  # Error boundary for graceful error handling
+│   ├── Footer.tsx         # Minimal footer with changelog/roadmap/GitHub links
 │   ├── Header.tsx         # App header with search, profile menu, settings
+│   ├── LandingPage.tsx    # Split-screen landing page with interactive demo
 │   ├── Library.tsx        # Notes masonry grid view
 │   ├── NoteCard.tsx       # Individual note card with tag badges
 │   ├── RichTextEditor.tsx # Tiptap editor wrapper
+│   ├── RoadmapPage.tsx    # Public roadmap with status-grouped features
 │   ├── SettingsModal.tsx  # Settings modal (profile, password, theme)
 │   ├── TagBadge.tsx       # Small tag badge for note cards
 │   ├── TagFilterBar.tsx   # Horizontal tag filter strip with edit support
 │   ├── TagModal.tsx       # Modal for creating/editing/deleting tags
 │   ├── TagPill.tsx        # Tag pill component with edit button
 │   └── TagSelector.tsx    # Dropdown for assigning tags in editor
+├── data/
+│   ├── changelog.ts       # Version history data
+│   └── roadmap.ts         # Roadmap items with status
 ├── contexts/
 │   └── AuthContext.tsx    # Auth state management (login, signup, Google OAuth, password reset, profile)
 ├── lib/
@@ -189,6 +195,9 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Smart cursor focus (title for new notes, end of content for existing)
 - [x] Slash commands (/date, /time, /now, /divider) for quick inserts
 - [x] Keyboard shortcut Cmd/Ctrl+N to create new note
+- [x] Public changelog page (version history with categorized changes)
+- [x] Public roadmap page (status-grouped feature plans)
+- [x] Footer navigation (Changelog · Roadmap · GitHub links)
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (GitHub, etc.)
@@ -332,6 +341,55 @@ Pinned notes:
 - Pin icon is always visible and filled with accent color
 - Sorted to appear first in the library
 ```
+
+### Footer (Library & Landing Page)
+```
+              Changelog  ·  Roadmap  ·  GitHub
+```
+- Subtle links at bottom of page
+- Text: 12px, tertiary color
+- Accent color on hover
+- Public pages accessible without login
+
+### Changelog Page
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ← Back                                                      │
+├─────────────────────────────────────────────────────────────┤
+│                      What's New                             │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ v1.3.0                               Dec 18, 2024     │  │
+│  │ ✦ Feature: Public changelog and roadmap pages        │  │
+│  │ ↑ Improvement: Enhanced descriptions                  │  │
+│  │ ✓ Fix: Bug fixes                                      │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                                                             │
+│              Changelog  ·  Roadmap  ·  GitHub               │
+└─────────────────────────────────────────────────────────────┘
+```
+- Change icons: ✦ (feature), ↑ (improvement), ✓ (fix)
+- Data stored in `src/data/changelog.ts`
+
+### Roadmap Page
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ← Back                                                      │
+├─────────────────────────────────────────────────────────────┤
+│                       Roadmap                               │
+│       What we're building and exploring next                │
+│                                                             │
+│  Coming Soon ─────────────────────────────────────────────  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ Feature Title                         [Coming Soon]   │  │
+│  │ Description of the feature                            │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                                                             │
+│              Changelog  ·  Roadmap  ·  GitHub               │
+└─────────────────────────────────────────────────────────────┘
+```
+- Status badges: In Progress (gold), Coming Soon (terracotta), Exploring (stone)
+- Data stored in `src/data/roadmap.ts`
 
 ## Export/Import
 

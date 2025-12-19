@@ -15,7 +15,7 @@ export interface Note {
   pinned: boolean;
 }
 
-export type ViewMode = 'library' | 'editor';
+export type ViewMode = 'library' | 'editor' | 'changelog' | 'roadmap';
 export type Theme = 'light' | 'dark';
 
 // Curated wabi-sabi color palette for tags
