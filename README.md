@@ -179,8 +179,8 @@ src/
 │   ├── LandingPage.tsx    # Split-screen landing with interactive demo
 │   ├── Header.tsx         # App header with search, profile menu
 │   ├── Library.tsx        # Notes grid view
+│   ├── MinimalHeader.tsx  # Minimal header with back button
 │   ├── NoteCard.tsx       # Individual note card
-│   ├── PublicHeader.tsx   # Header for public pages (changelog, roadmap)
 │   ├── RichTextEditor.tsx # Tiptap editor wrapper
 │   ├── RoadmapPage.tsx    # Public feature roadmap page
 │   ├── SlashCommand.tsx   # Slash commands extension (/date, /time, /now)

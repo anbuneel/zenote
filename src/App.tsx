@@ -548,8 +548,7 @@ function App() {
             setAuthModalMode('login');
             setShowAuthModal(true);
           }}
-          onLogoClick={() => setView('library')}
-          onChangelogClick={() => {}} // Already on changelog
+          onBack={() => setView('library')}
           onRoadmapClick={() => setView('roadmap')}
           isAuthenticated={!!user}
         />
@@ -576,9 +575,8 @@ function App() {
             setAuthModalMode('login');
             setShowAuthModal(true);
           }}
-          onLogoClick={() => setView('library')}
+          onBack={() => setView('library')}
           onChangelogClick={() => setView('changelog')}
-          onRoadmapClick={() => {}} // Already on roadmap
           isAuthenticated={!!user}
         />
         {showAuthModal && (

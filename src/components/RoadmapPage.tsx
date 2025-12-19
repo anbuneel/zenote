@@ -1,5 +1,5 @@
 import { roadmap, statusLabels, statusColors, type RoadmapStatus } from '../data/roadmap';
-import { PublicHeader } from './PublicHeader';
+import { MinimalHeader } from './MinimalHeader';
 import { Footer } from './Footer';
 import type { Theme } from '../types';
 
@@ -7,15 +7,14 @@ interface RoadmapPageProps {
   theme: Theme;
   onThemeToggle: () => void;
   onSignIn: () => void;
-  onLogoClick: () => void;
+  onBack: () => void;
   onChangelogClick: () => void;
-  onRoadmapClick: () => void;
   isAuthenticated?: boolean;
 }
 
 const statusOrder: RoadmapStatus[] = ['in-progress', 'coming-soon', 'exploring'];
 
-export function RoadmapPage({ theme, onThemeToggle, onSignIn, onLogoClick, onChangelogClick, onRoadmapClick, isAuthenticated }: RoadmapPageProps) {
+export function RoadmapPage({ theme, onThemeToggle, onSignIn, onBack, onChangelogClick, isAuthenticated }: RoadmapPageProps) {
   // Group items by status
   const groupedItems = statusOrder.reduce((acc, status) => {
     acc[status] = roadmap.filter((item) => item.status === status);
@@ -28,14 +27,11 @@ export function RoadmapPage({ theme, onThemeToggle, onSignIn, onLogoClick, onCha
       style={{ background: 'var(--color-bg-primary)' }}
     >
       {/* Header */}
-      <PublicHeader
+      <MinimalHeader
         theme={theme}
         onThemeToggle={onThemeToggle}
+        onBack={onBack}
         onSignIn={onSignIn}
-        onLogoClick={onLogoClick}
-        onChangelogClick={onChangelogClick}
-        onRoadmapClick={onRoadmapClick}
-        currentPage="roadmap"
         isAuthenticated={isAuthenticated}
       />
 

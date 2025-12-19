@@ -1,5 +1,5 @@
 import { changelog, type ChangeType } from '../data/changelog';
-import { PublicHeader } from './PublicHeader';
+import { MinimalHeader } from './MinimalHeader';
 import { Footer } from './Footer';
 import type { Theme } from '../types';
 
@@ -7,8 +7,7 @@ interface ChangelogPageProps {
   theme: Theme;
   onThemeToggle: () => void;
   onSignIn: () => void;
-  onLogoClick: () => void;
-  onChangelogClick: () => void;
+  onBack: () => void;
   onRoadmapClick: () => void;
   isAuthenticated?: boolean;
 }
@@ -34,21 +33,18 @@ function formatDate(dateString: string): string {
   });
 }
 
-export function ChangelogPage({ theme, onThemeToggle, onSignIn, onLogoClick, onChangelogClick, onRoadmapClick, isAuthenticated }: ChangelogPageProps) {
+export function ChangelogPage({ theme, onThemeToggle, onSignIn, onBack, onRoadmapClick, isAuthenticated }: ChangelogPageProps) {
   return (
     <div
       className="min-h-screen flex flex-col"
       style={{ background: 'var(--color-bg-primary)' }}
     >
       {/* Header */}
-      <PublicHeader
+      <MinimalHeader
         theme={theme}
         onThemeToggle={onThemeToggle}
+        onBack={onBack}
         onSignIn={onSignIn}
-        onLogoClick={onLogoClick}
-        onChangelogClick={onChangelogClick}
-        onRoadmapClick={onRoadmapClick}
-        currentPage="changelog"
         isAuthenticated={isAuthenticated}
       />
 
