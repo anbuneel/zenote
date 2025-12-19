@@ -179,7 +179,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
 
             {/* Footer links - integrated into left panel */}
             <nav
-              className="mt-16 md:mt-20 flex items-center gap-2 text-xs"
+              className="mt-24 md:mt-32 flex items-center gap-2 text-sm"
               style={{
                 fontFamily: 'var(--font-body)',
                 color: 'var(--color-text-tertiary)',

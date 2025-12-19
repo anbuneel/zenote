@@ -5,14 +5,9 @@ interface FooterProps {
 
 export function Footer({ onChangelogClick, onRoadmapClick }: FooterProps) {
   return (
-    <footer
-      className="py-6 px-4 text-center shrink-0"
-      style={{
-        borderTop: '1px solid var(--glass-border)',
-      }}
-    >
+    <footer className="py-6 px-4 text-center shrink-0">
       <nav
-        className="flex items-center justify-center gap-2 text-xs"
+        className="flex items-center justify-center gap-2 text-sm"
         style={{
           fontFamily: 'var(--font-body)',
           color: 'var(--color-text-tertiary)',
