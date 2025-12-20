@@ -9,7 +9,7 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     version: '1.3.0',
-    date: '2024-12-18',
+    date: '2025-12-18',
     changes: [
       { type: 'feature', text: 'Public changelog and roadmap pages' },
       { type: 'feature', text: 'Footer navigation with quick links' },
@@ -17,7 +17,7 @@ export const changelog: ChangelogEntry[] = [
   },
   {
     version: '1.2.0',
-    date: '2024-12-16',
+    date: '2025-12-16',
     changes: [
       { type: 'feature', text: 'Pin notes to top of library' },
       { type: 'feature', text: 'Slash commands (/date, /time, /now, /divider)' },
@@ -30,7 +30,7 @@ export const changelog: ChangelogEntry[] = [
   },
   {
     version: '1.1.0',
-    date: '2024-12-12',
+    date: '2025-12-12',
     changes: [
       { type: 'feature', text: 'Landing page with interactive demo' },
       { type: 'feature', text: 'Network connectivity detection with offline alerts' },
@@ -42,7 +42,7 @@ export const changelog: ChangelogEntry[] = [
   },
   {
     version: '1.0.0',
-    date: '2024-12-01',
+    date: '2025-12-01',
     changes: [
       { type: 'feature', text: 'Wabi-sabi design with light and dark themes' },
       { type: 'feature', text: 'Rich text editor with formatting toolbar' },
