@@ -6,8 +6,16 @@ import TextAlign from '@tiptap/extension-text-align';
 import Highlight from '@tiptap/extension-highlight';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo, useCallback } from 'react';
 import { SlashCommand } from './SlashCommand';
+
+// Module-level cache to store cursor positions by noteId
+// This persists across component remounts (including React StrictMode double-mount)
+// and allows restoring cursor position when switching browser tabs
+const cursorPositionCache = new Map<string, { from: number; to: number }>();
+
+// Track which notes have had their initial focus applied (for new notes)
+const initialFocusApplied = new Set<string>();
 
 interface RichTextEditorProps {
   content: string;
@@ -74,32 +82,35 @@ function ToolbarDivider() {
 export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus }: RichTextEditorProps) {
   // Track previous noteId to detect actual note switches
   const prevNoteIdRef = useRef<string | undefined>(noteId);
-  // Track if initial focus has been applied (prevents re-focusing on tab switch)
-  const hasInitialFocusRef = useRef(false);
+  // Track if we've set up selection listener for this editor instance
+  const selectionListenerSetupRef = useRef(false);
+
+  // Memoize extensions to prevent recreation on every render
+  const extensions = useMemo(() => [
+    StarterKit.configure({
+      heading: {
+        levels: [1, 2, 3],
+      },
+    }),
+    Placeholder.configure({
+      placeholder: 'Start writing...',
+    }),
+    Underline,
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+    }),
+    Highlight.configure({
+      multicolor: false,
+    }),
+    TaskList,
+    TaskItem.configure({
+      nested: true,
+    }),
+    SlashCommand,
+  ], []);
 
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-      }),
-      Placeholder.configure({
-        placeholder: 'Start writing...',
-      }),
-      Underline,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Highlight.configure({
-        multicolor: false,
-      }),
-      TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
-      SlashCommand,
-    ],
+    extensions,
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -114,28 +125,83 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus }:
     },
   });
 
+  // Save cursor position whenever selection changes
+  // This allows restoring position when editor remounts (e.g., after tab switch)
+  const saveCursorPosition = useCallback(() => {
+    if (editor && noteId && !editor.isDestroyed) {
+      try {
+        const { from, to } = editor.state.selection;
+        cursorPositionCache.set(noteId, { from, to });
+      } catch {
+        // Ignore errors if editor state is not accessible
+      }
+    }
+  }, [editor, noteId]);
+
+  // Set up selection change listener to continuously save cursor position
+  useEffect(() => {
+    if (!editor || !noteId || selectionListenerSetupRef.current) return;
+
+    selectionListenerSetupRef.current = true;
+    editor.on('selectionUpdate', saveCursorPosition);
+
+    return () => {
+      editor.off('selectionUpdate', saveCursorPosition);
+      selectionListenerSetupRef.current = false;
+    };
+  }, [editor, noteId, saveCursorPosition]);
+
   // Update content only when switching to a different note
   // Compare with previous noteId to avoid resetting on re-renders or real-time updates
   useEffect(() => {
     if (editor && noteId && prevNoteIdRef.current !== noteId) {
       editor.commands.setContent(content);
-      // Reset initial focus flag when switching notes
-      hasInitialFocusRef.current = false;
+      // Clear initial focus flag for previous note so it will focus at end when reopened
+      if (prevNoteIdRef.current) {
+        initialFocusApplied.delete(prevNoteIdRef.current);
+        // Don't clear cursor position cache - keep it for when user returns
+      }
     }
     prevNoteIdRef.current = noteId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId, editor]);
 
-  // Auto-focus at end of content only on initial mount (not on tab switch or re-render)
+  // Restore cursor position or focus at end for new notes
   useEffect(() => {
-    if (editor && autoFocus && !hasInitialFocusRef.current) {
-      // Small delay to ensure editor is fully rendered
-      setTimeout(() => {
-        editor.commands.focus('end');
-        hasInitialFocusRef.current = true;
-      }, 0);
-    }
-  }, [editor, autoFocus]);
+    if (!editor || !noteId || !autoFocus) return;
+
+    const savedPosition = cursorPositionCache.get(noteId);
+    const hasHadInitialFocus = initialFocusApplied.has(noteId);
+
+    // Use requestAnimationFrame to ensure editor view is ready
+    requestAnimationFrame(() => {
+      if (!editor || editor.isDestroyed) return;
+
+      try {
+        if (savedPosition) {
+          // Restore saved cursor position
+          const docLength = editor.state.doc.content.size;
+          // Ensure position is valid within document bounds
+          const safeFrom = Math.min(savedPosition.from, docLength);
+          const safeTo = Math.min(savedPosition.to, docLength);
+          editor.commands.setTextSelection({ from: safeFrom, to: safeTo });
+          editor.commands.focus();
+        } else if (!hasHadInitialFocus) {
+          // First time opening this note - focus at end
+          initialFocusApplied.add(noteId);
+          editor.commands.focus('end');
+        }
+        // If hasHadInitialFocus but no saved position, do nothing - let user click to focus
+      } catch {
+        // Fallback: just focus without position if something goes wrong
+        try {
+          editor.commands.focus();
+        } catch {
+          // Editor not ready, ignore
+        }
+      }
+    });
+  }, [editor, autoFocus, noteId]);
 
   if (!editor) {
     return null;

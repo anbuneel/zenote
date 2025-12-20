@@ -115,6 +115,8 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
       if (hideIndicatorTimeoutRef.current) {
         clearTimeout(hideIndicatorTimeoutRef.current);
       }
+      // Note: Don't clear focus cache here - it causes issues with React StrictMode
+      // The cache is cleared when switching to a different note in RichTextEditor
     };
   }, []);
 

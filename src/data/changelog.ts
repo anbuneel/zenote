@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.3.1',
+    date: '2025-12-20',
+    changes: [
+      { type: 'fix', text: 'Cursor position now preserved when switching browser tabs' },
+    ],
+  },
+  {
     version: '1.3.0',
     date: '2025-12-18',
     changes: [

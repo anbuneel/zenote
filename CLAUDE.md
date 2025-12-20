@@ -193,7 +193,7 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Mobile responsive landing page and auth modal
 - [x] Sticky formatting toolbar in editor (stays visible while scrolling)
 - [x] Created/edited timestamps displayed below note title
-- [x] Smart cursor focus (title for new notes, end of content for existing)
+- [x] Smart cursor focus (title for new notes, end of content for existing, position preserved on tab switch)
 - [x] Slash commands (/date, /time, /now, /divider) for quick inserts
 - [x] Keyboard shortcut Cmd/Ctrl+N to create new note
 - [x] Public changelog page (version history with categorized changes)
