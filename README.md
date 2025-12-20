@@ -42,6 +42,9 @@ A calm, distraction-free note-taking app inspired by Japanese stationery and wab
 - **Slash Commands** - Type `/date`, `/time`, `/now`, or `/divider` to insert content
 - **Keyboard Shortcuts** - `Cmd/Ctrl+N` for new note, `Cmd/Ctrl+K` for search, `Escape` to go back
 - **Note Timestamps** - Created and edited dates displayed in the editor
+- **Public Changelog** - Browse version history and recent updates
+- **Public Roadmap** - See what's coming next and features being explored
+- **Footer Navigation** - Quick links to Changelog, Roadmap, and GitHub
 
 ## Tech Stack
 
@@ -169,13 +172,17 @@ create index note_tags_tag_id_idx on note_tags(tag_id);
 src/
 ├── components/        # React components
 │   ├── Auth.tsx           # Login/signup/Google OAuth/password reset
+│   ├── ChangelogPage.tsx  # Public version history page
 │   ├── Editor.tsx         # Note editor with rich text + tags
 │   ├── ErrorBoundary.tsx  # Error boundary for graceful error handling
+│   ├── Footer.tsx         # Footer with changelog/roadmap/GitHub links
 │   ├── LandingPage.tsx    # Split-screen landing with interactive demo
 │   ├── Header.tsx         # App header with search, profile menu
 │   ├── Library.tsx        # Notes grid view
+│   ├── SimpleHeader.tsx   # Simple header with clickable logo
 │   ├── NoteCard.tsx       # Individual note card
 │   ├── RichTextEditor.tsx # Tiptap editor wrapper
+│   ├── RoadmapPage.tsx    # Public feature roadmap page
 │   ├── SlashCommand.tsx   # Slash commands extension (/date, /time, /now)
 │   ├── SettingsModal.tsx  # Settings modal (profile, password, theme)
 │   ├── TagBadge.tsx       # Small tag badge for note cards
@@ -184,6 +191,7 @@ src/
 │   ├── TagPill.tsx        # Tag pill component
 │   └── TagSelector.tsx    # Dropdown for assigning tags
 ├── contexts/          # React contexts (Auth)
+├── data/              # Static data (changelog, roadmap)
 ├── hooks/             # Custom React hooks (useNetworkStatus)
 ├── lib/               # Supabase client
 ├── services/          # API services (notes, tags CRUD)

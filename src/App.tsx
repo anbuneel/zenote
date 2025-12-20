@@ -11,6 +11,9 @@ const Editor = lazy(() => import('./components/Editor').then(module => ({ defaul
 import { TagFilterBar } from './components/TagFilterBar';
 import { TagModal } from './components/TagModal';
 import { SettingsModal } from './components/SettingsModal';
+import { ChangelogPage } from './components/ChangelogPage';
+import { RoadmapPage } from './components/RoadmapPage';
+import { Footer } from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
 import { fetchNotes, createNote, updateNote, deleteNote, subscribeToNotes, searchNotes, toggleNotePin } from './services/notes';
 import { fetchTags, subscribeToTags, addTagToNote, removeTagFromNote, createTag, updateTag, deleteTag } from './services/tags';
@@ -534,6 +537,61 @@ function App() {
     );
   }
 
+  // Public pages (accessible without login)
+  if (view === 'changelog') {
+    return (
+      <>
+        <ChangelogPage
+          theme={theme}
+          onThemeToggle={handleThemeToggle}
+          onSignIn={() => {
+            setAuthModalMode('login');
+            setShowAuthModal(true);
+          }}
+          onLogoClick={() => setView('library')}
+          onRoadmapClick={() => setView('roadmap')}
+          isAuthenticated={!!user}
+        />
+        {showAuthModal && (
+          <Auth
+            theme={theme}
+            onThemeToggle={handleThemeToggle}
+            initialMode={authModalMode}
+            isModal
+            onClose={() => setShowAuthModal(false)}
+          />
+        )}
+      </>
+    );
+  }
+
+  if (view === 'roadmap') {
+    return (
+      <>
+        <RoadmapPage
+          theme={theme}
+          onThemeToggle={handleThemeToggle}
+          onSignIn={() => {
+            setAuthModalMode('login');
+            setShowAuthModal(true);
+          }}
+          onLogoClick={() => setView('library')}
+          onChangelogClick={() => setView('changelog')}
+          isAuthenticated={!!user}
+        />
+        {showAuthModal && (
+          <Auth
+            theme={theme}
+            onThemeToggle={handleThemeToggle}
+            initialMode={authModalMode}
+            isModal
+            onClose={() => setShowAuthModal(false)}
+          />
+        )}
+      </>
+    );
+  }
+
   // Show landing page with auth modal if not logged in
   if (!user) {
     return (
@@ -549,6 +607,8 @@ function App() {
           }}
           theme={theme}
           onThemeToggle={handleThemeToggle}
+          onChangelogClick={() => setView('changelog')}
+          onRoadmapClick={() => setView('roadmap')}
         />
         {showAuthModal && (
           <Auth
@@ -643,6 +703,12 @@ function App() {
           onClose={() => setShowSettingsModal(false)}
           theme={theme}
           onThemeToggle={handleThemeToggle}
+        />
+
+        {/* Footer */}
+        <Footer
+          onChangelogClick={() => setView('changelog')}
+          onRoadmapClick={() => setView('roadmap')}
         />
 
         {/* Import Loading Overlay */}

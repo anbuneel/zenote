@@ -6,6 +6,8 @@ interface LandingPageProps {
   onSignIn: () => void;
   theme: Theme;
   onThemeToggle: () => void;
+  onChangelogClick: () => void;
+  onRoadmapClick: () => void;
 }
 
 const DEMO_STORAGE_KEY = 'zenote-demo-content';
@@ -40,7 +42,7 @@ function getInitialContent(): string {
   return '';
 }
 
-export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: LandingPageProps) {
+export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, onChangelogClick, onRoadmapClick }: LandingPageProps) {
   const [demoContent, setDemoContent] = useState(getInitialContent);
   const [hasTyped, setHasTyped] = useState(() => getInitialContent().length > 0);
   const [isFocused, setIsFocused] = useState(false);
@@ -174,6 +176,59 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
                 For free
               </span>
             </div>
+
+            {/* Footer links - integrated into left panel */}
+            <nav
+              className="mt-24 md:mt-32 flex items-center gap-2 text-sm"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-text-tertiary)',
+              }}
+            >
+              <button
+                onClick={onChangelogClick}
+                className="hover:underline transition-colors duration-200"
+                style={{ color: 'inherit' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }}
+              >
+                Changelog
+              </button>
+              <span aria-hidden="true">·</span>
+              <button
+                onClick={onRoadmapClick}
+                className="hover:underline transition-colors duration-200"
+                style={{ color: 'inherit' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }}
+              >
+                Roadmap
+              </button>
+              <span aria-hidden="true">·</span>
+              <a
+                href="https://github.com/anbuneel/zenote"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline transition-colors duration-200"
+                style={{ color: 'inherit' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }}
+              >
+                GitHub
+              </a>
+            </nav>
           </div>
         </div>
       </section>
@@ -219,11 +274,10 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle }: 
           </button>
           <button
             onClick={onSignIn}
-            className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
             style={{
               fontFamily: 'var(--font-body)',
               color: 'var(--color-text-secondary)',
-              background: 'transparent',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = 'var(--color-accent)';
