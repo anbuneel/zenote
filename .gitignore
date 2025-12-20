@@ -35,4 +35,7 @@ nul
 tech-stack-*.md
 
 # Claude Code local settings
-.claude/settings.local.json
+.claude/
+
+# Cursor editor
+.cursor/
