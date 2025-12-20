@@ -6,7 +6,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Highlight from '@tiptap/extension-highlight';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { SlashCommand } from './SlashCommand';
 
 interface RichTextEditorProps {
@@ -72,6 +72,11 @@ function ToolbarDivider() {
 }
 
 export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus }: RichTextEditorProps) {
+  // Track previous noteId to detect actual note switches
+  const prevNoteIdRef = useRef<string | undefined>(noteId);
+  // Track if initial focus has been applied (prevents re-focusing on tab switch)
+  const hasInitialFocusRef = useRef(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -110,20 +115,24 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus }:
   });
 
   // Update content only when switching to a different note
-  // We use noteId in the dependency array to avoid resetting cursor on every save
+  // Compare with previous noteId to avoid resetting on re-renders or real-time updates
   useEffect(() => {
-    if (editor && noteId) {
+    if (editor && noteId && prevNoteIdRef.current !== noteId) {
       editor.commands.setContent(content);
+      // Reset initial focus flag when switching notes
+      hasInitialFocusRef.current = false;
     }
+    prevNoteIdRef.current = noteId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId, editor]);
 
-  // Auto-focus at end of content when autoFocus is true
+  // Auto-focus at end of content only on initial mount (not on tab switch or re-render)
   useEffect(() => {
-    if (editor && autoFocus) {
+    if (editor && autoFocus && !hasInitialFocusRef.current) {
       // Small delay to ensure editor is fully rendered
       setTimeout(() => {
         editor.commands.focus('end');
+        hasInitialFocusRef.current = true;
       }, 0);
     }
   }, [editor, autoFocus]);
