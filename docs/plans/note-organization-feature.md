@@ -604,3 +604,106 @@ This approach ships working features quickly, then refines aesthetics.
 ---
 
 This design provides elegant organization that scales from 10 to 1000+ notes while maintaining the calm, contemplative wabi-sabi aesthetic. Notes naturally find their place in time, requiring no manual organization from the user.
+
+---
+
+## Phase 3: Design Refinements
+
+Based on user feedback after Phase 1 & 2 implementation, the following refinements address compactness, pinned note prominence, and chapter granularity.
+
+### Refinement D: Restoring Compactness — "Whisper Headers"
+
+**Problem**: Chapter headers act as visual "dams" blocking the natural flow of notes. Each separator adds ~60-80px of vertical interruption, breaking the contemplative rhythm.
+
+**Solution**: Use *whisper headers*—minimal markers that organize without dominating:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  This Week ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  3 notes│
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐                   │
+│  │ Note      │  │ Note      │  │ Note      │                   │
+│  └───────────┘  └───────────┘  └───────────┘                   │
+│                                                                 │
+│  Last Week ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  5 notes│
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐                   │
+│  │ Note      │  │ Note      │  │ Note      │                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+- Remove chevron/collapse for chapters with < 20 notes (auto-expand)
+- Reduce header height: `py-2` instead of `py-3`
+- Dashed line extending from label to note count (inline)
+- Remove separate divider line below header
+- Reduce chapter margin: `mb-4` instead of `mb-8`
+- Single-line header format: `Chapter ─ ─ ─ ─ ─ count`
+
+---
+
+### Refinement E: Pinned Notes — "Above Time"
+
+**Problem**: Pinned notes buried within temporal chapters defeats intentional curation.
+
+**Solution**: Create a dedicated **Pinned** section that exists outside the temporal flow:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  📌 ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  2 pinned│
+│  ┌───────────┐  ┌───────────┐                                   │
+│  │ 📌 Note   │  │ 📌 Note   │                                   │
+│  └───────────┘  └───────────┘                                   │
+│                                                                 │
+│  This Week ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  5 notes│
+│  ...                                                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Design details:**
+- Pin icon (📌) as section marker instead of text label
+- Never collapsible (always visible)
+- Subtle warm background tint: `rgba(var(--color-accent-rgb), 0.03)`
+- Pinned notes removed from temporal chapters (no duplication)
+- If no pinned notes, section doesn't render (honest presence)
+
+---
+
+### Refinement F: Revised Chapter Granularity
+
+**Problem**: "Today" is often empty or sparse, creating awkward gaps. "This Week" already feels current.
+
+**Original Structure:**
+| Chapter | Range |
+|---------|-------|
+| Today | 0 days |
+| This Week | 1-7 days |
+| This Month | 8-30 days |
+| Last Month | 31-60 days |
+| Seasons Past | 60+ days |
+
+**Revised Structure:**
+| Chapter | Range | Rationale |
+|---------|-------|-----------|
+| **Pinned** | — | User-curated, transcends time |
+| **This Week** | 0-7 days | Fresh, actively relevant |
+| **Last Week** | 8-14 days | Recent but settling |
+| **This Month** | 15-30 days | Broader temporal context |
+| **Earlier** | 31-90 days | Consolidated older notes |
+| **Archive** | 90+ days | Deep history |
+
+**Key changes:**
+- "Today" merged into "This Week" (reduces sparse sections)
+- "Last Week" added (useful mental model for users)
+- "Last Month" renamed to "Earlier" (less literal, more encompassing)
+- "Seasons Past" renamed to "Archive" (clearer intent)
+
+---
+
+### Summary of Phase 3 Refinements
+
+| Issue | Before | After |
+|-------|--------|-------|
+| **Compactness** | Full headers with chevrons, dividers | Whisper headers with inline dashed lines |
+| **Pinned notes** | Sorted within temporal chapters | Dedicated "Pinned" section, always first |
+| **Granularity** | 5 chapters (Today, This Week, This Month, Last Month, Seasons Past) | 6 chapters (Pinned, This Week, Last Week, This Month, Earlier, Archive) |
+
+These refinements restore the calm, dense, contemplative quality while maintaining temporal organization.

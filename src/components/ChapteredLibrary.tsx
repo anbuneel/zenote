@@ -24,18 +24,12 @@ export function ChapteredLibrary({
   onTogglePin,
   searchQuery,
 }: ChapteredLibraryProps) {
-  // Sort notes: pinned first, then by most recent within each chapter
+  // Sort notes by most recent (pinned handling is done in groupNotesByChapter)
   const sortedNotes = useMemo(() => {
-    return [...notes].sort((a, b) => {
-      // Pinned notes come first
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      // Within same pin status, sort by updated time
-      return b.updatedAt.getTime() - a.updatedAt.getTime();
-    });
+    return [...notes].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }, [notes]);
 
-  // Group notes by chapter (only returns non-empty chapters)
+  // Group notes by chapter (pinned notes get their own chapter first)
   const chapters = useMemo(() => {
     return groupNotesByChapter(sortedNotes);
   }, [sortedNotes]);
@@ -174,6 +168,7 @@ export function ChapteredLibrary({
             label={chapter.label}
             notes={chapter.notes}
             defaultExpanded={defaultExpansion[chapter.key as ChapterKey]}
+            isPinned={chapter.isPinned}
             onNoteClick={onNoteClick}
             onNoteDelete={onNoteDelete}
             onTogglePin={onTogglePin}

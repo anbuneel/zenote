@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { ChapterKey } from '../utils/temporalGrouping';
+import { type ChapterKey } from '../utils/temporalGrouping';
 
 interface TimeRibbonProps {
   chapters: { key: ChapterKey; label: string }[];
@@ -7,13 +7,14 @@ interface TimeRibbonProps {
   onChapterClick: (key: ChapterKey) => void;
 }
 
-// Short labels for mobile
+// Short labels for mobile (use full labels from utility)
 const SHORT_LABELS: Record<ChapterKey, string> = {
-  today: 'Today',
+  pinned: 'Pinned',
   thisWeek: 'Week',
+  lastWeek: 'Last Wk',
   thisMonth: 'Month',
-  lastMonth: 'Last Mo.',
-  seasonsPast: 'Past',
+  earlier: 'Earlier',
+  archive: 'Archive',
 };
 
 export function TimeRibbon({
