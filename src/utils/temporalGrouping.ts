@@ -34,7 +34,7 @@ export function getChapterForDate(date: Date): ChapterKey {
   const diffMs = startOfToday.getTime() - new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  // Today: within the last 24 hours (same calendar day or yesterday if it's early morning)
+  // Today: same calendar day
   if (diffDays < 1) {
     return 'today';
   }
