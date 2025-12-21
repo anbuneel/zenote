@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import toast from 'react-hot-toast';
 import type { Note, Tag, ViewMode, Theme } from './types';
 import { Header } from './components/Header';
-import { Library } from './components/Library';
+import { ChapteredLibrary } from './components/ChapteredLibrary';
+import { FadedNotesView } from './components/FadedNotesView';
 import { Auth } from './components/Auth';
 import { LandingPage } from './components/LandingPage';
 
@@ -15,7 +16,20 @@ import { ChangelogPage } from './components/ChangelogPage';
 import { RoadmapPage } from './components/RoadmapPage';
 import { Footer } from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
-import { fetchNotes, createNote, updateNote, deleteNote, subscribeToNotes, searchNotes, toggleNotePin } from './services/notes';
+import {
+  fetchNotes,
+  createNote,
+  updateNote,
+  subscribeToNotes,
+  searchNotes,
+  toggleNotePin,
+  softDeleteNote,
+  restoreNote,
+  permanentDeleteNote,
+  fetchFadedNotes,
+  countFadedNotes,
+  emptyFadedNotes,
+} from './services/notes';
 import { fetchTags, subscribeToTags, addTagToNote, removeTagFromNote, createTag, updateTag, deleteTag } from './services/tags';
 import {
   exportNotesToJSON,
@@ -71,6 +85,10 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('signup');
 
+  // Faded notes state
+  const [fadedNotes, setFadedNotes] = useState<Note[]>([]);
+  const [fadedNotesCount, setFadedNotesCount] = useState(0);
+
   // Debounce timer refs
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -107,15 +125,37 @@ function App() {
         });
       },
       (updatedNote) => {
-        setNotes((prev) =>
-          prev.map((n) => {
-            if (n.id === updatedNote.id) {
-              // Preserve existing tags since real-time events don't include them
-              return { ...updatedNote, tags: n.tags };
-            }
-            return n;
-          })
-        );
+        // Check if this is a soft-delete (note now has deletedAt set)
+        if (updatedNote.deletedAt) {
+          // Remove from active notes and update faded count
+          setNotes((prev) => prev.filter((n) => n.id !== updatedNote.id));
+          setFadedNotesCount((prev) => prev + 1);
+          if (selectedNoteId === updatedNote.id) {
+            setView('library');
+            setSelectedNoteId(null);
+          }
+          return;
+        }
+
+        // Check if this is a restore (note no longer has deletedAt)
+        // This handles notes restored from another tab
+        setNotes((prev) => {
+          const existingNote = prev.find((n) => n.id === updatedNote.id);
+          if (existingNote) {
+            // Note exists, update it preserving tags
+            return prev.map((n) => {
+              if (n.id === updatedNote.id) {
+                return { ...updatedNote, tags: n.tags };
+              }
+              return n;
+            });
+          } else {
+            // Note doesn't exist in active list (was restored from faded)
+            // Add it back (tags will be empty, will refresh on next full load)
+            setFadedNotesCount((prev) => Math.max(0, prev - 1));
+            return [updatedNote, ...prev];
+          }
+        });
       },
       (deletedId) => {
         setNotes((prev) => prev.filter((n) => n.id !== deletedId));
@@ -162,6 +202,20 @@ function App() {
     );
 
     return () => unsubscribeTags();
+  }, [user]);
+
+  // Fetch faded notes count when user is authenticated
+  useEffect(() => {
+    if (!user) {
+      setFadedNotesCount(0);
+      setFadedNotes([]);
+      return;
+    }
+
+    // Fetch initial count
+    countFadedNotes()
+      .then(setFadedNotesCount)
+      .catch(console.error);
   }, [user]);
 
   // Sort notes: pinned first, then by most recent
@@ -230,14 +284,76 @@ function App() {
     }, 500);
   }, []);
 
+  // Soft delete a note (move to Faded Notes)
   const handleNoteDelete = async (id: string) => {
     try {
-      await deleteNote(id);
+      await softDeleteNote(id);
       setNotes(notes.filter((n) => n.id !== id));
-      setView('library');
-      setSelectedNoteId(null);
+      setFadedNotesCount((prev) => prev + 1);
+      if (selectedNoteId === id) {
+        setView('library');
+        setSelectedNoteId(null);
+      }
+      toast.success('Moved to Faded Notes');
     } catch (error) {
       console.error('Failed to delete note:', error);
+      toast.error('Failed to delete note');
+    }
+  };
+
+  // Restore a note from Faded Notes
+  const handleRestoreNote = async (id: string) => {
+    try {
+      await restoreNote(id);
+      // Find the note in fadedNotes and move it back
+      const restoredNote = fadedNotes.find((n) => n.id === id);
+      if (restoredNote) {
+        setFadedNotes((prev) => prev.filter((n) => n.id !== id));
+        setNotes((prev) => [{ ...restoredNote, deletedAt: null }, ...prev]);
+      }
+      setFadedNotesCount((prev) => Math.max(0, prev - 1));
+      toast.success('Note restored');
+    } catch (error) {
+      console.error('Failed to restore note:', error);
+      toast.error('Failed to restore note');
+    }
+  };
+
+  // Permanently delete a note
+  const handlePermanentDelete = async (id: string) => {
+    try {
+      await permanentDeleteNote(id);
+      setFadedNotes((prev) => prev.filter((n) => n.id !== id));
+      setFadedNotesCount((prev) => Math.max(0, prev - 1));
+      toast.success('Note permanently deleted');
+    } catch (error) {
+      console.error('Failed to permanently delete note:', error);
+      toast.error('Failed to delete note');
+    }
+  };
+
+  // Empty all faded notes
+  const handleEmptyFadedNotes = async () => {
+    try {
+      await emptyFadedNotes();
+      setFadedNotes([]);
+      setFadedNotesCount(0);
+      toast.success('All faded notes deleted');
+    } catch (error) {
+      console.error('Failed to empty faded notes:', error);
+      toast.error('Failed to empty faded notes');
+    }
+  };
+
+  // Navigate to Faded Notes view
+  const handleFadedNotesClick = async () => {
+    try {
+      const faded = await fetchFadedNotes();
+      setFadedNotes(faded);
+      setView('faded');
+    } catch (error) {
+      console.error('Failed to fetch faded notes:', error);
+      toast.error('Failed to load faded notes');
     }
   };
 
@@ -650,6 +766,19 @@ function App() {
     ? applyTagFilter(searchResults)
     : filteredNotes;
 
+  // Faded Notes View
+  if (view === 'faded') {
+    return (
+      <FadedNotesView
+        notes={fadedNotes}
+        onBack={() => setView('library')}
+        onRestore={handleRestoreNote}
+        onPermanentDelete={handlePermanentDelete}
+        onEmptyAll={handleEmptyFadedNotes}
+      />
+    );
+  }
+
   // Library View
   if (view === 'library') {
     return (
@@ -664,6 +793,8 @@ function App() {
           onExportMarkdown={handleExportMarkdown}
           onImportFile={handleImportFile}
           onSettingsClick={() => setShowSettingsModal(true)}
+          onFadedNotesClick={handleFadedNotesClick}
+          fadedNotesCount={fadedNotesCount}
         />
         <TagFilterBar
           tags={tags}
@@ -678,7 +809,7 @@ function App() {
             <p style={{ color: 'var(--color-text-secondary)' }}>Searching...</p>
           </div>
         ) : (
-          <Library
+          <ChapteredLibrary
             notes={displayNotes}
             onNoteClick={handleNoteClick}
             onNoteDelete={handleNoteDelete}
