@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { type ChapterKey } from '../utils/temporalGrouping';
 
 interface TimeRibbonProps {
@@ -17,41 +17,94 @@ const SHORT_LABELS: Record<ChapterKey, string> = {
   archive: 'Archive',
 };
 
+// localStorage key for tracking first-time users
+const RIBBON_SEEN_KEY = 'zenote-ribbon-seen';
+
+// Timeout durations
+const FIRST_TIME_TIMEOUT = 6000; // 6s for first-time users
+const RETURNING_TIMEOUT = 5000; // 5s for returning users
+
 export function TimeRibbon({
   chapters,
   currentChapter,
   onChapterClick,
 }: TimeRibbonProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Auto-hide after idle
+  // Check if user has seen the ribbon before
+  const getHideTimeout = useCallback(() => {
+    if (typeof window === 'undefined') return RETURNING_TIMEOUT;
+    const hasSeen = localStorage.getItem(RIBBON_SEEN_KEY);
+    if (!hasSeen) {
+      localStorage.setItem(RIBBON_SEEN_KEY, 'true');
+      return FIRST_TIME_TIMEOUT;
+    }
+    return RETURNING_TIMEOUT;
+  }, []);
+
+  // Reset hide timer
+  const resetHideTimer = useCallback(() => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    hideTimeoutRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, RETURNING_TIMEOUT);
+  }, []);
+
+  // Show ribbon and reset timer
+  const showRibbon = useCallback(() => {
+    setIsVisible(true);
+    resetHideTimer();
+  }, [resetHideTimer]);
+
+  // Track previous chapter for section change detection
+  const [prevChapter, setPrevChapter] = useState<ChapterKey | null>(currentChapter);
+
+  // Show on section change (using render-time comparison to avoid lint warning)
+  if (currentChapter !== prevChapter && currentChapter !== null) {
+    setPrevChapter(currentChapter);
+    setIsVisible(true);
+    // Reset timer will be handled by the effect below
+  }
+
+  // Auto-hide with scroll direction awareness
   useEffect(() => {
-    let hideTimeout: ReturnType<typeof setTimeout>;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
 
-    const handleInteraction = () => {
-      setIsVisible(true);
-      clearTimeout(hideTimeout);
+      // Show on scroll UP (user seeking/navigating)
+      if (currentScrollY < lastScrollY.current - 10) {
+        showRibbon();
+      }
 
-      hideTimeout = setTimeout(() => {
-        setIsVisible(false);
-      }, 3000);
+      lastScrollY.current = currentScrollY;
+    };
+
+    const handleTouch = () => {
+      showRibbon();
     };
 
     // Show on scroll or touch
-    window.addEventListener('scroll', handleInteraction, { passive: true });
-    window.addEventListener('touchstart', handleInteraction, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('touchstart', handleTouch, { passive: true });
 
-    // Initial hide after 3s
-    hideTimeout = setTimeout(() => {
+    // Initial hide (longer for first-time users)
+    const initialTimeout = getHideTimeout();
+    hideTimeoutRef.current = setTimeout(() => {
       setIsVisible(false);
-    }, 3000);
+    }, initialTimeout);
 
     return () => {
-      window.removeEventListener('scroll', handleInteraction);
-      window.removeEventListener('touchstart', handleInteraction);
-      clearTimeout(hideTimeout);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('touchstart', handleTouch);
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
     };
-  }, []);
+  }, [getHideTimeout, showRibbon]);
 
   const handleChapterClick = useCallback(
     (key: ChapterKey) => {
@@ -60,9 +113,9 @@ export function TimeRibbon({
         navigator.vibrate(10);
       }
       onChapterClick(key);
-      setIsVisible(true);
+      showRibbon();
     },
-    [onChapterClick]
+    [onChapterClick, showRibbon]
   );
 
   // Don't render if only one chapter
@@ -93,7 +146,7 @@ export function TimeRibbon({
         boxShadow: 'var(--shadow-lg)',
       }}
       aria-label="Time navigation"
-      onClick={() => setIsVisible(true)}
+      onClick={showRibbon}
     >
       {/* Timeline track */}
       <div className="flex items-center gap-3">
