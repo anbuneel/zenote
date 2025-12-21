@@ -63,12 +63,12 @@ export function ChapterSection({
   return (
     <section
       id={`chapter-${chapterKey}`}
-      className="mb-4"
+      className="mb-2"
       aria-label={`${label} - ${notes.length} ${notes.length === 1 ? 'note' : 'notes'}`}
       style={isPinned ? {
         background: 'rgba(var(--color-accent-rgb), 0.03)',
         borderRadius: '8px',
-        margin: '0 1rem 1rem 1rem',
+        marginBottom: '0.5rem',
         padding: '0.5rem 0',
       } : undefined}
     >
@@ -105,15 +105,16 @@ export function ChapterSection({
             </svg>
           )}
 
-          {/* Pin icon for pinned section */}
+          {/* Pin icon for pinned section - matches NoteCard pin icon */}
           {isPinned && (
             <svg
               className="w-4 h-4"
               fill="currentColor"
+              stroke="currentColor"
               viewBox="0 0 24 24"
               style={{ color: 'var(--color-accent)' }}
             >
-              <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
           )}
 
