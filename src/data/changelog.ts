@@ -8,6 +8,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.4.1',
+    date: '2025-12-21',
+    changes: [
+      { type: 'improvement', text: 'Mobile header now fits properly without horizontal scroll' },
+      { type: 'improvement', text: 'Tag filter bar with dynamic scroll fade indicators' },
+      { type: 'improvement', text: 'More compact tag pills on mobile screens' },
+      { type: 'fix', text: 'Prevent horizontal page overflow on mobile devices' },
+    ],
+  },
+  {
     version: '1.4.0',
     date: '2025-12-21',
     changes: [

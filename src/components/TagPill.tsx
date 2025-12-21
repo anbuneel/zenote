@@ -19,9 +19,9 @@ export function TagPill({ tag, isActive = false, onClick, onEdit, showRemove, on
       className="
         group
         relative
-        px-4 py-2
-        flex items-center gap-2
-        text-sm font-medium
+        px-3 py-1.5 md:px-4 md:py-2
+        flex items-center gap-1.5 md:gap-2
+        text-xs md:text-sm font-medium
         transition-all duration-300
         focus:outline-none
         focus:ring-2
@@ -137,8 +137,8 @@ export function AllNotesPill({ isActive, onClick }: AllNotesPillProps) {
     <button
       onClick={onClick}
       className="
-        px-4 py-2
-        text-sm font-medium
+        px-3 py-1.5 md:px-4 md:py-2
+        text-xs md:text-sm font-medium
         transition-all duration-300
         focus:outline-none
         focus:ring-2
@@ -180,7 +180,7 @@ export function AddTagPill({ onClick }: AddTagPillProps) {
     <button
       onClick={onClick}
       className="
-        w-9 h-9
+        w-7 h-7 md:w-9 md:h-9
         flex items-center justify-center
         transition-all duration-300
         focus:outline-none

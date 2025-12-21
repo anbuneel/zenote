@@ -98,16 +98,16 @@ export function Header({
     <header
       className="
         h-16
-        px-6 md:px-12
+        px-4 md:px-12
         flex
         items-center
-        gap-3 md:gap-6
+        gap-2 md:gap-6
       "
       style={{ background: 'transparent' }}
     >
       {/* Left Zone - Logo */}
       <h1
-        className="text-2xl md:text-[1.75rem] font-semibold tracking-tight cursor-pointer shrink-0"
+        className="text-xl md:text-[1.75rem] font-semibold tracking-tight cursor-pointer shrink-0"
         style={{
           fontFamily: 'var(--font-display)',
           color: 'var(--color-text-primary)',
@@ -117,12 +117,12 @@ export function Header({
         Zenote
       </h1>
 
-      {/* Center Zone - Search Bar (truly centered) */}
-      <div className="flex-1 flex justify-center">
+      {/* Center Zone - Search Bar */}
+      <div className="flex-1 flex justify-center min-w-0">
         <div
           className="
             w-full
-            max-w-[420px]
+            max-w-[280px] md:max-w-[420px]
             relative
             transition-all duration-300
           "
@@ -132,8 +132,8 @@ export function Header({
         >
           <div
             className="
-              flex items-center gap-3
-              px-4 py-2
+              flex items-center gap-2 md:gap-3
+              px-3 md:px-4 py-2
               rounded-full
               transition-all duration-300
             "
@@ -163,13 +163,14 @@ export function Header({
               onChange={(e) => onSearchChange(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
-              placeholder="Search notes..."
+              placeholder="Search..."
               className="
                 flex-1
                 bg-transparent
                 border-none
                 outline-none
                 text-sm
+                min-w-0
               "
               style={{
                 fontFamily: 'var(--font-body)',
@@ -184,6 +185,7 @@ export function Header({
                   rounded-full
                   flex items-center justify-center
                   transition-colors duration-200
+                  shrink-0
                 "
                 style={{
                   background: 'var(--color-bg-tertiary)',
@@ -196,7 +198,7 @@ export function Header({
               </button>
             ) : (
               <span
-                className="hidden md:inline text-xs px-1.5 py-0.5 rounded"
+                className="hidden md:inline text-xs px-1.5 py-0.5 rounded shrink-0"
                 style={{
                   background: 'var(--color-bg-tertiary)',
                   color: 'var(--color-text-tertiary)',

@@ -100,6 +100,10 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family: var(--font-body);
@@ -109,6 +113,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.6s ease, color 0.6s ease;
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
 }
 
 /* Paper texture overlay */
@@ -735,4 +742,14 @@ body::before {
 
 .masonry-grid-column > article {
   margin-bottom: 8px; /* vertical gap between cards - tight compact layout */
+}
+
+/* Hide scrollbar for tag filter bar (webkit) */
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth momentum scrolling on touch devices */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
 }

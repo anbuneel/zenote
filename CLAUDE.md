@@ -245,6 +245,10 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Temporal Chapters (automatic grouping: Pinned, This Week, Last Week, This Month, Earlier, Archive)
 - [x] Collapsible chapter sections with note counts and preview titles
 - [x] Chapter navigation: Desktop dot sidebar + Mobile time ribbon scrubber
+- [x] Mobile-responsive header (compact search bar, reduced spacing)
+- [x] Tag filter bar with dynamic scroll fade indicators
+- [x] Compact tag pills on mobile screens
+- [x] Global overflow prevention for mobile devices
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (GitHub, etc.)
