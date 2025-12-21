@@ -734,5 +734,5 @@ body::before {
 }
 
 .masonry-grid-column > article {
-  margin-bottom: 12px; /* vertical gap between cards - compact wabi-sabi */
+  margin-bottom: 8px; /* vertical gap between cards - tight compact layout */
 }

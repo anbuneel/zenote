@@ -67,7 +67,7 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
       onClick={() => onClick(note.id)}
       onKeyDown={(e) => e.key === 'Enter' && onClick(note.id)}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-10px)';
+        e.currentTarget.style.transform = 'translateY(-6px)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';

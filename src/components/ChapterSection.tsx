@@ -72,9 +72,10 @@ export function ChapterSection({
         padding: '0.25rem 0',
       } : undefined}
     >
-      {/* Whisper Header - compact single line */}
+      {/* Whisper Header - compact single line, z-index above lifted cards */}
       <div
         className={`
+          relative z-10
           flex items-center
           px-6 md:px-12
           py-1
