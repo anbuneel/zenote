@@ -23,7 +23,7 @@ src/
 │   ├── Editor.tsx         # Note editor with rich text + tag selector + save indicator
 │   ├── ErrorBoundary.tsx  # Error boundary for graceful error handling
 │   ├── Footer.tsx         # Minimal footer with changelog/roadmap/GitHub links
-│   ├── ChapteredLibrary.tsx # Temporal chapters note organization (Today, This Week, etc.)
+│   ├── ChapteredLibrary.tsx # Temporal chapters note organization (Pinned, This Week, Last Week, etc.)
 │   ├── ChapterNav.tsx     # Desktop dot navigation sidebar for chapter jumping
 │   ├── ChapterSection.tsx # Collapsible chapter section with masonry grid
 │   ├── FadedNoteCard.tsx  # Card for soft-deleted notes (restore/permanent delete)
@@ -60,7 +60,7 @@ src/
 │   ├── exportImport.ts    # Export/import utilities (JSON, Markdown) with validation
 │   ├── formatTime.ts      # Relative time formatting
 │   ├── sanitize.ts        # HTML/text sanitization (XSS prevention)
-│   └── temporalGrouping.ts # Group notes by time (Today, This Week, This Month, etc.)
+│   └── temporalGrouping.ts # Group notes by time (Pinned, This Week, Last Week, etc.)
 ├── test/
 │   └── setup.ts           # Vitest test setup
 ├── App.tsx                # Main app component with state management
@@ -209,7 +209,7 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Footer navigation (Changelog · Roadmap · GitHub links)
 - [x] Soft-delete notes ("Faded Notes" - 30-day recovery window)
 - [x] Faded Notes view with restore and permanent delete options
-- [x] Temporal Chapters (automatic grouping: Today, This Week, This Month, Last Month, Seasons Past)
+- [x] Temporal Chapters (automatic grouping: Pinned, This Week, Last Week, This Month, Earlier, Archive)
 - [x] Collapsible chapter sections with note counts and preview titles
 - [x] Chapter navigation: Desktop dot sidebar + Mobile time ribbon scrubber
 
@@ -381,7 +381,7 @@ Pinned notes:
 │   Note X · Note Y · Note Z ...                              │
 └─────────────────────────────────────────────────────────────┘
 ```
-- Notes automatically grouped by time (Today, This Week, This Month, Last Month, Seasons Past)
+- Notes automatically grouped by time (Pinned, This Week, Last Week, This Month, Earlier, Archive)
 - Empty chapters are not rendered ("Honest Presence" pattern)
 - Collapsed state shows first 3 note titles as preview
 - Each chapter has its own masonry grid

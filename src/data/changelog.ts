@@ -8,6 +8,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.4.0',
+    date: '2025-12-21',
+    changes: [
+      { type: 'feature', text: 'Temporal chapter organization (This Week, Last Week, This Month, Earlier, Archive)' },
+      { type: 'feature', text: 'Dedicated Pinned chapter for quick access to important notes' },
+      { type: 'feature', text: 'Soft-delete with "Faded Notes" - recover deleted notes within 30 days' },
+      { type: 'feature', text: 'TimeRibbon mobile navigation with smart auto-hide' },
+      { type: 'feature', text: 'ChapterNav desktop sidebar for quick chapter jumping' },
+      { type: 'improvement', text: 'Compact whisper headers for cleaner layout' },
+      { type: 'improvement', text: 'Scroll-direction aware navigation (shows on scroll up)' },
+    ],
+  },
+  {
     version: '1.3.1',
     date: '2025-12-20',
     changes: [
