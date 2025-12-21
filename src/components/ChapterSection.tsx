@@ -63,13 +63,13 @@ export function ChapterSection({
   return (
     <section
       id={`chapter-${chapterKey}`}
-      className="mb-2"
+      className="mb-0"
       aria-label={`${label} - ${notes.length} ${notes.length === 1 ? 'note' : 'notes'}`}
       style={isPinned ? {
         background: 'rgba(var(--color-accent-rgb), 0.03)',
         borderRadius: '8px',
-        marginBottom: '0.5rem',
-        padding: '0.5rem 0',
+        marginBottom: '0.75rem',
+        padding: '0.25rem 0',
       } : undefined}
     >
       {/* Whisper Header - compact single line */}
@@ -77,7 +77,7 @@ export function ChapterSection({
         className={`
           flex items-center
           px-6 md:px-12
-          py-2
+          py-1
           ${isCollapsible ? 'cursor-pointer hover:bg-[var(--color-bg-secondary)] transition-colors duration-200' : ''}
         `}
         onClick={isCollapsible ? () => setIsExpanded(!isExpanded) : undefined}
