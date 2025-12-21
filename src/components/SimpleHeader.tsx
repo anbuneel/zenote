@@ -18,7 +18,7 @@ export function SimpleHeader({
   const logoElement = onLogoClick ? (
     <button
       onClick={onLogoClick}
-      className="text-[1.75rem] font-semibold tracking-tight transition-colors duration-200"
+      className="text-xl md:text-[1.75rem] font-semibold tracking-tight transition-colors duration-200 hover:text-[var(--color-accent)]"
       style={{
         fontFamily: 'var(--font-display)',
         color: 'var(--color-text-primary)',
@@ -27,18 +27,12 @@ export function SimpleHeader({
         border: 'none',
         cursor: 'pointer',
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.color = 'var(--color-accent)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.color = 'var(--color-text-primary)';
-      }}
     >
       Zenote
     </button>
   ) : (
     <span
-      className="text-[1.75rem] font-semibold tracking-tight"
+      className="text-xl md:text-[1.75rem] font-semibold tracking-tight"
       style={{
         fontFamily: 'var(--font-display)',
         color: 'var(--color-text-primary)',
@@ -50,22 +44,16 @@ export function SimpleHeader({
   );
 
   return (
-    <header className="h-16 px-6 flex items-center justify-between shrink-0">
+    <header className="h-16 px-4 md:px-8 flex items-center justify-between shrink-0">
       {/* Logo */}
       {logoElement}
 
-      {/* Right: Theme Toggle + Sign In */}
-      <div className="flex items-center gap-2 md:gap-3">
+      {/* Right: Theme Toggle + Sign In - consistent positioning */}
+      <div className="flex items-center gap-1 md:gap-2">
         <button
           onClick={onThemeToggle}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
+          className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-secondary)]"
           style={{ color: 'var(--color-text-secondary)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-accent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
-          }}
           aria-label="Toggle theme"
         >
           {theme === 'light' ? (
@@ -81,16 +69,10 @@ export function SimpleHeader({
         {!isAuthenticated && onSignIn && (
           <button
             onClick={onSignIn}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+            className="px-3 md:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:text-[var(--color-accent)]"
             style={{
               fontFamily: 'var(--font-body)',
               color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-accent)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
             }}
           >
             Sign In

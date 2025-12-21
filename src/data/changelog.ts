@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.4.2',
+    date: '2025-12-21',
+    changes: [
+      { type: 'improvement', text: 'Unified header layout - theme toggle and avatar now in consistent position across all pages' },
+      { type: 'improvement', text: 'Editor page now includes profile avatar with settings and sign out' },
+      { type: 'improvement', text: 'Theme toggle always visible on mobile (no longer hidden in dropdown)' },
+    ],
+  },
+  {
     version: '1.4.1',
     date: '2025-12-21',
     changes: [

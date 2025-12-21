@@ -901,6 +901,7 @@ function App() {
             onCreateTag={handleAddTag}
             theme={theme}
             onThemeToggle={handleThemeToggle}
+            onSettingsClick={() => setShowSettingsModal(true)}
           />
         </Suspense>
         {/* Tag Modal */}

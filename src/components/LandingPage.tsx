@@ -70,53 +70,56 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
 
   return (
     <div
-      className="min-h-screen flex flex-col md:flex-row overflow-hidden"
+      className="min-h-screen flex flex-col overflow-hidden"
       style={{ background: 'var(--color-bg-primary)' }}
     >
-      {/* Left Panel - Hero */}
-      <section className="w-full md:w-[45%] flex flex-col">
-        {/* Header - unified on mobile, logo only on desktop */}
-        <header className="px-6 md:px-8 py-5 shrink-0 flex items-center justify-between">
-          <h1
-            className="text-[1.75rem] font-semibold tracking-tight"
+      {/* Unified Header - always at top with consistent position */}
+      <header className="h-16 px-4 md:px-8 shrink-0 flex items-center justify-between">
+        <h1
+          className="text-xl md:text-[1.75rem] font-semibold tracking-tight"
+          style={{
+            fontFamily: 'var(--font-display)',
+            color: 'var(--color-text-primary)',
+            letterSpacing: '-0.5px',
+          }}
+        >
+          Zenote
+        </h1>
+        {/* Right: Theme Toggle + Sign In - always in same position */}
+        <div className="flex items-center gap-1 md:gap-2">
+          <button
+            onClick={onThemeToggle}
+            className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-secondary)]"
+            style={{ color: 'var(--color-text-secondary)' }}
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={onSignIn}
+            className="px-3 md:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:text-[var(--color-accent)]"
             style={{
-              fontFamily: 'var(--font-display)',
-              color: 'var(--color-text-primary)',
-              letterSpacing: '-0.5px',
+              fontFamily: 'var(--font-body)',
+              color: 'var(--color-text-secondary)',
             }}
           >
-            Zenote
-          </h1>
-          {/* Mobile only: theme toggle + sign in */}
-          <div className="flex items-center gap-3 md:hidden">
-            <button
-              onClick={onThemeToggle}
-              className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
-              style={{ color: 'var(--color-text-secondary)' }}
-              aria-label="Toggle theme"
-            >
-              {theme === 'light' ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              )}
-            </button>
-            <button
-              onClick={onSignIn}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-              style={{
-                fontFamily: 'var(--font-body)',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              Sign In
-            </button>
-          </div>
-        </header>
+            Sign In
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content - Two columns on desktop */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      {/* Left Panel - Hero */}
+      <section className="w-full md:w-[45%] flex flex-col">
 
         {/* Hero Content - Centered */}
         <div className="flex-1 flex items-center px-6 md:px-8 lg:px-12 py-8 md:py-0">
@@ -247,48 +250,6 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
             background: 'linear-gradient(to bottom, transparent, var(--glass-border) 20%, var(--glass-border) 80%, transparent)',
           }}
         />
-
-        {/* Right Header - desktop only */}
-        <header className="hidden md:flex px-10 py-5 items-center justify-end gap-3 shrink-0">
-          <button
-            onClick={onThemeToggle}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-accent)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
-            aria-label="Toggle theme"
-          >
-            {theme === 'light' ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            )}
-          </button>
-          <button
-            onClick={onSignIn}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-            style={{
-              fontFamily: 'var(--font-body)',
-              color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-accent)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
-          >
-            Sign In
-          </button>
-        </header>
 
         {/* Cards Container - Vertically Centered */}
         <div className="flex-1 flex items-center justify-center px-6 md:px-10 py-6 md:py-8">
@@ -469,6 +430,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
           </div>
         </div>
       </section>
+      </div>
     </div>
   );
 }

@@ -243,19 +243,19 @@ export function Header({
           <span className="hidden md:inline text-sm font-medium">New Note</span>
         </button>
 
-        {/* Separator - hidden on mobile */}
+        {/* Separator */}
         <div
-          className="hidden md:block w-px h-6 mx-1"
+          className="w-px h-5 md:h-6 mx-0.5 md:mx-1"
           style={{ background: 'var(--glass-border)' }}
         />
-        {/* Theme Toggle - hidden on mobile, accessible via profile menu */}
+
+        {/* Theme Toggle - always visible for consistency */}
         <button
           onClick={onThemeToggle}
           className="
-            hidden md:flex
             w-9 h-9
             rounded-full
-            items-center justify-center
+            flex items-center justify-center
             transition-all duration-300
             focus:outline-none
             focus:ring-2
@@ -343,37 +343,6 @@ export function Header({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 Settings
-              </button>
-
-              {/* Theme Toggle - visible on mobile only in menu */}
-              <button
-                onClick={() => {
-                  setIsProfileMenuOpen(false);
-                  onThemeToggle();
-                }}
-                className="
-                  md:hidden
-                  w-full px-4 py-2.5
-                  flex items-center gap-3
-                  text-left text-sm
-                  transition-colors duration-150
-                  hover:bg-[var(--color-bg-tertiary)]
-                "
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
-                {theme === 'light' ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                )}
-                {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
               </button>
 
               <div

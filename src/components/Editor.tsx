@@ -1,8 +1,28 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { Note, Tag, Theme } from '../types';
 import { RichTextEditor } from './RichTextEditor';
 import { TagSelector } from './TagSelector';
 import { formatShortDate, formatRelativeTime } from '../utils/formatTime';
+import { useAuth } from '../contexts/AuthContext';
+
+/**
+ * Extract initials from a full name or email
+ */
+function getInitials(fullName?: string, email?: string): string {
+  if (fullName && fullName.trim()) {
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+  }
+
+  if (email) {
+    return email[0].toUpperCase();
+  }
+
+  return '?';
+}
 
 interface EditorProps {
   note: Note;
@@ -14,21 +34,34 @@ interface EditorProps {
   onCreateTag?: () => void;
   theme: Theme;
   onThemeToggle: () => void;
+  onSettingsClick: () => void;
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved';
 
-export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, onCreateTag, theme, onThemeToggle }: EditorProps) {
+export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, onCreateTag, theme, onThemeToggle, onSettingsClick }: EditorProps) {
+  const { signOut, user } = useAuth();
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Separate refs for save indicator phases to avoid nested timeout issues
   const savePhaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [currentNoteId, setCurrentNoteId] = useState(note.id);
+
+  // Get user display info
+  const userFullName = user?.user_metadata?.full_name as string | undefined;
+  const userEmail = user?.email;
+  const userInitials = useMemo(
+    () => getInitials(userFullName, userEmail),
+    [userFullName, userEmail]
+  );
+  const userDisplayName = userFullName || userEmail || 'User';
 
   // Reset local state when switching to a different note
   useEffect(() => {
@@ -104,6 +137,19 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [performSave, onBack]);
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    if (isProfileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isProfileMenuOpen]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -268,9 +314,44 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
           )}
         </nav>
 
-        {/* Right Actions */}
+        {/* Right Actions - Consistent order: [Page Action] | [Theme] [Avatar] */}
         <div className="flex items-center gap-1">
-          {/* Theme Toggle */}
+          {/* Delete Button - Page-specific action */}
+          <button
+            onClick={handleDelete}
+            className="
+              w-9 h-9
+              rounded-full
+              flex items-center justify-center
+              transition-all duration-200
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[var(--color-accent)]
+            "
+            style={{ color: 'var(--color-text-tertiary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-destructive)';
+              e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              e.currentTarget.style.background = 'transparent';
+            }}
+            aria-label="Delete note"
+            title="Delete note"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+
+          {/* Separator */}
+          <div
+            className="w-px h-5 md:h-6 mx-0.5 md:mx-1"
+            style={{ background: 'var(--glass-border)' }}
+          />
+
+          {/* Theme Toggle - always in same position */}
           <button
             onClick={onThemeToggle}
             className="
@@ -300,34 +381,102 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
             )}
           </button>
 
-          {/* Delete Button */}
-          <button
-            onClick={handleDelete}
-            className="
-              w-9 h-9
-              rounded-full
-              flex items-center justify-center
-              transition-all duration-200
-              focus:outline-none
-              focus:ring-2
-              focus:ring-[var(--color-accent)]
-            "
-            style={{ color: 'var(--color-text-tertiary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-destructive)';
-              e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-tertiary)';
-              e.currentTarget.style.background = 'transparent';
-            }}
-            aria-label="Delete note"
-            title="Delete note"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+          {/* Profile Avatar - always last */}
+          <div className="relative" ref={profileMenuRef}>
+            <button
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="
+                w-9 h-9
+                rounded-full
+                flex items-center justify-center
+                transition-all duration-300
+                focus:outline-none
+                focus:ring-2
+                focus:ring-[var(--color-accent)]
+                hover:opacity-90
+                text-sm font-medium
+              "
+              style={{
+                background: 'var(--color-accent)',
+                color: 'var(--color-bg-primary)',
+              }}
+              aria-label="Profile menu"
+              aria-expanded={isProfileMenuOpen}
+              title={userDisplayName}
+            >
+              {userInitials}
+            </button>
+
+            {/* Dropdown Menu */}
+            {isProfileMenuOpen && (
+              <div
+                className="
+                  absolute right-0 top-full mt-2
+                  min-w-[160px]
+                  py-2
+                  rounded-lg
+                  shadow-lg
+                  z-50
+                "
+                style={{
+                  background: 'var(--color-bg-secondary)',
+                  border: '1px solid var(--glass-border)',
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    onSettingsClick();
+                  }}
+                  className="
+                    w-full px-4 py-2.5
+                    flex items-center gap-3
+                    text-left text-sm
+                    transition-colors duration-150
+                    hover:bg-[var(--color-bg-tertiary)]
+                  "
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Settings
+                </button>
+
+                <div
+                  className="my-1 mx-3"
+                  style={{ borderTop: '1px solid var(--glass-border)' }}
+                />
+
+                <button
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    signOut();
+                  }}
+                  className="
+                    w-full px-4 py-2.5
+                    flex items-center gap-3
+                    text-left text-sm
+                    transition-colors duration-150
+                    hover:bg-[var(--color-bg-tertiary)]
+                  "
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
