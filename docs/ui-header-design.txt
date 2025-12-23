@@ -1,0 +1,20 @@
+UI Header Design
+You're absolutely right. The issue is that each header has different padding and the elements aren't aligned to the same pixel positions. Looking at it:
+
+  - Library: px-4 md:px-12 with search bar in center
+  - Editor: px-6 with breadcrumb on left
+  - Landing: px-4 md:px-8
+  - SimpleHeader: px-4 md:px-8
+
+  The Logo isn't at the same x-position, and the Theme Toggle + Avatar aren't at the same x-position on the right.
+
+  The Solution: Create a consistent three-zone header structure across ALL pages:
+
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │  px-4 md:px-12 (same on all pages)                                       │
+  │                                                                          │
+  │  [Logo]        [===== Flexible Center =====]        [Theme] [Avatar]     │
+  │    ↑                      ↑                              ↑               │
+  │  Fixed left         Varies by page                  Fixed right          │
+  │  position           (search/breadcrumb/empty)       position             │
+  └──────────────────────────────────────────────────────────────────────────┘
