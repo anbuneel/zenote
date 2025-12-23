@@ -100,8 +100,11 @@ function App() {
   }, [theme]);
 
   // Fetch notes when user is authenticated
+  // Use user?.id as dependency to avoid refetching when user object reference changes
+  // (e.g., when Supabase refreshes the session on tab focus)
+  const userId = user?.id;
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setNotes([]);
       setLoading(false);
       return;
@@ -115,7 +118,7 @@ function App() {
 
     // Subscribe to real-time changes
     const unsubscribe = subscribeToNotes(
-      user.id,
+      userId,
       (newNote) => {
         setNotes((prev) => {
           // Avoid duplicates
@@ -167,11 +170,11 @@ function App() {
     );
 
     return () => unsubscribe();
-  }, [user, selectedNoteId]);
+  }, [userId, selectedNoteId]);
 
   // Fetch tags when user is authenticated
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setTags([]);
       setSelectedTagIds([]);
       return;
@@ -183,7 +186,7 @@ function App() {
 
     // Subscribe to real-time tag changes
     const unsubscribeTags = subscribeToTags(
-      user.id,
+      userId,
       (newTag) => {
         setTags((prev) => {
           if (prev.some((t) => t.id === newTag.id)) return prev;
@@ -202,11 +205,11 @@ function App() {
     );
 
     return () => unsubscribeTags();
-  }, [user]);
+  }, [userId]);
 
   // Fetch faded notes count when user is authenticated
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setFadedNotesCount(0);
       setFadedNotes([]);
       return;
@@ -216,7 +219,7 @@ function App() {
     countFadedNotes()
       .then(setFadedNotesCount)
       .catch(console.error);
-  }, [user]);
+  }, [userId]);
 
   // Sort notes: pinned first, then by most recent
   const sortedNotes = [...notes].sort((a, b) => {
