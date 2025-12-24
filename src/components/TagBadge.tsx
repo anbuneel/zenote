@@ -20,14 +20,14 @@ export function TagBadge({ tag }: TagBadgeProps) {
       "
       style={{
         fontFamily: 'var(--font-body)',
-        background: `${colorValue}15`,
-        color: colorValue,
+        background: `${colorValue}0A`, // 10% opacity (reduced from 15%)
+        color: 'var(--color-text-secondary)', // Muted text, not full color
         borderRadius: 'var(--radius-sm)',
       }}
     >
       <span
         className="w-1.5 h-1.5 rounded-full"
-        style={{ background: colorValue }}
+        style={{ background: colorValue }} // Colored dot remains
       />
       {tag.name}
     </span>
@@ -39,7 +39,7 @@ interface TagBadgeListProps {
   maxDisplay?: number;
 }
 
-export function TagBadgeList({ tags, maxDisplay = 2 }: TagBadgeListProps) {
+export function TagBadgeList({ tags, maxDisplay = 1 }: TagBadgeListProps) {
   if (tags.length === 0) return null;
 
   const displayTags = tags.slice(0, maxDisplay);

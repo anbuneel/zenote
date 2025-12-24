@@ -18,11 +18,12 @@ describe('TagBadge', () => {
     expect(screen.getByText('Important')).toBeInTheDocument();
   });
 
-  it('applies the correct color', () => {
+  it('uses muted text color (colored dot indicates tag color)', () => {
     const tag = createTag({ color: 'forest' });
     render(<TagBadge tag={tag} />);
     const badge = screen.getByText('Test Tag');
-    expect(badge).toHaveStyle({ color: '#3D5A3D' });
+    // Text uses secondary color for muted appearance (per Zen aesthetic refinement)
+    expect(badge).toHaveStyle({ color: 'var(--color-text-secondary)' });
   });
 
   it('renders a color indicator dot', () => {

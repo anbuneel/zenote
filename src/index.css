@@ -18,6 +18,7 @@
   --color-accent: #C25634;
   --color-accent-hover: #A84828;
   --color-accent-glow: rgba(194, 86, 52, 0.2);
+  --color-accent-muted: rgba(194, 86, 52, 0.7); /* Muted terracotta for decorative elements */
   --color-destructive: #B54A32;
 
   /* Success: Sage green */
@@ -78,7 +79,8 @@
   /* Accent: Antique Gold / Firefly Light */
   --color-accent: #D4AF37;
   --color-accent-hover: #E5C44A;
-  --color-accent-glow: rgba(212, 175, 55, 0.25);
+  --color-accent-glow: rgba(212, 175, 55, 0.15); /* Reduced from 0.25 for subtler glow */
+  --color-accent-muted: rgba(212, 175, 55, 0.6); /* Muted gold for decorative elements */
   --color-destructive: #E07A5F;
 
   /* Success: Forest green */
@@ -741,7 +743,7 @@ body::before {
 }
 
 .masonry-grid-column > article {
-  margin-bottom: 8px; /* vertical gap between cards - tight compact layout */
+  margin-bottom: 10px; /* vertical gap between cards - compact but breathable */
 }
 
 /* Hide scrollbar for tag filter bar (webkit) */

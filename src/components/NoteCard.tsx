@@ -101,8 +101,8 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin }: NoteCardProps
           ${note.pinned ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
         `}
         style={{
-          background: note.pinned ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
-          color: note.pinned ? 'var(--color-bg-primary)' : 'var(--color-text-tertiary)',
+          background: note.pinned ? 'var(--color-accent-glow)' : 'var(--color-bg-secondary)',
+          color: note.pinned ? 'var(--color-accent-muted)' : 'var(--color-text-tertiary)',
         }}
         onMouseEnter={(e) => {
           if (!note.pinned) {

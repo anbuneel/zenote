@@ -81,6 +81,11 @@ export function ChapterSection({
           py-1
           ${isCollapsible ? 'cursor-pointer hover:bg-[var(--color-bg-secondary)] transition-colors duration-200' : ''}
         `}
+        style={{
+          borderLeft: '2px solid var(--color-accent-muted)',
+          marginLeft: '1rem',
+          paddingLeft: 'calc(1.5rem - 2px)',
+        }}
         onClick={isCollapsible ? () => setIsExpanded(!isExpanded) : undefined}
         role={isCollapsible ? 'button' : undefined}
         aria-expanded={isCollapsible ? isExpanded : undefined}
@@ -106,27 +111,14 @@ export function ChapterSection({
             </svg>
           )}
 
-          {/* Pin icon for pinned section - matches NoteCard pin icon */}
-          {isPinned && (
-            <svg
-              className="w-4 h-4"
-              fill="currentColor"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              style={{ color: 'var(--color-accent)' }}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-          )}
-
           <span
             className="text-sm font-medium"
             style={{
               fontFamily: 'var(--font-display)',
-              color: isPinned ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              color: 'var(--color-text-secondary)',
             }}
           >
-            {isPinned ? '' : label}
+            {label}
           </span>
         </div>
 
@@ -144,7 +136,7 @@ export function ChapterSection({
             color: 'var(--color-text-tertiary)',
           }}
         >
-          {notes.length} {isPinned ? 'pinned' : (notes.length === 1 ? 'note' : 'notes')}
+          {notes.length} {notes.length === 1 ? 'note' : 'notes'}
         </span>
       </div>
 
