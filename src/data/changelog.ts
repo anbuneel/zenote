@@ -8,6 +8,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.5.0',
+    date: '2025-12-23',
+    changes: [
+      { type: 'feature', text: 'Single note export - export individual notes as Markdown or JSON from the editor' },
+      { type: 'fix', text: 'Markdown import now correctly splits combined exports into separate notes' },
+      { type: 'fix', text: 'Tags are now preserved during Markdown import/export' },
+      { type: 'fix', text: 'Task lists (checkboxes) are now preserved during Markdown import/export' },
+      { type: 'improvement', text: 'Batch import with progress indicator - importing large numbers of notes is now much faster' },
+      { type: 'improvement', text: 'Unified export format for single and bulk Markdown exports' },
+    ],
+  },
+  {
     version: '1.4.5',
     date: '2025-12-23',
     changes: [

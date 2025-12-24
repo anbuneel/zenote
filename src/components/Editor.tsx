@@ -7,6 +7,12 @@ import { TagSelector } from './TagSelector';
 import { formatShortDate, formatRelativeTime } from '../utils/formatTime';
 import { HeaderShell } from './HeaderShell';
 import { WhisperBack } from './WhisperBack';
+import {
+  exportNoteToMarkdown,
+  exportNoteToJSON,
+  getSanitizedFilename,
+  downloadFile,
+} from '../utils/exportImport';
 
 interface EditorProps {
   note: Note;
@@ -29,7 +35,9 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [editor, setEditor] = useState<TiptapEditor | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Separate refs for save indicator phases to avoid nested timeout issues
   const savePhaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -182,6 +190,40 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
     onBack();
   };
 
+  // Export handlers
+  const handleExportMarkdown = () => {
+    const currentNote = { ...note, title, content };
+    const markdown = exportNoteToMarkdown(currentNote);
+    const filename = `${getSanitizedFilename(title)}.md`;
+    downloadFile(markdown, filename, 'text/markdown');
+    setShowExportMenu(false);
+  };
+
+  const handleExportJSON = () => {
+    const currentNote = { ...note, title, content };
+    const json = exportNoteToJSON(currentNote);
+    const filename = `${getSanitizedFilename(title)}.json`;
+    downloadFile(json, filename, 'application/json');
+    setShowExportMenu(false);
+  };
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+
+    if (showExportMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showExportMenu]);
+
   // Left content: Logo + Breadcrumb (integrated for visual continuity)
   const leftContent = (
     <div className="flex items-center min-w-0">
@@ -240,7 +282,7 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
     </div>
   );
 
-  // Right actions: Save status + Delete button
+  // Right actions: Save status + Export button + Delete button
   const rightActions = (
     <div className="flex items-center gap-2">
       {/* Save Status Indicator */}
@@ -275,6 +317,94 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
           )}
         </span>
       )}
+
+      {/* Export button with dropdown */}
+      <div className="relative" ref={exportMenuRef}>
+        <button
+          onClick={() => setShowExportMenu(!showExportMenu)}
+          className="
+            w-9 h-9
+            rounded-full
+            flex items-center justify-center
+            transition-all duration-200
+            focus:outline-none
+            focus:ring-2
+            focus:ring-[var(--color-accent)]
+          "
+          style={{
+            color: showExportMenu ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+            background: showExportMenu ? 'var(--color-accent-glow)' : 'transparent',
+          }}
+          onMouseEnter={(e) => {
+            if (!showExportMenu) {
+              e.currentTarget.style.color = 'var(--color-accent)';
+              e.currentTarget.style.background = 'var(--color-accent-glow)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!showExportMenu) {
+              e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              e.currentTarget.style.background = 'transparent';
+            }
+          }}
+          aria-label="Export note"
+          title="Export note"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </button>
+
+        {/* Export dropdown menu */}
+        {showExportMenu && (
+          <div
+            className="absolute right-0 mt-2 py-1 rounded-lg shadow-lg z-50 min-w-[160px]"
+            style={{
+              background: 'var(--color-bg-primary)',
+              border: '1px solid var(--glass-border)',
+            }}
+          >
+            <button
+              onClick={handleExportMarkdown}
+              className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors duration-150"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-text-primary)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-bg-secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <svg className="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              Markdown (.md)
+            </button>
+            <button
+              onClick={handleExportJSON}
+              className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors duration-150"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-text-primary)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-bg-secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <svg className="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+              </svg>
+              JSON (.json)
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Delete button */}
       <button

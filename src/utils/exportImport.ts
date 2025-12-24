@@ -260,6 +260,18 @@ export function htmlToMarkdown(html: string): string {
   md = md.replace(/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/gis, '```\n$1\n```\n\n');
   md = md.replace(/<pre[^>]*>(.*?)<\/pre>/gis, '```\n$1\n```\n\n');
 
+  // Task lists (Tiptap format: ul[data-type="taskList"] with li[data-type="taskItem"])
+  md = md.replace(/<ul[^>]*data-type="taskList"[^>]*>([\s\S]*?)<\/ul>/gi, (_match, content) => {
+    const items = content.match(/<li[^>]*data-type="taskItem"[^>]*>([\s\S]*?)<\/li>/gi) || [];
+    return items.map((item: string) => {
+      const isChecked = /data-checked="true"/i.test(item);
+      const text = item.replace(/<li[^>]*>([\s\S]*?)<\/li>/i, '$1').trim();
+      // Remove any nested label/div/p tags that Tiptap might add
+      const cleanText = text.replace(/<[^>]+>/g, '').trim();
+      return `- [${isChecked ? 'x' : ' '}] ${cleanText}`;
+    }).join('\n') + '\n\n';
+  });
+
   // Ordered lists
   md = md.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (_match, content) => {
     let index = 0;
@@ -271,7 +283,7 @@ export function htmlToMarkdown(html: string): string {
     }).join('\n') + '\n\n';
   });
 
-  // Unordered lists
+  // Unordered lists (must come after task lists to not interfere)
   md = md.replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (_match, content) => {
     const items = content.match(/<li[^>]*>([\s\S]*?)<\/li>/gi) || [];
     return items.map((item: string) => {
@@ -346,9 +358,18 @@ export function markdownToHtml(md: string): string {
   // Blockquotes
   html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
 
-  // Unordered lists
-  html = html.replace(/^- (.*$)/gim, '<li>$1</li>');
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+  // Task lists (must come before regular unordered lists)
+  // Match lines like "- [ ] text" or "- [x] text"
+  html = html.replace(/^- \[([ xX])\] (.*)$/gim, (_match, checked, text) => {
+    const isChecked = checked.toLowerCase() === 'x';
+    return `<li data-type="taskItem" data-checked="${isChecked}"><p>${text}</p></li>`;
+  });
+  // Wrap consecutive task items in taskList
+  html = html.replace(/(<li data-type="taskItem"[^>]*>.*?<\/li>\n?)+/g, '<ul data-type="taskList">$&</ul>');
+
+  // Unordered lists (regular, without checkboxes)
+  html = html.replace(/^- (?!\[[ xX]\])(.*)$/gim, '<li>$1</li>');
+  html = html.replace(/(<li>(?!<p>).*<\/li>\n?)+/g, '<ul>$&</ul>');
 
   // Ordered lists
   html = html.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
@@ -380,29 +401,48 @@ export function markdownToHtml(md: string): string {
 }
 
 /**
- * Export a single note to Markdown
+ * Export a single note to JSON format
  */
-export function exportNoteToMarkdown(note: Note): string {
-  let md = '';
+export function exportNoteToJSON(note: Note): string {
+  const exportData = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    note: {
+      title: note.title,
+      content: note.content,
+      tags: note.tags.map(t => t.name),
+      createdAt: note.createdAt.toISOString(),
+      updatedAt: note.updatedAt.toISOString(),
+    },
+  };
 
-  // Title
-  if (note.title) {
-    md += `# ${note.title}\n\n`;
-  }
-
-  // Tags as frontmatter-style
-  if (note.tags.length > 0) {
-    md += `Tags: ${note.tags.map(t => t.name).join(', ')}\n\n`;
-  }
-
-  // Content
-  md += htmlToMarkdown(note.content);
-
-  return md;
+  return JSON.stringify(exportData, null, 2);
 }
 
 /**
- * Export all notes to Markdown (as a single combined file or for zip)
+ * Get sanitized filename for a note (used for downloads)
+ */
+export function getSanitizedFilename(title: string): string {
+  return (title || 'Untitled')
+    .replace(/[^a-zA-Z0-9-_ ]/g, '')
+    .replace(/\s+/g, '-')
+    .substring(0, 50) || 'Untitled';
+}
+
+/**
+ * Export a single note to Markdown (uses same format as bulk export for consistency)
+ * Format: ---\n# Title\nTags: ...\n---\n\ncontent
+ */
+export function exportNoteToMarkdown(note: Note): string {
+  const title = note.title || 'Untitled';
+  const tags = note.tags.length > 0 ? `\nTags: ${note.tags.map(t => t.name).join(', ')}` : '';
+  const content = htmlToMarkdown(note.content);
+
+  return `---\n# ${title}${tags}\n---\n\n${content}`;
+}
+
+/**
+ * Export all notes to Markdown (as individual files)
  */
 export function exportAllNotesToMarkdown(notes: Note[]): { filename: string; content: string }[] {
   return notes.map((note, index) => {
@@ -419,17 +459,78 @@ export function exportAllNotesToMarkdown(notes: Note[]): { filename: string; con
 }
 
 /**
- * Create and download a zip file containing multiple markdown files
+ * Create and download a combined markdown file with all notes
  */
 export async function downloadMarkdownZip(notes: Note[]): Promise<void> {
-  const files = exportAllNotesToMarkdown(notes);
-
-  // For simplicity, we'll create a combined markdown file
-  // A proper zip would require a library like JSZip
-  const combined = files.map(f =>
-    `---\n# ${f.filename.replace('.md', '')}\n---\n\n${f.content}`
-  ).join('\n\n---\n\n');
+  // Each note uses the same format, joined by separator
+  const combined = notes.map(note => exportNoteToMarkdown(note)).join('\n\n---\n\n');
 
   const date = new Date().toISOString().split('T')[0];
   downloadFile(combined, `zenote-export-${date}.md`, 'text/markdown');
+}
+
+/**
+ * Parsed note from combined markdown export
+ */
+export interface ParsedMarkdownNote {
+  title: string;
+  content: string;
+  tags: string[];
+}
+
+/**
+ * Parse a combined markdown export file back into individual notes.
+ * Returns an array of parsed notes, or null if the file is not in combined format.
+ *
+ * Combined format:
+ * ---
+ * # Note Title
+ * Tags: tag1, tag2
+ * ---
+ *
+ * content...
+ *
+ * ---
+ *
+ * ---
+ * # Another Note
+ * ---
+ *
+ * content...
+ */
+export function parseMultiNoteMarkdown(content: string): ParsedMarkdownNote[] | null {
+  // Check if this looks like a combined export (starts with the note header pattern)
+  if (!content.startsWith('---\n# ')) {
+    return null; // Not a combined format
+  }
+
+  const notes: ParsedMarkdownNote[] = [];
+
+  // Split by the note separator pattern
+  // Each note block ends with content, then \n\n---\n\n before next note's ---\n#
+  const noteBlocks = content.split(/\n\n---\n\n(?=---\n# )/);
+
+  for (const block of noteBlocks) {
+    // Each block is: ---\n# Title\n[Tags: ...]\n---\n\ncontent
+    // The Tags line is optional
+    const match = block.match(/^---\n# (.+)\n(?:Tags: ([^\n]*)\n)?---\n\n([\s\S]*)$/);
+    if (match) {
+      const title = match[1].trim();
+      const tagsLine = match[2] || '';
+      const noteContent = match[3].trim();
+
+      // Parse tags from comma-separated list
+      const tags = tagsLine
+        ? tagsLine.split(',').map(t => t.trim()).filter(t => t.length > 0)
+        : [];
+
+      notes.push({
+        title,
+        content: noteContent,
+        tags,
+      });
+    }
+  }
+
+  return notes.length > 0 ? notes : null;
 }

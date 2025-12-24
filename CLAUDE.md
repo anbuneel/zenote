@@ -213,8 +213,8 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Tag filtering (filter bar below header, clears search)
 - [x] Tag creation, editing, and deletion with color picker
 - [x] Profile avatar with user initials (from name or email)
-- [x] Export notes (JSON backup, Markdown)
-- [x] Import notes (JSON restore, Markdown files) with loading overlay
+- [x] Export notes (JSON backup, Markdown) - bulk and single note
+- [x] Import notes (JSON restore, Markdown files) with progress indicator and batch inserts
 - [x] Rich HTML preview in note cards (preserves formatting)
 - [x] Breadcrumb navigation in editor (Zenote / Note Title)
 - [x] Password reset flow (forgot password + email recovery)
@@ -557,19 +557,36 @@ Pinned notes:
 
 ## Export/Import
 
-### Export Formats
-- **JSON**: Full backup with notes, tags, and metadata. Can be re-imported.
-- **Markdown**: Combined `.md` file with all notes (human-readable)
+### Export Options
+- **All Notes (JSON)**: Full backup with notes, tags, and metadata
+- **All Notes (Markdown)**: Combined `.md` file with all notes
+- **Single Note**: Export from editor via download button (Markdown or JSON)
 
-### Import Formats
+### Import Features
 - **JSON** (`.json`): Restore full backup, creates missing tags automatically
-- **Markdown** (`.md`): Import single note, extracts title from `# Heading`
+- **Markdown** (`.md`): Imports single or multiple notes with tags preserved
+- **Batch import**: Uses efficient batch inserts with progress indicator
+- **Task lists**: Checkboxes preserved during import/export
+
+### Markdown Format
+All markdown exports use a unified format for consistency:
+```markdown
+---
+# Note Title
+Tags: tag1, tag2
+---
+
+content...
+```
 
 ### Utilities
 Export/import functions are in `src/utils/exportImport.ts`:
-- `exportNotesToJSON()` / `parseImportedJSON()`
-- `htmlToMarkdown()` / `markdownToHtml()`
-- `downloadFile()` / `readFileAsText()`
+- `exportNotesToJSON()` / `parseImportedJSON()` - JSON backup
+- `exportNoteToJSON()` / `exportNoteToMarkdown()` - Single note export
+- `parseMultiNoteMarkdown()` - Parse combined markdown exports
+- `htmlToMarkdown()` / `markdownToHtml()` - Format conversion
+- `downloadFile()` / `readFileAsText()` - File utilities
+- `createNotesBatch()` - Batch insert for efficient imports (in notes.ts)
 
 ## AuthContext API
 The `AuthContext` provides these functions:

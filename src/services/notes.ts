@@ -109,6 +109,74 @@ export async function createNote(
   return toNote(data, []);
 }
 
+// Batch create multiple notes (for efficient imports)
+// Supabase recommends batches of ~1000 rows max
+const BATCH_SIZE = 500;
+
+export interface BatchNoteData {
+  title: string;
+  content: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export async function createNotesBatch(
+  userId: string,
+  notes: BatchNoteData[],
+  onProgress?: (completed: number, total: number) => void
+): Promise<Note[]> {
+  const allCreatedNotes: Note[] = [];
+  const total = notes.length;
+
+  // Process in batches to avoid hitting Supabase limits
+  for (let i = 0; i < notes.length; i += BATCH_SIZE) {
+    const batch = notes.slice(i, i + BATCH_SIZE);
+
+    const insertData = batch.map(note => {
+      const data: {
+        user_id: string;
+        title: string;
+        content: string;
+        created_at?: string;
+        updated_at?: string;
+      } = {
+        user_id: userId,
+        title: note.title,
+        content: note.content,
+      };
+
+      if (note.createdAt) {
+        data.created_at = note.createdAt.toISOString();
+      }
+      if (note.updatedAt) {
+        data.updated_at = note.updatedAt.toISOString();
+      }
+
+      return data;
+    });
+
+    const { data, error } = await supabase
+      .from('notes')
+      .insert(insertData)
+      .select();
+
+    if (error) {
+      console.error('Error batch creating notes:', error);
+      throw error;
+    }
+
+    const createdNotes = (data || []).map(row => toNote(row, []));
+    allCreatedNotes.push(...createdNotes);
+
+    // Report progress after each batch
+    if (onProgress) {
+      onProgress(Math.min(i + batch.length, total), total);
+    }
+  }
+
+  return allCreatedNotes;
+}
+
 // Update an existing note
 export async function updateNote(note: Note): Promise<Note> {
   const { data, error } = await supabase

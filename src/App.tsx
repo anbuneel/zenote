@@ -19,6 +19,7 @@ import { useAuth } from './contexts/AuthContext';
 import {
   fetchNotes,
   createNote,
+  createNotesBatch,
   updateNote,
   subscribeToNotes,
   searchNotes,
@@ -38,6 +39,7 @@ import {
   readFileAsText,
   downloadMarkdownZip,
   markdownToHtml,
+  parseMultiNoteMarkdown,
   ValidationError,
   MAX_IMPORT_FILE_SIZE,
 } from './utils/exportImport';
@@ -69,8 +71,13 @@ function App() {
   const [searchResults, setSearchResults] = useState<Note[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Import state
-  const [isImporting, setIsImporting] = useState(false);
+  // Import state with progress tracking
+  const [importProgress, setImportProgress] = useState<{
+    isImporting: boolean;
+    current: number;
+    total: number;
+    phase: 'parsing' | 'importing' | 'finalizing';
+  } | null>(null);
 
   // Tags state
   const [tags, setTags] = useState<Tag[]>([]);
@@ -540,7 +547,7 @@ function App() {
       return;
     }
 
-    setIsImporting(true);
+    setImportProgress({ isImporting: true, current: 0, total: 0, phase: 'parsing' });
     try {
       const content = await readFileAsText(file);
       const isJSON = file.name.endsWith('.json');
@@ -549,6 +556,9 @@ function App() {
       if (isJSON) {
         // Import JSON backup with validation
         const data = parseImportedJSON(content);
+        const totalNotes = data.notes.length;
+
+        setImportProgress({ isImporting: true, current: 0, total: totalNotes, phase: 'importing' });
 
         // Create tags first (if they don't exist)
         const tagMap = new Map<string, string>(); // name -> id
@@ -563,60 +573,174 @@ function App() {
           }
         }
 
-        // Create notes
-        let importedCount = 0;
-        for (const noteData of data.notes) {
-          // Sanitize content to prevent XSS from malicious backups
-          const sanitizedContent = sanitizeHtml(noteData.content);
+        // Prepare notes for batch insert
+        const notesToImport = data.notes.map(noteData => ({
+          title: noteData.title,
+          content: sanitizeHtml(noteData.content),
+          createdAt: noteData.createdAt ? new Date(noteData.createdAt) : undefined,
+          updatedAt: noteData.updatedAt ? new Date(noteData.updatedAt) : undefined,
+          originalTags: noteData.tags, // Keep track of tags to add after insert
+        }));
 
-          // Preserve original timestamps if available
-          const options: { createdAt?: Date; updatedAt?: Date } = {};
-          if (noteData.createdAt) {
-            options.createdAt = new Date(noteData.createdAt);
+        // Batch insert notes with progress callback
+        const createdNotes = await createNotesBatch(
+          user.id,
+          notesToImport,
+          (completed, total) => {
+            setImportProgress({ isImporting: true, current: completed, total, phase: 'importing' });
           }
-          if (noteData.updatedAt) {
-            options.updatedAt = new Date(noteData.updatedAt);
-          }
+        );
 
-          const newNote = await createNote(user.id, noteData.title, sanitizedContent, options);
-
-          // Add tags to the note
-          for (const tagName of noteData.tags) {
+        // Add tags to notes (this still needs to be sequential due to junction table)
+        setImportProgress({ isImporting: true, current: 0, total: createdNotes.length, phase: 'finalizing' });
+        for (let i = 0; i < createdNotes.length; i++) {
+          const note = createdNotes[i];
+          const originalTags = notesToImport[i].originalTags;
+          for (const tagName of originalTags) {
             const tagId = tagMap.get(tagName);
             if (tagId) {
-              await addTagToNote(newNote.id, tagId);
+              await addTagToNote(note.id, tagId);
             }
           }
-
-          importedCount++;
+          setImportProgress({ isImporting: true, current: i + 1, total: createdNotes.length, phase: 'finalizing' });
         }
 
-        toast.success(`Successfully imported ${importedCount} note${importedCount === 1 ? '' : 's'}`);
+        toast.success(`Successfully imported ${createdNotes.length} note${createdNotes.length === 1 ? '' : 's'}`);
 
         // Refresh notes
         const refreshedNotes = await fetchNotes();
         setNotes(refreshedNotes);
 
       } else if (isMarkdown) {
-        // Import single markdown file as a note
-        const lines = content.split('\n');
-        let title = file.name.replace(/\.(md|markdown)$/, '');
-        let noteContent = content;
+        // Try to parse as combined multi-note export first
+        const multiNotes = parseMultiNoteMarkdown(content);
 
-        // Extract title from first H1 if present
-        if (lines[0]?.startsWith('# ')) {
-          title = lines[0].substring(2).trim();
-          noteContent = lines.slice(1).join('\n').trim();
+        if (multiNotes) {
+          const totalNotes = multiNotes.length;
+          setImportProgress({ isImporting: true, current: 0, total: totalNotes, phase: 'importing' });
+
+          // Collect all unique tags from imported notes
+          const allTagNames = new Set<string>();
+          for (const noteData of multiNotes) {
+            for (const tagName of noteData.tags) {
+              allTagNames.add(tagName);
+            }
+          }
+
+          // Create tag map (create missing tags)
+          const tagMap = new Map<string, string>(); // name -> id
+          for (const tagName of allTagNames) {
+            const existingTag = tags.find(t => t.name.toLowerCase() === tagName.toLowerCase());
+            if (existingTag) {
+              tagMap.set(tagName, existingTag.id);
+            } else {
+              const newTag = await createTag(user.id, tagName, 'stone');
+              tagMap.set(tagName, newTag.id);
+              setTags(prev => [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)));
+            }
+          }
+
+          // Prepare notes for batch insert
+          const notesToImport = multiNotes.map(noteData => ({
+            title: noteData.title,
+            content: sanitizeHtml(markdownToHtml(noteData.content)),
+            originalTags: noteData.tags,
+          }));
+
+          // Batch insert notes with progress callback
+          const createdNotes = await createNotesBatch(
+            user.id,
+            notesToImport,
+            (completed, total) => {
+              setImportProgress({ isImporting: true, current: completed, total, phase: 'importing' });
+            }
+          );
+
+          // Add tags to notes if any tags were present
+          if (tagMap.size > 0) {
+            setImportProgress({ isImporting: true, current: 0, total: createdNotes.length, phase: 'finalizing' });
+            for (let i = 0; i < createdNotes.length; i++) {
+              const note = createdNotes[i];
+              const originalTags = notesToImport[i].originalTags;
+              for (const tagName of originalTags) {
+                const tagId = tagMap.get(tagName);
+                if (tagId) {
+                  await addTagToNote(note.id, tagId);
+                }
+              }
+              setImportProgress({ isImporting: true, current: i + 1, total: createdNotes.length, phase: 'finalizing' });
+            }
+          }
+
+          // Refresh notes to get all imported notes with proper ordering
+          const refreshedNotes = await fetchNotes();
+          setNotes(refreshedNotes);
+
+          toast.success(`Successfully imported ${createdNotes.length} note${createdNotes.length === 1 ? '' : 's'}`);
+        } else {
+          // Import single markdown file as a note
+          setImportProgress({ isImporting: true, current: 0, total: 1, phase: 'importing' });
+
+          const lines = content.split('\n');
+          let title = file.name.replace(/\.(md|markdown)$/, '');
+          let noteContent = content;
+          let noteTags: string[] = [];
+          let contentStartIndex = 0;
+
+          // Extract title from first H1 if present
+          if (lines[0]?.startsWith('# ')) {
+            title = lines[0].substring(2).trim();
+            contentStartIndex = 1;
+          }
+
+          // Check for Tags line (e.g., "Tags: tag1, tag2")
+          const nextLine = lines[contentStartIndex]?.trim();
+          if (nextLine?.startsWith('Tags:')) {
+            const tagsStr = nextLine.substring(5).trim();
+            noteTags = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            contentStartIndex++;
+          }
+
+          // Skip empty line after tags if present
+          if (lines[contentStartIndex]?.trim() === '') {
+            contentStartIndex++;
+          }
+
+          noteContent = lines.slice(contentStartIndex).join('\n').trim();
+
+          // Create tag map (create missing tags)
+          const tagMap = new Map<string, string>();
+          for (const tagName of noteTags) {
+            const existingTag = tags.find(t => t.name.toLowerCase() === tagName.toLowerCase());
+            if (existingTag) {
+              tagMap.set(tagName, existingTag.id);
+            } else {
+              const newTag = await createTag(user.id, tagName, 'stone');
+              tagMap.set(tagName, newTag.id);
+              setTags(prev => [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)));
+            }
+          }
+
+          // Convert markdown to HTML and sanitize
+          const htmlContent = sanitizeHtml(markdownToHtml(noteContent));
+
+          // Create the note
+          const newNote = await createNote(user.id, title, htmlContent);
+
+          // Add tags to the note
+          for (const tagName of noteTags) {
+            const tagId = tagMap.get(tagName);
+            if (tagId) {
+              await addTagToNote(newNote.id, tagId);
+            }
+          }
+
+          // Refresh to get the note with tags
+          const refreshedNotes = await fetchNotes();
+          setNotes(refreshedNotes);
+
+          toast.success(`Imported "${title}"`);
         }
-
-        // Convert markdown to HTML and sanitize
-        const htmlContent = sanitizeHtml(markdownToHtml(noteContent));
-
-        // Create the note
-        const newNote = await createNote(user.id, title, htmlContent);
-        setNotes(prev => [newNote, ...prev]);
-
-        toast.success(`Imported "${title}"`);
       } else {
         toast.error('Unsupported file format. Please use .json or .md files.');
       }
@@ -628,7 +752,7 @@ function App() {
         toast.error('Failed to import file. Please check the file format.');
       }
     } finally {
-      setIsImporting(false);
+      setImportProgress(null);
     }
   }, [user, tags]);
 
@@ -845,14 +969,14 @@ function App() {
           onRoadmapClick={() => setView('roadmap')}
         />
 
-        {/* Import Loading Overlay */}
-        {isImporting && (
+        {/* Import Loading Overlay with Progress */}
+        {importProgress && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center"
             style={{ background: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)' }}
           >
             <div
-              className="px-8 py-6 rounded-lg text-center"
+              className="px-8 py-6 rounded-lg text-center min-w-[280px]"
               style={{
                 background: 'var(--color-bg-primary)',
                 border: '1px solid var(--glass-border)',
@@ -863,8 +987,38 @@ function App() {
                 style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}
               />
               <p style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-body)' }}>
-                Importing...
+                {importProgress.phase === 'parsing' && 'Parsing file...'}
+                {importProgress.phase === 'importing' && (
+                  importProgress.total > 0
+                    ? `Importing notes... ${importProgress.current}/${importProgress.total}`
+                    : 'Importing notes...'
+                )}
+                {importProgress.phase === 'finalizing' && (
+                  `Adding tags... ${importProgress.current}/${importProgress.total}`
+                )}
               </p>
+              {importProgress.total > 0 && importProgress.phase !== 'parsing' && (
+                <div className="mt-3">
+                  <div
+                    className="h-2 rounded-full overflow-hidden"
+                    style={{ background: 'var(--color-bg-tertiary)' }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.round((importProgress.current / importProgress.total) * 100)}%`,
+                        background: 'var(--color-accent)',
+                      }}
+                    />
+                  </div>
+                  <p
+                    className="text-xs mt-2"
+                    style={{ color: 'var(--color-text-secondary)', fontFamily: 'var(--font-body)' }}
+                  >
+                    {Math.round((importProgress.current / importProgress.total) * 100)}% complete
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
