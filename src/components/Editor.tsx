@@ -312,7 +312,7 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
       className="h-screen overflow-y-auto"
       style={{ background: 'var(--color-bg-primary)' }}
     >
-      {/* Sticky Zone: Header + Toolbar */}
+      {/* Sticky Zone: Header only */}
       <div
         className="editor-sticky-zone"
         style={{ background: 'var(--color-bg-primary)' }}
@@ -325,10 +325,6 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
           rightActions={rightActions}
           onSettingsClick={onSettingsClick}
         />
-        {/* Toolbar - now in sticky zone */}
-        <div className="max-w-[800px] mx-auto px-4 sm:px-10 pb-3">
-          <EditorToolbar editor={editor} />
-        </div>
       </div>
 
       {/* Editor Content */}
@@ -374,13 +370,18 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
           </div>
 
           {/* Tag Selector */}
-          <div className="mb-3">
+          <div className="mb-4">
             <TagSelector
               tags={tags}
               selectedTagIds={note.tags.map((t) => t.id)}
               onToggleTag={(tagId) => onToggleTag(note.id, tagId)}
               onCreateTag={onCreateTag}
             />
+          </div>
+
+          {/* Toolbar - flows naturally after tags, becomes sticky when scrolled */}
+          <div className="editor-toolbar-sticky">
+            <EditorToolbar editor={editor} />
           </div>
 
           {/* Rich Text Content */}
