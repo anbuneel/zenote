@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.6.0',
+    date: '2025-12-24',
+    changes: [
+      { type: 'feature', text: 'Demo-to-signup bridge - "Save this note" button appears after typing in demo editor' },
+      { type: 'feature', text: 'Demo content migration - notes typed in demo are automatically saved after signup' },
+      { type: 'improvement', text: 'Email confirmation flow - resend email and change email options with countdown timer' },
+    ],
+  },
+  {
     version: '1.5.0',
     date: '2025-12-23',
     changes: [

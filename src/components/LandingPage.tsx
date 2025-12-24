@@ -374,20 +374,42 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
                 }
               `}</style>
 
-              {/* Sign up prompt - subtle text only */}
+              {/* Sign up prompt - actionable CTA */}
               {hasTyped && (
                 <div
-                  className="mt-5 pt-5 shrink-0"
+                  className="mt-5 pt-5 shrink-0 flex items-center gap-3 flex-wrap"
                   style={{ borderTop: '1px solid var(--glass-border)' }}
                 >
+                  <button
+                    onClick={onStartWriting}
+                    className="text-sm font-medium px-4 py-2 rounded-lg transition-all duration-300"
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      background: 'var(--color-accent)',
+                      color: '#fff',
+                      boxShadow: '0 2px 8px var(--color-accent-glow)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'var(--color-accent-hover)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px var(--color-accent-glow)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'var(--color-accent)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px var(--color-accent-glow)';
+                    }}
+                  >
+                    Save this note
+                  </button>
                   <span
-                    className="text-sm italic"
+                    className="text-sm"
                     style={{
                       fontFamily: 'var(--font-body)',
                       color: 'var(--color-text-tertiary)',
                     }}
                   >
-                    Sign up to save your notes forever
+                    Create a free account to keep your notes
                   </span>
                 </div>
               )}

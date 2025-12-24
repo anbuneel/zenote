@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import type { Theme } from '../types';
 
@@ -70,9 +70,46 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const { signIn, signUp, signInWithGoogle, resetPassword, updatePassword } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Countdown timer for resend cooldown
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  const handleResendConfirmation = async () => {
+    if (resendCooldown > 0) return;
+    setError(null);
+    setLoading(true);
+    try {
+      // Re-trigger signup which sends a new confirmation email
+      const { error } = await signUp(email, password, fullName.trim() || undefined);
+      if (error) {
+        // "User already registered" is expected - email was sent
+        if (!error.message.toLowerCase().includes('already registered')) {
+          setError(sanitizeErrorMessage(error.message));
+        }
+      }
+      setResendCooldown(60); // 60 second cooldown
+      setMessage('Confirmation email sent!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangeEmail = () => {
+    setAwaitingConfirmation(false);
+    setPassword('');
+    setMessage(null);
+    setError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +126,8 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
         if (error) {
           setError(sanitizeErrorMessage(error.message));
         } else {
-          setMessage('Check your email for a confirmation link!');
+          setAwaitingConfirmation(true);
+          setMessage(null);
         }
       } else if (mode === 'forgot') {
         const { error } = await resetPassword(email);
@@ -197,9 +235,127 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
             fontSize: '0.95rem',
           }}
         >
-          {getTitle()}
+          {awaitingConfirmation ? 'Check your inbox' : getTitle()}
         </p>
 
+        {/* Confirmation waiting state */}
+        {awaitingConfirmation ? (
+          <div className="text-center">
+            {/* Email icon */}
+            <div
+              className="mx-auto mb-6 w-16 h-16 rounded-full flex items-center justify-center"
+              style={{ background: 'var(--color-bg-secondary)' }}
+            >
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                style={{ color: 'var(--color-accent)' }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+
+            <p
+              className="mb-2"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              We sent a confirmation link to
+            </p>
+            <p
+              className="mb-6 font-medium"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-accent)',
+              }}
+            >
+              {email}
+            </p>
+
+            {/* Success/Error Messages */}
+            {error && (
+              <p
+                className="mb-4 text-sm"
+                style={{ color: 'var(--color-destructive)' }}
+              >
+                {error}
+              </p>
+            )}
+            {message && (
+              <p
+                className="mb-4 text-sm"
+                style={{ color: 'var(--color-accent)' }}
+              >
+                {message}
+              </p>
+            )}
+
+            {/* Helpful tip */}
+            <p
+              className="mb-6 text-sm"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-text-tertiary)',
+              }}
+            >
+              Check your spam folder if you don't see it
+            </p>
+
+            {/* Action buttons */}
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={handleResendConfirmation}
+                disabled={loading || resendCooldown > 0}
+                className="w-full py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  background: 'var(--color-accent)',
+                  color: '#fff',
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && resendCooldown === 0) {
+                    e.currentTarget.style.background = 'var(--color-accent-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'var(--color-accent)';
+                }}
+              >
+                {loading ? 'Sending...' : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend email'}
+              </button>
+              <button
+                type="button"
+                onClick={handleChangeEmail}
+                className="w-full py-3 rounded-lg font-medium transition-all duration-200"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  background: 'var(--color-bg-secondary)',
+                  border: '1px solid var(--glass-border)',
+                  color: 'var(--color-text-primary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-accent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--glass-border)';
+                }}
+              >
+                Use a different email
+              </button>
+            </div>
+          </div>
+        ) : (
+        <>
         <form onSubmit={handleSubmit}>
           {/* Full Name - only shown during sign-up */}
           {mode === 'signup' && (
@@ -569,6 +725,8 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
             </p>
           )}
         </div>
+        </>
+        )}
       </div>
   );
 
