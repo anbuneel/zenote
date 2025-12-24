@@ -367,7 +367,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
                   color: 'var(--color-text-secondary)',
                 }}
               >
-                Full Name
+                Full Name <span style={{ color: 'var(--color-text-tertiary)' }}>(optional)</span>
               </label>
               <input
                 type="text"
@@ -472,6 +472,17 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
                   e.currentTarget.style.borderColor = 'var(--glass-border)';
                 }}
               />
+              {(mode === 'signup' || mode === 'reset') && (
+                <p
+                  className="text-xs mt-1.5"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    color: 'var(--color-text-tertiary)',
+                  }}
+                >
+                  8+ characters
+                </p>
+              )}
             </div>
           )}
 
@@ -730,15 +741,28 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
       </div>
   );
 
+  // Check if form has been modified (dirty state)
+  const isDirty = email.length > 0 || password.length > 0 || fullName.length > 0;
+
+  const handleModalClose = () => {
+    if (isDirty && !awaitingConfirmation) {
+      if (window.confirm('You have unsaved changes. Close anyway?')) {
+        onClose?.();
+      }
+    } else {
+      onClose?.();
+    }
+  };
+
   // Modal mode: wrap in overlay
   if (isModal) {
     return (
-      <div className="auth-modal-overlay" onClick={onClose}>
+      <div className="auth-modal-overlay" onClick={handleModalClose}>
         <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
           {/* Close button */}
           <button
             className="auth-modal-close"
-            onClick={onClose}
+            onClick={handleModalClose}
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
