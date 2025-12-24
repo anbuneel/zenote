@@ -87,6 +87,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
   const handleResendConfirmation = async () => {
     if (resendCooldown > 0) return;
     setError(null);
+    setMessage(null);
     setLoading(true);
     try {
       // Re-trigger signup which sends a new confirmation email
@@ -95,8 +96,10 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
         // "User already registered" is expected - email was sent
         if (!error.message.toLowerCase().includes('already registered')) {
           setError(sanitizeErrorMessage(error.message));
+          return; // Don't show success message on error
         }
       }
+      // Only show success if no unexpected error
       setResendCooldown(60); // 60 second cooldown
       setMessage('Confirmation email sent!');
     } finally {
