@@ -247,21 +247,87 @@ Faded notes should use:
 
 ### Implementation Priority
 
-**Phase 1 - Quick wins** (low effort, high impact):
-- [ ] Change "Delete Forever" to "Release"
-- [ ] Change "Empty All" to "Release All"
-- [ ] Add undo toast for delete action (remove confirmation dialog)
-- [ ] Update empty state copy
-- [ ] Update subtitle to "Notes rest here before releasing"
+**Phase 1 - Quick wins** (low effort, high impact): ✅ COMPLETED
+- [x] Change "Delete Forever" to "Release"
+- [x] Change "Empty All" to "Release All"
+- [x] Add undo toast for delete action (remove confirmation dialog)
+- [x] Update empty state copy
+- [x] Update subtitle to "Notes rest here before releasing"
 
-**Phase 2 - Visual enhancements** (medium effort):
-- [ ] Fade animation on delete
-- [ ] Organic time phrases ("Fading gently", "Nearly gone")
-- [ ] Forward-looking time ("Releasing in X days" vs "Deleted X days ago")
-- [ ] Muted card styling in Faded Notes view
+**Phase 2 - Visual enhancements** (medium effort): ✅ COMPLETED
+- [x] Fade animation on delete
+- [x] Organic time phrases ("Fading gently", "Nearly gone")
+- [x] Forward-looking time ("Releasing in X days" vs "Deleted X days ago")
+- [x] Muted card styling in Faded Notes view
 
-**Phase 3 - Future consideration**:
+**Phase 3 - Backend & Future**:
+- [x] Client-side auto-cleanup of expired notes (runs on app load)
+- [x] SQL migration prepared for Supabase pg_cron (for Pro plan)
 - [ ] "Quiet Notes" feature if user research supports it
+
+---
+
+## Implementation Details (Completed 2025-12-24)
+
+### Phase 1: Language & UX Changes
+
+| Change | Before | After |
+|--------|--------|-------|
+| Delete button | "Delete Forever" | **"Release"** |
+| Cancel button | "Cancel" | **"Keep Resting"** |
+| Empty all | "Empty All" | **"Release All"** |
+| Time display | "27 days left" | **"Releasing in 27 days"** |
+| Confirmation | "This cannot be undone" | **"This is a gentle goodbye"** |
+| Button color | Red (destructive) | **Accent color** (terracotta/gold) |
+| Delete action | Confirmation dialog | **Toast with Undo** (5 sec) |
+| Empty state | "Deleted notes will appear..." | **"All your notes are still with you..."** |
+| Subtitle | "...permanently removed after 30 days" | **"Notes rest here before releasing"** |
+
+### Phase 2: Visual Enhancements
+
+#### 1. Fade Animation on Delete
+- Notes fade out (opacity → 0.4, scale → 0.98, slide down 8px)
+- 300ms animation before removal
+- Removed confirmation dialog (undo toast is the safety net now)
+
+#### 2. Organic Time Phrases
+| Days Remaining | Phrase |
+|----------------|--------|
+| 25-30 | *Just arrived* |
+| 15-24 | *Resting quietly* |
+| 7-14 | *Fading gently* |
+| 1-6 | *Nearly gone* |
+| 0 | *Releasing today* |
+
+#### 3. Enhanced Faded Card Styling
+- **Sepia tint** - `filter: sepia(0.08)` for aged paper feel
+- **Reduced saturation** - 60% for muted colors
+- **Softer shadows** - `0 2px 8px rgba(0, 0, 0, 0.06)`
+- **Lighter typography** - `font-medium` instead of `font-semibold`
+- **Secondary text color** - Title uses `--color-text-secondary`
+- **Letter spacing** - +0.01em for "whisper" effect
+
+### Backend: Auto-Release Expired Notes
+
+**Client-side cleanup** (active now):
+```typescript
+// Runs on app load before fetching faded notes count
+cleanupExpiredFadedNotes()
+  .then(() => countFadedNotes())
+  .then(setFadedNotesCount)
+```
+
+**Server-side cleanup** (ready for Supabase Pro):
+```sql
+-- Daily cron job at 3 AM UTC
+SELECT cron.schedule(
+  'cleanup-faded-notes',
+  '0 3 * * *',
+  'SELECT cleanup_expired_faded_notes()'
+);
+```
+
+Migration file: `supabase/migrations/add_faded_notes_cleanup_cron.sql`
 
 ---
 
