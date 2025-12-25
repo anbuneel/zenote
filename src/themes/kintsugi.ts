@@ -1,0 +1,57 @@
+import type { ThemeConfig } from './types';
+
+/**
+ * Kintsugi Light Theme (Current Default Light)
+ *
+ * Inspired by the Japanese art of kintsugi - repairing broken pottery
+ * with gold. Features warm paper backgrounds and terracotta accents.
+ *
+ * This is the ORIGINAL light theme - kept as backup.
+ */
+export const kintsugi: ThemeConfig = {
+  name: 'kintsugi',
+  displayName: 'Kintsugi',
+  description: 'Warm paper backgrounds with terracotta accents',
+  mode: 'light',
+  colors: {
+    // Background: Warm aged paper tones
+    bgPrimary: '#EBE8E4',
+    bgSecondary: '#E5E2DD',
+    bgTertiary: '#D9D5CF',
+    cardBg: 'rgba(255, 253, 250, 0.95)',
+
+    // Typography: Dark sepia, not harsh black
+    textPrimary: '#3E3B36',
+    textSecondary: '#6B6862',
+    textTertiary: '#8F8C86',
+
+    // Accent: Terracotta / Lacquer Red
+    accent: '#C25634',
+    accentHover: '#A84828',
+    accentGlow: 'rgba(194, 86, 52, 0.2)',
+    accentMuted: 'rgba(194, 86, 52, 0.7)',
+
+    // Semantic
+    destructive: '#B54A32',
+    success: '#3D7A4A',
+    successGlow: 'rgba(61, 122, 74, 0.15)',
+
+    // Status colors
+    statusProgress: '#D4AF37',
+    statusComing: '#C25634',
+    statusExploring: '#8B8178',
+    changeImprovement: '#87A878',
+    changeFix: '#8B8178',
+
+    // Borders and shadows (warm brown tones)
+    glassBorder: 'rgba(62, 59, 54, 0.12)',
+    shadowSm: '0 2px 8px rgba(62, 59, 54, 0.08)',
+    shadowMd: '0 20px 40px -10px rgba(62, 59, 54, 0.15)',
+    shadowLg: '0 10px 40px rgba(62, 59, 54, 0.18)',
+
+    // Effects
+    noiseOpacity: '0.06',
+  },
+};
+
+export default kintsugi;

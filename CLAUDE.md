@@ -63,6 +63,13 @@ src/
 │   ├── formatTime.ts      # Relative time formatting
 │   ├── sanitize.ts        # HTML/text sanitization (XSS prevention)
 │   └── temporalGrouping.ts # Group notes by time (Pinned, This Week, Last Week, etc.)
+├── themes/
+│   ├── index.ts           # Theme exports and utilities
+│   ├── types.ts           # ThemeConfig type definitions
+│   ├── kintsugi.ts        # Light theme: Kintsugi (current)
+│   ├── midnight.ts        # Dark theme: Midnight (current)
+│   ├── washi.ts           # Light theme: Washi (proposed)
+│   └── mori.ts            # Dark theme: Mori (proposed)
 ├── test/
 │   └── setup.ts           # Vitest test setup
 ├── App.tsx                # Main app component with state management
@@ -175,14 +182,42 @@ When using the `frontend-design` skill for design analysis or recommendations, *
 
 ## Design System
 
-### Themes
+### Theme Configuration System
+Themes are defined in `src/themes/` as TypeScript files for easy backup and switching:
+
+```
+src/themes/
+├── index.ts      # Theme exports, active theme config, utilities
+├── types.ts      # ThemeConfig type definitions
+├── kintsugi.ts   # Light: Current default (warm paper + terracotta)
+├── midnight.ts   # Dark: Current default (forest green + gold)
+├── washi.ts      # Light: Proposed (handmade paper + kakishibu brown)
+└── mori.ts       # Dark: Proposed (deep forest + aged gold)
+```
+
+**To switch themes:**
+1. Update `ACTIVE_LIGHT_THEME` and `ACTIVE_DARK_THEME` in `src/themes/index.ts`
+2. Run `generateThemeCss()` to get CSS output
+3. Replace the `:root` and `[data-theme="dark"]` sections in `index.css`
+
+### Active Themes
 - **Light (Kintsugi):** Warm paper backgrounds, terracotta accent (#C25634)
 - **Dark (Midnight):** Deep forest green, antique gold accent (#D4AF37) - **DEFAULT**
+
+### Available Themes
+| Theme | Mode | Description |
+|-------|------|-------------|
+| Kintsugi | Light | Warm aged paper, terracotta accents |
+| Washi | Light | Handmade paper, kakishibu brown accents |
+| Midnight | Dark | Deep forest green, antique gold accents |
+| Mori | Dark | Forest at dusk, aged kintsugi gold |
 
 ### CSS Variables (defined in index.css)
 - `--color-bg-primary`, `--color-bg-secondary`, `--color-bg-tertiary`
 - `--color-text-primary`, `--color-text-secondary`
 - `--color-accent`, `--color-accent-hover`, `--color-accent-glow`
+- `--color-status-progress`, `--color-status-coming`, `--color-status-exploring`
+- `--color-change-improvement`, `--color-change-fix`
 - `--font-display` (Cormorant Garamond), `--font-body` (Inter)
 - `--radius-card: 2px 24px 4px 24px` (asymmetric wabi-sabi corners)
 
