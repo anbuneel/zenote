@@ -49,7 +49,7 @@ createRoot(document.getElementById('root')!).render(
             },
             error: {
               iconTheme: {
-                primary: '#DC2626',
+                primary: 'var(--color-destructive)',
                 secondary: '#fff',
               },
               duration: 5000,

@@ -658,13 +658,13 @@ export function Editor({ note, tags, onBack, onUpdate, onDelete, onToggleTag, on
                 style={{
                   fontFamily: 'var(--font-body)',
                   color: '#fff',
-                  background: '#DC2626',
+                  background: 'var(--color-destructive)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#B91C1C';
+                  e.currentTarget.style.opacity = '0.85';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#DC2626';
+                  e.currentTarget.style.opacity = '1';
                 }}
               >
                 Delete

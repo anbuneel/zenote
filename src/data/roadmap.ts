@@ -53,7 +53,7 @@ export const statusLabels: Record<RoadmapStatus, string> = {
 };
 
 export const statusColors: Record<RoadmapStatus, { bg: string; text: string }> = {
-  'in-progress': { bg: '#D4AF3720', text: '#D4AF37' },
-  'coming-soon': { bg: '#C2563420', text: '#C25634' },
-  'exploring': { bg: '#8B817820', text: '#8B8178' },
+  'in-progress': { bg: 'color-mix(in srgb, var(--color-status-progress) 15%, transparent)', text: 'var(--color-status-progress)' },
+  'coming-soon': { bg: 'color-mix(in srgb, var(--color-status-coming) 15%, transparent)', text: 'var(--color-status-coming)' },
+  'exploring': { bg: 'color-mix(in srgb, var(--color-status-exploring) 15%, transparent)', text: 'var(--color-status-exploring)' },
 };

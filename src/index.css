@@ -25,6 +25,13 @@
   --color-success: #3D7A4A;
   --color-success-glow: rgba(61, 122, 74, 0.15);
 
+  /* Status colors for roadmap/changelog */
+  --color-status-progress: #D4AF37;
+  --color-status-coming: #C25634;
+  --color-status-exploring: #8B8178;
+  --color-change-improvement: #87A878;
+  --color-change-fix: #8B8178;
+
   /* Glass border for cards */
   --glass-border: rgba(62, 59, 54, 0.12);
 
@@ -86,6 +93,13 @@
   /* Success: Forest green */
   --color-success: #4CAF50;
   --color-success-glow: rgba(76, 175, 80, 0.2);
+
+  /* Status colors for roadmap/changelog */
+  --color-status-progress: #D4AF37;
+  --color-status-coming: #E07A5F;
+  --color-status-exploring: #9A9890;
+  --color-change-improvement: #87A878;
+  --color-change-fix: #9A9890;
 
   /* Gold glass border */
   --glass-border: rgba(212, 175, 55, 0.15);

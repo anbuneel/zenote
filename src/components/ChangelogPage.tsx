@@ -20,8 +20,8 @@ const changeTypeIcons: Record<ChangeType, { icon: string; label: string }> = {
 
 const changeTypeColors: Record<ChangeType, string> = {
   feature: 'var(--color-accent)',
-  improvement: '#87A878',
-  fix: '#8B8178',
+  improvement: 'var(--color-change-improvement)',
+  fix: 'var(--color-change-fix)',
 };
 
 function formatDate(dateString: string): string {

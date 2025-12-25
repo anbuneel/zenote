@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { Theme } from '../types';
+import { TAG_COLORS, type Theme, type TagColor } from '../types';
 import { HeaderShell } from './HeaderShell';
 
 interface LandingPageProps {
@@ -15,7 +15,12 @@ const DEMO_STORAGE_KEY = 'zenote-demo-content';
 const DEFAULT_PLACEHOLDER = 'Start typing...';
 
 // Sample notes for the app preview
-const SAMPLE_NOTES = [
+const SAMPLE_NOTES: Array<{
+  title: string;
+  preview: string;
+  tag: { name: string; color: TagColor };
+  time: string;
+}> = [
   {
     title: 'Morning reflections',
     preview: 'The quiet hours before dawn have become my favorite time to think clearly...',
@@ -30,11 +35,6 @@ const SAMPLE_NOTES = [
   },
 ];
 
-const TAG_COLORS: Record<string, string> = {
-  terracotta: '#C25634',
-  forest: '#3D5A3D',
-  gold: '#D4AF37',
-};
 
 function getInitialContent(): string {
   if (typeof window !== 'undefined') {
