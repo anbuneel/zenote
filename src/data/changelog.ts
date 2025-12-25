@@ -8,6 +8,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.6.2',
+    date: '2025-12-24',
+    changes: [
+      { type: 'improvement', text: 'Softer language for Faded Notes - "Release" instead of "Delete Forever", "Keep Resting" instead of "Cancel"' },
+      { type: 'improvement', text: 'Undo toast when deleting notes - 5 second window to restore' },
+      { type: 'improvement', text: 'Forward-looking time display - "Releasing in X days" instead of "X days left"' },
+      { type: 'improvement', text: 'Updated empty state copy - "Nothing fading away" with friendlier message' },
+    ],
+  },
+  {
     version: '1.6.1',
     date: '2025-12-24',
     changes: [

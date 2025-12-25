@@ -337,6 +337,9 @@ function App() {
 
   // Soft delete a note (move to Faded Notes)
   const handleNoteDelete = async (id: string) => {
+    // Find the note before deleting (for potential undo)
+    const deletedNote = notes.find((n) => n.id === id);
+
     try {
       await softDeleteNote(id);
       setNotes(notes.filter((n) => n.id !== id));
@@ -345,7 +348,38 @@ function App() {
         setView('library');
         setSelectedNoteId(null);
       }
-      toast.success('Moved to Faded Notes');
+
+      // Show toast with undo button
+      toast(
+        (t) => (
+          <div className="flex items-center gap-3">
+            <span>Note moved to Faded Notes</span>
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await restoreNote(id);
+                  if (deletedNote) {
+                    setNotes((prev) => [{ ...deletedNote, deletedAt: null }, ...prev]);
+                  }
+                  setFadedNotesCount((prev) => Math.max(0, prev - 1));
+                  toast.success('Note restored');
+                } catch {
+                  toast.error('Failed to undo');
+                }
+              }}
+              className="px-2 py-1 text-sm font-medium rounded transition-colors"
+              style={{
+                background: 'var(--color-accent)',
+                color: 'var(--color-bg-primary)',
+              }}
+            >
+              Undo
+            </button>
+          </div>
+        ),
+        { duration: 5000 }
+      );
     } catch (error) {
       console.error('Failed to delete note:', error);
       toast.error('Failed to delete note');

@@ -188,7 +188,7 @@ export function FadedNoteCard({ note, onRestore, onPermanentDelete }: FadedNoteC
         >
           <div>{deletedTimeAgo}</div>
           <div style={{ color: daysRemaining <= 7 ? 'var(--color-destructive)' : 'var(--color-text-tertiary)' }}>
-            {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} left
+            Releasing in {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}
           </div>
         </div>
 
@@ -221,8 +221,8 @@ export function FadedNoteCard({ note, onRestore, onPermanentDelete }: FadedNoteC
             e.currentTarget.style.color = 'var(--color-text-tertiary)';
             e.currentTarget.style.background = 'var(--color-bg-secondary)';
           }}
-          aria-label="Delete permanently"
-          title="Delete permanently"
+          aria-label="Release note"
+          title="Release note"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -254,7 +254,7 @@ export function FadedNoteCard({ note, onRestore, onPermanentDelete }: FadedNoteC
               color: 'var(--color-text-secondary)',
             }}
           >
-            Permanently delete "<span
+            Release "<span
               style={{ color: 'var(--color-text-primary)' }}
               dangerouslySetInnerHTML={{ __html: sanitizeText(note.title) || 'Untitled' }}
             />"?
@@ -266,7 +266,7 @@ export function FadedNoteCard({ note, onRestore, onPermanentDelete }: FadedNoteC
               color: 'var(--color-text-tertiary)',
             }}
           >
-            This cannot be undone.
+            This is a gentle goodbye.
           </p>
           <div className="flex gap-2">
             <button
@@ -290,7 +290,7 @@ export function FadedNoteCard({ note, onRestore, onPermanentDelete }: FadedNoteC
                 e.currentTarget.style.borderColor = 'var(--glass-border)';
               }}
             >
-              Cancel
+              Keep Resting
             </button>
             <button
               onClick={handleConfirmDelete}
@@ -302,8 +302,8 @@ export function FadedNoteCard({ note, onRestore, onPermanentDelete }: FadedNoteC
               "
               style={{
                 fontFamily: 'var(--font-body)',
-                color: '#fff',
-                background: 'var(--color-destructive)',
+                color: 'var(--color-bg-primary)',
+                background: 'var(--color-accent)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.opacity = '0.9';
@@ -312,7 +312,7 @@ export function FadedNoteCard({ note, onRestore, onPermanentDelete }: FadedNoteC
                 e.currentTarget.style.opacity = '1';
               }}
             >
-              Delete Forever
+              Release
             </button>
           </div>
         </div>

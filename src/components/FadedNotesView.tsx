@@ -95,7 +95,7 @@ export function FadedNotesView({
               border: '1px solid var(--color-destructive)',
             }}
           >
-            Empty All
+            Release All
           </button>
         )}
       </header>
@@ -109,7 +109,7 @@ export function FadedNotesView({
           fontSize: '0.875rem',
         }}
       >
-        Notes here will be permanently removed after 30 days.
+        Notes rest here before releasing.
       </div>
 
       {/* Content */}
@@ -135,7 +135,7 @@ export function FadedNotesView({
                 color: 'var(--color-text-secondary)',
               }}
             >
-              Nothing fading here
+              Nothing fading away
             </p>
             <p
               className="text-sm"
@@ -144,7 +144,7 @@ export function FadedNotesView({
                 color: 'var(--color-text-tertiary)',
               }}
             >
-              Deleted notes will appear in this space
+              All your notes are still with you in the library
             </p>
           </div>
         </div>
@@ -209,7 +209,7 @@ export function FadedNotesView({
                 color: 'var(--color-text-primary)',
               }}
             >
-              Empty all faded notes?
+              Release all notes?
             </h3>
             <p
               className="text-sm mb-6"
@@ -218,7 +218,7 @@ export function FadedNotesView({
                 color: 'var(--color-text-secondary)',
               }}
             >
-              This will permanently delete {notes.length} note{notes.length === 1 ? '' : 's'}. This cannot be undone.
+              {notes.length} note{notes.length === 1 ? '' : 's'} will be gone. This is a gentle goodbye.
             </p>
             <div className="flex justify-center gap-3">
               <button
@@ -236,7 +236,7 @@ export function FadedNotesView({
                   border: '1px solid var(--glass-border)',
                 }}
               >
-                Cancel
+                Keep Resting
               </button>
               <button
                 onClick={handleEmptyAll}
@@ -248,11 +248,11 @@ export function FadedNotesView({
                 "
                 style={{
                   fontFamily: 'var(--font-body)',
-                  color: '#fff',
-                  background: 'var(--color-destructive)',
+                  color: 'var(--color-bg-primary)',
+                  background: 'var(--color-accent)',
                 }}
               >
-                Empty All
+                Release All
               </button>
             </div>
           </div>
