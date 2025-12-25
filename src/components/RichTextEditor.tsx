@@ -40,7 +40,7 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
       },
     }),
     Placeholder.configure({
-      placeholder: 'Start writing...',
+      placeholder: 'Start writing... (type / for commands)',
     }),
     Underline,
     TextAlign.configure({
