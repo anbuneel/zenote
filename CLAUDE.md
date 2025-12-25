@@ -149,9 +149,9 @@ Example changelog entry:
 
 ## Frontend Design Skill Consultations
 
-When using the `frontend-design` skill for design analysis or recommendations, **always write the output to a file** in the `docs/` folder with the following format:
+When using the `frontend-design` skill for design analysis or recommendations, **always write the output to a file** in the `docs/analysis/` folder with the following format:
 
-**File naming:** `docs/<topic>-claude.md` (use `-claude` suffix to indicate AI-authored)
+**File naming:** `docs/analysis/<topic>-claude.md` (use `-claude` suffix to indicate AI-authored)
 
 **Required file structure:**
 ```markdown
@@ -180,7 +180,32 @@ When using the `frontend-design` skill for design analysis or recommendations, *
 - Original prompt at the top (quoted)
 - Full design analysis with recommendations
 
-**Example:** See `docs/collaboration-feature-analysis-claude.md`
+**Example:** See `docs/analysis/collaboration-feature-analysis-claude.md`
+
+## Documentation Structure
+
+The `docs/` folder is organized as follows:
+
+```
+docs/
+├── active/           # Currently relevant follow-up docs
+├── analysis/         # Claude analysis docs (suffix: -claude.md)
+├── archive/
+│   ├── planning/     # Historical planning & analysis docs
+│   └── plans/        # Completed implementation plans
+├── conversations/    # Claude Code session logs
+├── reviews/          # External reviews (Gemini, code reviews)
+│   └── code-review/  # Code review reports
+└── setup/            # Configuration guides (OAuth, etc.)
+```
+
+**Placement guidelines:**
+- **analysis/**: AI-authored design analysis (`*-claude.md`)
+- **archive/plans/**: Implementation plans after feature is complete
+- **archive/planning/**: Old planning docs, tech comparisons
+- **active/**: Docs with ongoing action items
+- **reviews/**: External feedback (Gemini, human reviews)
+- **setup/**: How-to guides for configuration
 
 ## Design System
 
