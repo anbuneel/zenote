@@ -209,7 +209,7 @@ export function HeaderShell({
               <div
                 className="
                   absolute right-0 top-full mt-2
-                  min-w-[160px]
+                  min-w-[200px]
                   py-2
                   rounded-lg
                   shadow-lg
@@ -220,6 +220,33 @@ export function HeaderShell({
                   border: '1px solid var(--glass-border)',
                 }}
               >
+                {/* User info section */}
+                <div className="px-4 py-2">
+                  <div
+                    className="text-sm font-medium truncate"
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    {userFullName || 'User'}
+                  </div>
+                  <div
+                    className="text-xs truncate mt-0.5"
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      color: 'var(--color-text-tertiary)',
+                    }}
+                  >
+                    {userEmail}
+                  </div>
+                </div>
+
+                <div
+                  className="my-1 mx-3"
+                  style={{ borderTop: '1px solid var(--glass-border)' }}
+                />
+
                 {onSettingsClick && (
                   <button
                     onClick={() => {
