@@ -980,6 +980,9 @@ function App() {
         onRestore={handleRestoreNote}
         onPermanentDelete={handlePermanentDelete}
         onEmptyAll={handleEmptyFadedNotes}
+        theme={theme}
+        onThemeToggle={handleThemeToggle}
+        onSettingsClick={() => setShowSettingsModal(true)}
       />
     );
   }

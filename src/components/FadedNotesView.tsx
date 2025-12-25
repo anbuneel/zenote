@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Masonry from 'react-masonry-css';
-import type { Note } from '../types';
+import type { Note, Theme } from '../types';
 import { FadedNoteCard } from './FadedNoteCard';
+import { HeaderShell } from './HeaderShell';
 
 interface FadedNotesViewProps {
   notes: Note[];
@@ -9,6 +10,9 @@ interface FadedNotesViewProps {
   onRestore: (id: string) => void;
   onPermanentDelete: (id: string) => void;
   onEmptyAll: () => void;
+  theme: Theme;
+  onThemeToggle: () => void;
+  onSettingsClick: () => void;
 }
 
 export function FadedNotesView({
@@ -17,8 +21,35 @@ export function FadedNotesView({
   onRestore,
   onPermanentDelete,
   onEmptyAll,
+  theme,
+  onThemeToggle,
+  onSettingsClick,
 }: FadedNotesViewProps) {
   const [showEmptyConfirm, setShowEmptyConfirm] = useState(false);
+
+  const rightActions = notes.length > 0 ? (
+    <button
+      onClick={() => setShowEmptyConfirm(true)}
+      className="
+        px-4 py-2
+        rounded-full
+        text-sm font-medium
+        transition-all duration-200
+        focus:outline-none
+        focus:ring-2
+        focus:ring-[var(--color-destructive)]
+        hover:opacity-80
+      "
+      style={{
+        fontFamily: 'var(--font-body)',
+        color: 'var(--color-destructive)',
+        background: 'transparent',
+        border: '1px solid var(--color-destructive)',
+      }}
+    >
+      Release All
+    </button>
+  ) : undefined;
 
   const handleEmptyAll = () => {
     onEmptyAll();
@@ -30,86 +61,34 @@ export function FadedNotesView({
       className="min-h-screen flex flex-col"
       style={{ background: 'var(--color-bg-primary)' }}
     >
-      {/* Header */}
-      <header
-        className="
-          h-16
-          px-6 md:px-12
-          flex
-          items-center
-          justify-between
-          shrink-0
-        "
-      >
-        {/* Left: Back button + Title */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="
-              w-9 h-9
-              rounded-full
-              flex items-center justify-center
-              transition-all duration-200
-              focus:outline-none
-              focus:ring-2
-              focus:ring-[var(--color-accent)]
-              hover:bg-[var(--color-bg-secondary)]
-            "
-            style={{ color: 'var(--color-text-secondary)' }}
-            aria-label="Go back"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+      <HeaderShell
+        theme={theme}
+        onThemeToggle={onThemeToggle}
+        onLogoClick={onBack}
+        rightActions={rightActions}
+        onSettingsClick={onSettingsClick}
+      />
 
-          <h1
-            className="text-xl md:text-2xl font-semibold"
-            style={{
-              fontFamily: 'var(--font-display)',
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            Faded Notes
-          </h1>
-        </div>
-
-        {/* Right: Empty All button */}
-        {notes.length > 0 && (
-          <button
-            onClick={() => setShowEmptyConfirm(true)}
-            className="
-              px-4 py-2
-              rounded-full
-              text-sm font-medium
-              transition-all duration-200
-              focus:outline-none
-              focus:ring-2
-              focus:ring-[var(--color-destructive)]
-              hover:opacity-80
-            "
-            style={{
-              fontFamily: 'var(--font-body)',
-              color: 'var(--color-destructive)',
-              background: 'transparent',
-              border: '1px solid var(--color-destructive)',
-            }}
-          >
-            Release All
-          </button>
-        )}
-      </header>
-
-      {/* Subtitle */}
-      <div
-        className="px-6 md:px-12 pb-4"
-        style={{
-          fontFamily: 'var(--font-body)',
-          color: 'var(--color-text-tertiary)',
-          fontSize: '0.875rem',
-        }}
-      >
-        Notes rest here before releasing.
+      {/* Page Title */}
+      <div className="px-6 md:px-12 pb-4">
+        <h1
+          className="text-2xl md:text-3xl font-semibold mb-1"
+          style={{
+            fontFamily: 'var(--font-display)',
+            color: 'var(--color-text-primary)',
+          }}
+        >
+          Faded Notes
+        </h1>
+        <p
+          style={{
+            fontFamily: 'var(--font-body)',
+            color: 'var(--color-text-tertiary)',
+            fontSize: '0.875rem',
+          }}
+        >
+          Notes rest here before releasing.
+        </p>
       </div>
 
       {/* Content */}

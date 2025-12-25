@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.6.4',
+    date: '2025-12-24',
+    changes: [
+      { type: 'improvement', text: 'Faded Notes now uses consistent header with theme toggle and profile menu' },
+    ],
+  },
+  {
     version: '1.6.3',
     date: '2025-12-24',
     changes: [

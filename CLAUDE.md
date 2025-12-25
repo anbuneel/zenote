@@ -503,24 +503,24 @@ Pinned notes:
 ### Faded Notes View
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ ← Back to Notes                              [Empty All]    │
+│ [Zenote]                          [Release All] | [☀] [JD] │
 ├─────────────────────────────────────────────────────────────┤
-│                      Faded Notes                            │
-│           Notes here will be permanently                    │
-│           removed after 30 days                             │
+│ Faded Notes                                                 │
+│ Notes rest here before releasing.                           │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ Note Title                                          │   │
-│  │ Deleted 3 days ago · 27 days left                   │   │
-│  │ [Restore] [Delete Forever]                          │   │
+│  │ Resting quietly · Releasing in 27 days              │   │
+│  │ [Restore] [Release]                                 │   │
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
+- Uses HeaderShell for consistent header (clickable logo, theme toggle, avatar)
 - Accessed via "Faded Notes" in profile menu (shows badge count)
-- Cards show deletion time and days remaining
+- Cards show organic time phrases and days until release
 - Restore returns note to library
-- "Delete Forever" permanently removes note
-- "Empty All" permanently deletes all faded notes
+- "Release" permanently removes note
+- "Release All" permanently deletes all faded notes
 
 ### Footer (Library & Landing Page)
 ```
