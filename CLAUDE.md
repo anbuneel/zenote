@@ -22,7 +22,7 @@ src/
 │   ├── ChangelogPage.tsx  # Version history page with categorized changes
 │   ├── Editor.tsx         # Note editor with rich text + tag selector + save indicator
 │   ├── EditorToolbar.tsx  # Formatting toolbar for rich text editor (sticky in header zone)
-│   ├── ErrorBoundary.tsx  # Error boundary for graceful error handling
+│   ├── ErrorBoundary.tsx  # Error boundary with chunk error detection (deployment handling)
 │   ├── Footer.tsx         # Minimal footer with changelog/roadmap/GitHub links
 │   ├── ChapteredLibrary.tsx # Temporal chapters note organization (Pinned, This Week, Last Week, etc.)
 │   ├── ChapterNav.tsx     # Desktop dot navigation sidebar for chapter jumping
@@ -749,6 +749,7 @@ The Settings modal (`SettingsModal.tsx`) has two tabs:
 - Google OAuth uses Supabase's `signInWithOAuth` with redirect back to app origin
 - Google sign-in button appears on login and signup screens with "or" divider
 - ErrorBoundary wraps the entire app to catch and display runtime errors gracefully
+- Chunk loading errors (from deployments) show "New version available" and auto-refresh
 - Production OAuth requires Supabase Site URL and Redirect URLs to match deployment domain
 - Toast notifications use react-hot-toast with theme-aware styling
 - Network status monitored via useNetworkStatus hook (shows offline/online toasts)
