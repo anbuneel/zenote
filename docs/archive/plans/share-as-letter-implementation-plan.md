@@ -292,26 +292,56 @@ Share URLs: `https://zenote.vercel.app/?s=<token>`
 
 ## Implementation Summary
 
-**Status:** Completed
+**Status:** COMPLETED
 **Implemented:** 2025-12-26
 **Version:** 1.9.0
+**Commit:** `f802991`
 
 ### Files Created
-- `supabase/migrations/add_note_shares.sql` - Database migration with RLS policies
-- `src/components/ShareModal.tsx` - Modal for creating/managing share links
-- `src/components/SharedNoteView.tsx` - Public read-only view for shared notes
+| File | Description |
+|------|-------------|
+| `supabase/migrations/add_note_shares.sql` | Database migration for `note_shares` table with RLS policies |
+| `src/components/ShareModal.tsx` | Modal for creating/managing share links with expiration options |
+| `src/components/SharedNoteView.tsx` | Public read-only view for shared notes |
 
 ### Files Modified
-- `src/types/database.ts` - Added DbNoteShare type
-- `src/types.ts` - Added NoteShare interface and 'shared' ViewMode
-- `src/services/notes.ts` - Added 5 share functions (create, get, update, delete, fetch)
-- `src/components/Editor.tsx` - Added share button to export menu, userId prop
-- `src/App.tsx` - Added share token URL handling with SharedNoteView routing
-- `src/data/changelog.ts` - Added v1.9.0 entry
-- `CLAUDE.md` - Updated documentation (features, schema, services)
-- `README.md` - Added share feature to features list
+| File | Changes |
+|------|---------|
+| `src/types/database.ts` | Added `DbNoteShare` type to database schema |
+| `src/types.ts` | Added `NoteShare` interface and `'shared'` ViewMode |
+| `src/services/notes.ts` | Added 5 share functions (create, get, update, delete, fetch) |
+| `src/components/Editor.tsx` | Added "Share as Letter" button to export menu, added `userId` prop |
+| `src/App.tsx` | Added share token URL handling (`?s=<token>`) with SharedNoteView routing |
+| `src/data/changelog.ts` | Added v1.9.0 entry |
+| `CLAUDE.md` | Updated documentation (features, schema, services, migrations) |
+| `README.md` | Added share feature to features list |
 
-### Notes
-- All checks passed (typecheck, lint, test, build)
-- Feature follows wabi-sabi philosophy with impermanent, one-way sharing
-- No analytics or tracking on shared views
+### Features Implemented
+- Create temporary, read-only share links for notes
+- Configurable expiration: 1 day, 7 days, 30 days, or never
+- Beautiful shared note view with preserved formatting and tags
+- Copy link to clipboard with one click
+- Revoke links at any time
+- Graceful handling of expired/invalid tokens
+
+### Service Functions Added
+```typescript
+createNoteShare(noteId, userId, expiresInDays)  // Create share link
+getNoteShare(noteId)                             // Get existing share
+updateNoteShareExpiration(noteId, expiresInDays) // Update expiration
+deleteNoteShare(noteId)                          // Revoke access
+fetchSharedNote(token)                           // Fetch by token (public)
+```
+
+### Wabi-sabi Alignment
+- **Impermanent**: Links expire (7 days default)
+- **One-way**: No comments, no reactions, no tracking
+- **Quiet**: No view counts, no analytics shown to author
+- **Solitude preserved**: Author doesn't know when/if note is viewed
+
+### Deployment Note
+Run the migration (`supabase/migrations/add_note_shares.sql`) on your Supabase database before the feature will work in production.
+
+### Verification
+- All checks passed: typecheck, lint, test, build
+- No breaking changes to existing functionality
