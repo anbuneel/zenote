@@ -7,11 +7,12 @@ interface SettingsModalProps {
   onClose: () => void;
   theme: Theme;
   onThemeToggle: () => void;
+  onLetGoClick: () => void;
 }
 
 type SettingsTab = 'profile' | 'password';
 
-export function SettingsModal({ isOpen, onClose, theme, onThemeToggle }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoClick }: SettingsModalProps) {
   const { user, updateProfile, updatePassword } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
@@ -492,6 +493,44 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle }: Setting
               </button>
             </form>
           )}
+
+          {/* Let go section - offboarding link */}
+          <div
+            className="mt-8 pt-6 text-center"
+            style={{ borderTop: '1px solid var(--glass-border)' }}
+          >
+            <p
+              className="text-sm mb-2"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-text-tertiary)',
+              }}
+            >
+              Ready to move on?
+            </p>
+            <button
+              onClick={() => {
+                onClose();
+                onLetGoClick();
+              }}
+              className="text-sm transition-colors duration-200"
+              style={{
+                fontFamily: 'var(--font-body)',
+                color: 'var(--color-text-tertiary)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              }}
+            >
+              Let go of Zenote →
+            </button>
+          </div>
         </div>
       </div>
     </div>

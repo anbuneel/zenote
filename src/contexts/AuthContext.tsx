@@ -15,6 +15,11 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
   updateProfile: (fullName: string) => Promise<{ error: Error | null }>;
+  // Offboarding ("Letting Go")
+  initiateOffboarding: () => Promise<{ error: Error | null }>;
+  cancelOffboarding: () => Promise<{ error: Error | null }>;
+  isDeparting: boolean;
+  daysUntilRelease: number | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,8 +116,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  // Offboarding ("Letting Go") - initiate account departure with 14-day grace period
+  const initiateOffboarding = async () => {
+    const { data, error } = await supabase.auth.updateUser({
+      data: { departing_at: new Date().toISOString() },
+    });
+    if (!error && data.user) {
+      setUser(data.user);
+    }
+    return { error };
+  };
+
+  // Cancel offboarding - user decided to stay
+  const cancelOffboarding = async () => {
+    const { data, error } = await supabase.auth.updateUser({
+      data: { departing_at: null },
+    });
+    if (!error && data.user) {
+      setUser(data.user);
+    }
+    return { error };
+  };
+
+  // Computed: is the user in departure grace period?
+  const departingAt = user?.user_metadata?.departing_at as string | undefined;
+  const isDeparting = Boolean(departingAt);
+
+  // Computed: days until account release (null if not departing)
+  const daysUntilRelease = (() => {
+    if (!departingAt) return null;
+    const departureDate = new Date(departingAt);
+    const releaseDate = new Date(departureDate.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const msRemaining = releaseDate.getTime() - now.getTime();
+    const daysRemaining = Math.ceil(msRemaining / (24 * 60 * 60 * 1000));
+    return Math.max(0, daysRemaining);
+  })();
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signUp, signOut, resetPassword, updatePassword, updateProfile }}>
+    <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signUp, signOut, resetPassword, updatePassword, updateProfile, initiateOffboarding, cancelOffboarding, isDeparting, daysUntilRelease }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,6 +8,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.8.0',
+    date: '2025-12-26',
+    changes: [
+      { type: 'feature', text: 'Account offboarding ("Letting Go") - graceful departure with 14-day grace period' },
+      { type: 'feature', text: 'Export keepsakes before departing - download your notes as Markdown or JSON' },
+      { type: 'feature', text: 'Return during grace period - sign back in to cancel departure and stay' },
+      { type: 'improvement', text: 'Wabi-sabi offboarding language - "fade", "release", "keepsakes" instead of delete/cancel' },
+    ],
+  },
+  {
     version: '1.7.1',
     date: '2025-12-25',
     changes: [

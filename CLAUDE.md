@@ -33,22 +33,24 @@ src/
 │   ├── Header.tsx         # Library header with search, new note button (uses HeaderShell)
 │   ├── HeaderShell.tsx    # Shared header component for consistent layout across all pages
 │   ├── LandingPage.tsx    # Split-screen landing page with interactive demo
+│   ├── LettingGoModal.tsx # Account departure modal with keepsakes export
 │   ├── Library.tsx        # Notes masonry grid view (legacy, replaced by ChapteredLibrary)
 │   ├── NoteCard.tsx       # Individual note card with tag badges
 │   ├── RichTextEditor.tsx # Tiptap editor content wrapper (toolbar extracted to EditorToolbar)
 │   ├── RoadmapPage.tsx    # Public roadmap with status-grouped features
-│   ├── SettingsModal.tsx  # Settings modal (profile, password for non-OAuth, theme)
+│   ├── SettingsModal.tsx  # Settings modal (profile, password for non-OAuth, theme, offboarding)
 │   ├── TagBadge.tsx       # Small tag badge for note cards
 │   ├── TagFilterBar.tsx   # Horizontal tag filter strip with edit support
 │   ├── TagModal.tsx       # Modal for creating/editing/deleting tags
 │   ├── TagPill.tsx        # Tag pill component with edit button
 │   ├── TagSelector.tsx    # Dropdown for assigning tags in editor
+│   ├── WelcomeBackPrompt.tsx # Prompt shown when departing user signs in during grace period
 │   └── WhisperBack.tsx    # Floating back button for long notes (scroll-triggered)
 ├── data/
 │   ├── changelog.ts       # Version history data
 │   └── roadmap.ts         # Roadmap items with status
 ├── contexts/
-│   └── AuthContext.tsx    # Auth state management (login, signup, Google OAuth, password reset, profile)
+│   └── AuthContext.tsx    # Auth state management (login, signup, Google OAuth, password reset, profile, offboarding)
 ├── lib/
 │   └── supabase.ts        # Supabase client instance
 ├── services/
@@ -365,6 +367,9 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Loading spinner on auth submit button
 - [x] Copy note to clipboard (plain text or with formatting) from export menu
 - [x] Keyboard shortcut Cmd/Ctrl+Shift+C to copy entire note
+- [x] Account offboarding ("Letting Go") with 14-day grace period
+- [x] Keepsakes export during offboarding (Markdown or JSON download)
+- [x] Return during grace period (sign in to cancel departure)
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (GitHub, etc.)
@@ -726,12 +731,18 @@ The `AuthContext` provides these functions:
 - `updateProfile(fullName)` - Update display name in user metadata
 - `isPasswordRecovery` - Boolean indicating if user arrived via recovery link
 - `clearPasswordRecovery()` - Clear recovery state after password update
+- `initiateOffboarding()` - Start account departure (sets departing_at in user_metadata)
+- `cancelOffboarding()` - Cancel departure and stay (clears departing_at)
+- `isDeparting` - Boolean indicating if user is in departure grace period
+- `daysUntilRelease` - Days remaining until account release (null if not departing)
 
 ## Settings Modal
 The Settings modal (`SettingsModal.tsx`) has two tabs:
 - **Profile Tab:** Email (read-only), display name input, theme toggle button
 - **Password Tab:** New password + confirmation with validation (min 8 chars)
   - Hidden for OAuth users (Google sign-in) since they authenticate via their provider
+
+At the bottom of the modal is the "Let go of Zenote" link that opens the offboarding modal.
 
 ## Notes
 - Content is stored as HTML (from Tiptap's `getHTML()`)

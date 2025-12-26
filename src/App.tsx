@@ -13,6 +13,8 @@ const Editor = lazy(() => import('./components/Editor').then(module => ({ defaul
 import { TagFilterBar } from './components/TagFilterBar';
 import { TagModal } from './components/TagModal';
 import { SettingsModal } from './components/SettingsModal';
+import { LettingGoModal } from './components/LettingGoModal';
+import { WelcomeBackPrompt } from './components/WelcomeBackPrompt';
 import { ChangelogPage } from './components/ChangelogPage';
 import { RoadmapPage } from './components/RoadmapPage';
 import { Footer } from './components/Footer';
@@ -52,7 +54,7 @@ import './App.css';
 const DEMO_STORAGE_KEY = 'zenote-demo-content';
 
 function App() {
-  const { user, loading: authLoading, isPasswordRecovery, clearPasswordRecovery } = useAuth();
+  const { user, loading: authLoading, isPasswordRecovery, clearPasswordRecovery, isDeparting, daysUntilRelease } = useAuth();
 
   // Network connectivity monitoring
   useNetworkStatus();
@@ -92,6 +94,10 @@ function App() {
   // Settings modal state
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
+  // Offboarding ("Letting Go") modal state
+  const [showLettingGoModal, setShowLettingGoModal] = useState(false);
+  const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+
   // Auth modal state (for landing page)
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('signup');
@@ -112,6 +118,13 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('zenote-theme', theme);
   }, [theme]);
+
+  // Show WelcomeBackPrompt when user signs in during grace period
+  useEffect(() => {
+    if (user && isDeparting) {
+      setShowWelcomeBack(true);
+    }
+  }, [user, isDeparting]);
 
   // Fetch notes when user is authenticated
   // Use user?.id as dependency to avoid refetching when user object reference changes
@@ -1043,7 +1056,25 @@ function App() {
           onClose={() => setShowSettingsModal(false)}
           theme={theme}
           onThemeToggle={handleThemeToggle}
+          onLetGoClick={() => setShowLettingGoModal(true)}
         />
+
+        {/* Letting Go Modal (offboarding) */}
+        <LettingGoModal
+          isOpen={showLettingGoModal}
+          onClose={() => setShowLettingGoModal(false)}
+          notes={notes}
+          tags={tags}
+        />
+
+        {/* Welcome Back Prompt (shown when user signs in during grace period) */}
+        {showWelcomeBack && daysUntilRelease !== null && (
+          <WelcomeBackPrompt
+            daysRemaining={daysUntilRelease}
+            onStay={() => setShowWelcomeBack(false)}
+            onContinue={() => setShowWelcomeBack(false)}
+          />
+        )}
 
         {/* Footer */}
         <Footer
