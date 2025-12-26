@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm run test:run && npm run build",
     "theme:generate": "tsx scripts/generate-theme-css.ts",
-    "theme:preview": "tsx scripts/generate-theme-css.ts --preview"
+    "theme:preview": "tsx scripts/generate-theme-css.ts --preview",
+    "icons:generate": "tsx scripts/generate-icons.ts"
   },
   "dependencies": {
     "@sentry/react": "^10.30.0",
@@ -51,11 +52,13 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "jsdom": "^27.3.0",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.1.17",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
+    "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.15"
   }
 }

@@ -91,6 +91,7 @@ npm run test:run # Run tests once
 npm run check    # Full CI check: typecheck + lint + test + build
 npm run theme:generate  # Generate CSS from active themes
 npm run theme:preview   # Preview theme CSS without updating
+npm run icons:generate  # Generate PWA icons from SVG source
 ```
 
 ## Development Workflow
@@ -330,7 +331,8 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Code splitting (lazy load Tiptap editor)
 - [x] Error monitoring (Sentry)
 - [x] Toast notifications (react-hot-toast)
-- [x] Network connectivity detection (offline/online alerts)
+- [x] Network connectivity detection (Zen-style offline/online messages)
+- [x] PWA support (installable, cached assets, offline app shell)
 - [x] Landing page with interactive demo (split-screen, localStorage persistence)
 - [x] Mobile responsive landing page and auth modal
 - [x] Sticky formatting toolbar in editor (stays visible while scrolling)

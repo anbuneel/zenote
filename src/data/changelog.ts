@@ -8,6 +8,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.7.0',
+    date: '2025-12-25',
+    changes: [
+      { type: 'feature', text: 'PWA support - install Zenote to your home screen for app-like experience' },
+      { type: 'feature', text: 'Offline app shell - UI loads instantly even without connection' },
+      { type: 'improvement', text: 'Warm paper texture on light mode for consistent wabi-sabi feel' },
+      { type: 'improvement', text: 'Zen-style network messages - calm, non-alarming offline notifications' },
+    ],
+  },
+  {
     version: '1.6.5',
     date: '2025-12-24',
     changes: [

@@ -4,6 +4,10 @@ import toast from 'react-hot-toast';
 /**
  * Hook that monitors network connectivity and shows toast notifications
  * when the user goes offline or comes back online.
+ *
+ * Uses Zen-inspired messaging that aligns with wabi-sabi design:
+ * - Offline is presented as natural, not alarming
+ * - Online return is quiet, not celebratory
  */
 export function useNetworkStatus() {
   const wasOffline = useRef(false);
@@ -11,9 +15,14 @@ export function useNetworkStatus() {
   useEffect(() => {
     const handleOnline = () => {
       if (wasOffline.current) {
-        toast.success('Back online', {
-          icon: '🌐',
+        toast('The path has cleared.', {
+          icon: '〇',
           duration: 3000,
+          style: {
+            background: 'var(--color-bg-secondary)',
+            color: 'var(--color-text-primary)',
+            border: '1px solid var(--glass-border)',
+          },
         });
       }
       wasOffline.current = false;
@@ -21,9 +30,14 @@ export function useNetworkStatus() {
 
     const handleOffline = () => {
       wasOffline.current = true;
-      toast.error('You are offline. Changes may not be saved.', {
-        icon: '📡',
-        duration: 5000,
+      toast('Writing locally. Will sync when the path clears.', {
+        icon: '雲',
+        duration: 4000,
+        style: {
+          background: 'var(--color-bg-secondary)',
+          color: 'var(--color-text-primary)',
+          border: '1px solid var(--glass-border)',
+        },
       });
     };
 
@@ -33,9 +47,14 @@ export function useNetworkStatus() {
     // Check initial state
     if (!navigator.onLine) {
       wasOffline.current = true;
-      toast.error('You are offline. Changes may not be saved.', {
-        icon: '📡',
-        duration: 5000,
+      toast('Writing locally. Will sync when the path clears.', {
+        icon: '雲',
+        duration: 4000,
+        style: {
+          background: 'var(--color-bg-secondary)',
+          color: 'var(--color-text-primary)',
+          border: '1px solid var(--glass-border)',
+        },
       });
     }
 
