@@ -3,6 +3,42 @@
 **Author:** Claude (Opus 4.5)
 **Date:** 2025-12-25
 **Design Doc:** `docs/analysis/offboarding-design-claude.md`
+**Status:** ✅ IMPLEMENTED (v1.8.0, 2025-12-26)
+
+---
+
+## Implementation Summary
+
+### Components Created
+- **`LettingGoModal.tsx`** - Single modal for departure with keepsakes export (Markdown/JSON)
+- **`WelcomeBackPrompt.tsx`** - Shown when departing user signs in during grace period
+
+### AuthContext Updates
+- `initiateOffboarding()` - Sets `departing_at` in user_metadata
+- `cancelOffboarding()` - Clears `departing_at` to cancel departure
+- `isDeparting` - Boolean indicating user is in grace period
+- `daysUntilRelease` - Days remaining (1-14)
+
+### User Flow
+1. User clicks "Let go of Zenote →" link in Settings modal
+2. LettingGoModal opens with:
+   - Gratitude message: "Thank you for the quiet moments"
+   - Export keepsakes option (Markdown or JSON)
+   - "Stay a while" / "Let go" buttons
+3. On "Let go": farewell toast, sign out
+4. If user signs in during 14-day grace period: WelcomeBackPrompt appears
+5. User can "Stay" (cancel departure) or "Continue letting go" (sign out again)
+
+### Wabi-sabi Language
+- "fade" instead of "delete"
+- "release" instead of "permanently delete"
+- "keepsakes" instead of "export"
+- "stay a while" instead of "cancel"
+
+### Technical Notes
+- Uses Supabase `user_metadata.departing_at` - no database migration needed
+- Grace period: 14 days from departure initiation
+- Reuses existing export utilities (`exportNotesToJSON`, `downloadMarkdownZip`)
 
 ---
 
@@ -260,12 +296,12 @@ This can be implemented later. For now, accounts remain in "fading" state until 
 
 ## Testing Checklist
 
-- [ ] "Let go of Zenote" link appears in Settings
-- [ ] LettingGoModal opens with export options
-- [ ] Markdown/JSON export works from modal
-- [ ] "Let go" sets departing_at and signs out
-- [ ] Farewell toast appears
-- [ ] Sign in during grace period shows WelcomeBackPrompt
-- [ ] "Stay" clears departing_at, shows "Welcome home" toast
-- [ ] "Continue letting go" signs out again
-- [ ] Days remaining calculation is accurate
+- [x] "Let go of Zenote" link appears in Settings
+- [x] LettingGoModal opens with export options
+- [x] Markdown/JSON export works from modal
+- [x] "Let go" sets departing_at and signs out
+- [x] Farewell toast appears
+- [x] Sign in during grace period shows WelcomeBackPrompt
+- [x] "Stay" clears departing_at, shows "Welcome home" toast
+- [x] "Continue letting go" signs out again
+- [x] Days remaining calculation is accurate
