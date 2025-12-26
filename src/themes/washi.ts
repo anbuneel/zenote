@@ -20,7 +20,7 @@ export const washi: ThemeConfig = {
     bgPrimary: '#F6F1E7',
     bgSecondary: '#EDE6D6',
     bgTertiary: '#E3D9C6',
-    cardBg: 'rgba(255, 252, 245, 0.95)',
+    cardBg: 'rgba(253, 250, 242, 0.75)',
 
     // Typography: Sumi ink - warm black
     textPrimary: '#3D3630',
@@ -52,7 +52,8 @@ export const washi: ThemeConfig = {
     shadowLg: '0 10px 40px rgba(61, 54, 48, 0.15)',
 
     // Effects
-    noiseOpacity: '0.05',
+    noiseOpacity: '0.10',
+    noiseFilter: 'sepia(80%) saturate(120%) brightness(0.95)', // Warm aged paper tint
   },
 };
 

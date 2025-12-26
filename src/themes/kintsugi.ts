@@ -18,7 +18,7 @@ export const kintsugi: ThemeConfig = {
     bgPrimary: '#EBE8E4',
     bgSecondary: '#E5E2DD',
     bgTertiary: '#D9D5CF',
-    cardBg: 'rgba(255, 253, 250, 0.95)',
+    cardBg: 'rgba(253, 250, 242, 0.75)',
 
     // Typography: Dark sepia, not harsh black
     textPrimary: '#3E3B36',
@@ -50,7 +50,8 @@ export const kintsugi: ThemeConfig = {
     shadowLg: '0 10px 40px rgba(62, 59, 54, 0.18)',
 
     // Effects
-    noiseOpacity: '0.06',
+    noiseOpacity: '0.10',
+    noiseFilter: 'sepia(80%) saturate(120%) brightness(0.95)', // Warm paper tint
   },
 };
 

@@ -14,7 +14,7 @@
   --color-bg-primary: #EBE8E4;
   --color-bg-secondary: #E5E2DD;
   --color-bg-tertiary: #D9D5CF;
-  --color-card-bg: rgba(255, 253, 250, 0.95);
+  --color-card-bg: rgba(253, 250, 242, 0.75);
   --color-text-primary: #3E3B36;
   --color-text-secondary: #6B6862;
   --color-text-tertiary: #8F8C86;
@@ -34,7 +34,8 @@
   --shadow-sm: 0 2px 8px rgba(62, 59, 54, 0.08);
   --shadow-md: 0 20px 40px -10px rgba(62, 59, 54, 0.15);
   --shadow-lg: 0 10px 40px rgba(62, 59, 54, 0.18);
-  --noise-opacity: 0.06;
+  --noise-opacity: 0.10;
+  --noise-filter: sepia(80%) saturate(120%) brightness(0.95);
 }
 
 /* Dark Theme: Midnight - Deep forest green with antique gold accents */
@@ -62,7 +63,8 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 20px 50px -10px rgba(0, 0, 0, 0.6);
-  --noise-opacity: 0.06;
+  --noise-opacity: 0.10;
+  --noise-filter: grayscale(100%);
 }
 /* THEME-END */
 
@@ -132,7 +134,7 @@ body::before {
   z-index: 9999;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
   opacity: var(--noise-opacity);
-  filter: grayscale(100%);
+  filter: var(--noise-filter);
 }
 
 /* Line clamp utilities */

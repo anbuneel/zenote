@@ -50,7 +50,8 @@ export const midnight: ThemeConfig = {
     shadowLg: '0 20px 50px -10px rgba(0, 0, 0, 0.6)',
 
     // Effects
-    noiseOpacity: '0.06',
+    noiseOpacity: '0.10',
+    noiseFilter: 'grayscale(100%)', // Neutral grain for dark mode
   },
 };
 

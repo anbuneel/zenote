@@ -43,6 +43,7 @@ export interface ThemeColors {
 
   // Effects
   noiseOpacity: string;
+  noiseFilter: string;
 }
 
 export interface ThemeConfig {
@@ -82,6 +83,7 @@ export function themeToCssVariables(theme: ThemeColors): Record<string, string> 
     '--shadow-md': theme.shadowMd,
     '--shadow-lg': theme.shadowLg,
     '--noise-opacity': theme.noiseOpacity,
+    '--noise-filter': theme.noiseFilter,
   };
 }
 

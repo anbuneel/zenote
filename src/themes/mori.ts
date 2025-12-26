@@ -52,7 +52,8 @@ export const mori: ThemeConfig = {
     shadowLg: '0 20px 50px -10px rgba(0, 0, 0, 0.55)',
 
     // Effects
-    noiseOpacity: '0.05',
+    noiseOpacity: '0.10',
+    noiseFilter: 'grayscale(100%)', // Neutral grain for dark mode
   },
 };
 
