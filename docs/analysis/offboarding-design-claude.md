@@ -36,32 +36,33 @@ Wabi-sabi teaches us that **departure is as natural as arrival**. Like autumn le
 
 ---
 
-## The Journey
+## The Journey (Simplified)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │
-│   Settings Modal          Departure Page           Grace Period    │
-│   ─────────────          ──────────────           ────────────     │
+│   Settings Modal       Letting Go Modal         Grace Period       │
+│   ─────────────       ─────────────────        ────────────        │
 │                                                                     │
-│   [Let go of              Step 1: Intention        Account fades   │
-│    Zenote]                     ↓                   for 14 days     │
-│       │                   Step 2: Keepsakes             │          │
-│       │                        ↓                        │          │
-│       └──────────────→   Step 3: Farewell          [Return?]       │
-│                               ↓                         │          │
-│                          Grace begins              [Release]       │
+│   [Let go of    →     [Keepsakes export]       Account fades       │
+│    Zenote]            [Let go button]          for 14 days         │
+│                              │                       │             │
+│                              ↓                  [Return?]          │
+│                       Toast + Sign out               │             │
+│                                                 [Release]          │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+**Design Principle:** Minimize friction. The 14-day grace period IS the safety net — no need for extra confirmation steps.
 
 ---
 
 ## Step-by-Step Flow
 
-### Entry: Settings Modal
+### Step 1: Entry Point in Settings Modal
 
-Add a third tab or section at the bottom of Settings:
+Add a section at the bottom of the Settings modal:
 
 ```
 ┌─────────────────────────────────────────┐
@@ -95,121 +96,76 @@ Add a third tab or section at the bottom of Settings:
 
 ---
 
-### Departure Page (Full-screen)
+### Step 2: Letting Go Modal (Single Modal)
 
-When user clicks "Let go of Zenote", transition to a dedicated full-page experience:
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                                                                     │
-│  ← Back to settings                                                 │
-│                                                                     │
-│                                                                     │
-│                                                                     │
-│                         Letting Go                                  │
-│                                                                     │
-│              ─────────────────────────────                          │
-│                                                                     │
-│         Thank you for the quiet moments.                            │
-│                                                                     │
-│     Your notes will rest for 14 days, then release.                 │
-│     You may return anytime before then.                             │
-│                                                                     │
-│                                                                     │
-│                                                                     │
-│         ┌─────────────────────────────────────┐                     │
-│         │                                     │                     │
-│         │  📦  Take your keepsakes            │                     │
-│         │                                     │                     │
-│         │  Download all your notes before     │                     │
-│         │  you go. Your words belong to you.  │                     │
-│         │                                     │                     │
-│         │  [Download as Markdown]             │                     │
-│         │  [Download as JSON]                 │                     │
-│         │                                     │                     │
-│         └─────────────────────────────────────┘                     │
-│                                                                     │
-│                                                                     │
-│                                                                     │
-│                    [Begin Letting Go]                               │
-│                                                                     │
-│                                                                     │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**Visual design:**
-- Full-screen with generous white space
-- Centered content, editorial layout
-- Warm background (paper texture)
-- Keepsakes card with subtle border, not harsh box
-- Primary action is gold/terracotta accent, but not urgent
-
-**Key copy:**
-- "Thank you for the quiet moments" — gratitude, not guilt
-- "rest for 14 days, then release" — echoes Faded Notes language
-- "Your words belong to you" — empowering, respectful
-
----
-
-### Confirmation Modal (After clicking "Begin Letting Go")
-
-A gentle confirmation, not a warning:
+When user clicks "Let go of Zenote", open a modal with everything in one place:
 
 ```
 ┌─────────────────────────────────────────┐
+│              Letting Go             ✕   │
+├─────────────────────────────────────────┤
 │                                         │
-│              Are you ready?             │
+│    Thank you for the quiet moments.     │
 │                                         │
-│    Your account will begin fading.      │
-│    You have 14 days to return.          │
+│  Your account will fade for 14 days,    │
+│  then release. You may return anytime   │
+│  before then.                           │
 │                                         │
-│    ┌─────────────────────────────────┐  │
-│    │ Type "let go" to confirm        │  │
-│    │ [_______________]               │  │
-│    └─────────────────────────────────┘  │
+│  ┌─────────────────────────────────┐   │
+│  │  Take your keepsakes (optional)  │   │
+│  │                                  │   │
+│  │  Your words belong to you.       │   │
+│  │                                  │   │
+│  │  [Markdown]  [JSON]              │   │
+│  └─────────────────────────────────┘   │
 │                                         │
-│        [Stay a while]   [Let go]        │
+│                                         │
+│      [Stay a while]      [Let go]       │
 │                                         │
 └─────────────────────────────────────────┘
 ```
 
 **Design notes:**
-- Requires typing "let go" (not email, not password — softer)
-- "Stay a while" — gentle alternative, not "Cancel"
-- No red buttons, no warning icons
+- Single modal contains everything: gratitude, explanation, export, action
+- Keepsakes section is optional — user can skip if they don't need their data
+- "Stay a while" dismisses modal, returns to Settings
+- "Let go" initiates the departure
+- No typing confirmation needed — grace period is the safety net
+
+**Key copy:**
+- "Thank you for the quiet moments" — gratitude, not guilt
+- "fade for 14 days, then release" — echoes Faded Notes language
+- "Your words belong to you" — empowering, respectful
+- "Stay a while" — gentle, not "Cancel"
 
 ---
 
-### Farewell Screen (After confirmation)
+### Step 3: Farewell Toast + Sign Out
+
+After clicking "Let go":
+
+1. Show a gentle toast notification
+2. Sign the user out
+3. Redirect to landing page
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │
+│                        [Landing Page]                               │
 │                                                                     │
-│                                                                     │
-│                                                                     │
-│                         Until we meet again                         │
-│                                                                     │
-│                              · · ·                                  │
-│                                                                     │
-│                Your account is now fading.                          │
-│                                                                     │
-│         If you change your mind, simply sign in                     │
-│              within 14 days to return.                              │
-│                                                                     │
-│                                                                     │
-│                   [Return to Zenote]                                │
-│                                                                     │
-│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  Your account is fading quietly. See you if you return.    │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                         ↑ Toast (fades after 5s)                    │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Behavior:**
-- User is signed out
-- "Return to Zenote" goes to landing page
-- During grace period, signing in shows restoration prompt
+**Toast design:**
+- Warm, not cold
+- No warning icon
+- Longer duration (5 seconds) so they can read it
+- Same styling as other Zenote toasts
 
 ---
 
@@ -281,30 +237,30 @@ During the 14-day grace period, if user signs back in:
 ## Copy Reference
 
 ### Headlines
-- "Letting Go"
-- "Until we meet again"
-- "Welcome back"
+- "Letting Go" (modal title)
+- "Welcome back" (grace period return)
 
 ### Body Copy
 - "Thank you for the quiet moments."
-- "Your notes will rest for 14 days, then release."
+- "Your account will fade for 14 days, then release."
 - "You may return anytime before then."
 - "Your words belong to you."
 - "Your account is fading quietly."
 
 ### Button Labels
-- "Let go of Zenote →"
-- "Begin Letting Go"
-- "Take your keepsakes"
-- "Stay a while" / "Stay"
-- "Let go"
-- "Continue letting go"
-- "Return to Zenote"
+- "Let go of Zenote →" (settings link)
+- "Stay a while" (dismiss modal)
+- "Let go" (confirm departure)
+- "Stay" / "Continue letting go" (grace period return)
+
+### Toast Messages
+- "Your account is fading quietly. See you if you return." (farewell)
+- "Welcome home" (on return during grace period)
 
 ### Micro-copy
-- "Type 'let go' to confirm"
+- "Take your keepsakes (optional)"
 - "Releasing in X days"
-- "Welcome home" (toast on return)
+- "Ready to move on?"
 
 ---
 
@@ -332,16 +288,16 @@ During the 14-day grace period, if user signs back in:
 
 ---
 
-## Component Structure
+## Component Structure (Simplified)
 
 ```
 src/components/
-├── SettingsModal.tsx        # Add "Let go" link
-├── DeparturePage.tsx        # New: Full-screen departure journey
-├── DepartureConfirm.tsx     # New: "Type let go" modal
-├── FarewellScreen.tsx       # New: Post-departure message
-├── WelcomeBackPrompt.tsx    # New: Shown on sign-in during grace
+├── SettingsModal.tsx        # Add "Let go" link at bottom
+├── LettingGoModal.tsx       # New: Single modal for departure (export + confirm)
+├── WelcomeBackPrompt.tsx    # New: Shown on sign-in during grace period
 ```
+
+**Note:** No separate confirmation modal, departure page, or farewell screen needed. The single modal + toast approach keeps it minimal.
 
 ---
 
@@ -349,13 +305,15 @@ src/components/
 
 | Anti-pattern | Our approach |
 |--------------|--------------|
-| "Are you SURE?" warnings | Calm confirmation |
+| "Are you SURE?" warnings | Grace period is the safety net |
 | Red delete buttons | Gold/terracotta accent |
 | "We're sorry to see you go" | "Thank you for the quiet moments" |
 | Hidden deletion options | Visible but subtle |
 | Immediate deletion | 14-day grace period |
-| Complex multi-step surveys | Simple, optional keepsakes |
+| Complex multi-step flows | Single modal, one click |
+| Typing confirmation | Unnecessary friction |
 | Guilt-inducing copy | Gratitude and respect |
+| Exit surveys | No interrogation |
 
 ---
 
