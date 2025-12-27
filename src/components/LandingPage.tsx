@@ -114,22 +114,9 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
             <div className="flex items-center gap-4">
               <button
                 onClick={onStartWriting}
-                className="px-8 py-3.5 rounded-lg text-base font-medium transition-all duration-300"
+                className="landing-cta-button px-8 py-3.5 rounded-lg text-base font-medium transition-all duration-300"
                 style={{
                   fontFamily: 'var(--font-body)',
-                  background: 'var(--color-accent)',
-                  color: '#fff',
-                  boxShadow: '0 4px 20px var(--color-accent-glow)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--color-accent-hover)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 30px var(--color-accent-glow)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--color-accent)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 20px var(--color-accent-glow)';
                 }}
               >
                 Start Writing
@@ -155,28 +142,14 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
             >
               <button
                 onClick={onChangelogClick}
-                className="hover:underline transition-colors duration-200"
-                style={{ color: 'inherit' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'var(--color-accent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
-                }}
+                className="landing-nav-link hover:underline transition-colors duration-200"
               >
                 Changelog
               </button>
               <span aria-hidden="true">·</span>
               <button
                 onClick={onRoadmapClick}
-                className="hover:underline transition-colors duration-200"
-                style={{ color: 'inherit' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'var(--color-accent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
-                }}
+                className="landing-nav-link hover:underline transition-colors duration-200"
               >
                 Roadmap
               </button>
@@ -185,14 +158,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
                 href="https://github.com/anbuneel/zenote"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline transition-colors duration-200"
-                style={{ color: 'inherit' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'var(--color-accent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
-                }}
+                className="landing-nav-link hover:underline transition-colors duration-200"
               >
                 GitHub
               </a>
@@ -419,6 +385,32 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
                   font-style: italic;
                   pointer-events: none;
                 }
+                .landing-cta-button {
+                  background: var(--color-accent);
+                  color: #fff;
+                  box-shadow: 0 4px 20px var(--color-accent-glow);
+                }
+                .landing-cta-button:hover {
+                  background: var(--color-accent-hover);
+                  transform: translateY(-2px);
+                  box-shadow: 0 8px 30px var(--color-accent-glow);
+                }
+                .landing-cta-button-sm {
+                  background: var(--color-accent);
+                  color: #fff;
+                  box-shadow: 0 2px 8px var(--color-accent-glow);
+                }
+                .landing-cta-button-sm:hover {
+                  background: var(--color-accent-hover);
+                  transform: translateY(-1px);
+                  box-shadow: 0 4px 12px var(--color-accent-glow);
+                }
+                .landing-nav-link {
+                  color: inherit;
+                }
+                .landing-nav-link:hover {
+                  color: var(--color-accent);
+                }
               `}</style>
 
               {/* Sign up prompt - actionable CTA */}
@@ -429,22 +421,9 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
                 >
                   <button
                     onClick={onStartWriting}
-                    className="text-sm font-medium px-4 py-2 rounded-lg transition-all duration-300"
+                    className="landing-cta-button-sm text-sm font-medium px-4 py-2 rounded-lg transition-all duration-300"
                     style={{
                       fontFamily: 'var(--font-body)',
-                      background: 'var(--color-accent)',
-                      color: '#fff',
-                      boxShadow: '0 2px 8px var(--color-accent-glow)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--color-accent-hover)';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px var(--color-accent-glow)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--color-accent)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px var(--color-accent-glow)';
                     }}
                   >
                     Save this note

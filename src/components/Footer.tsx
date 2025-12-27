@@ -1,3 +1,5 @@
+import './Footer.css';
+
 interface FooterProps {
   onChangelogClick: () => void;
   onRoadmapClick: () => void;
@@ -15,28 +17,14 @@ export function Footer({ onChangelogClick, onRoadmapClick }: FooterProps) {
       >
         <button
           onClick={onChangelogClick}
-          className="hover:underline transition-colors duration-200"
-          style={{ color: 'inherit' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-accent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-tertiary)';
-          }}
+          className="footer-link hover:underline transition-colors duration-200"
         >
           Changelog
         </button>
         <span aria-hidden="true">·</span>
         <button
           onClick={onRoadmapClick}
-          className="hover:underline transition-colors duration-200"
-          style={{ color: 'inherit' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-accent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-tertiary)';
-          }}
+          className="footer-link hover:underline transition-colors duration-200"
         >
           Roadmap
         </button>
@@ -45,14 +33,7 @@ export function Footer({ onChangelogClick, onRoadmapClick }: FooterProps) {
           href="https://github.com/anbuneel/zenote"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:underline transition-colors duration-200"
-          style={{ color: 'inherit' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--color-accent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--color-text-tertiary)';
-          }}
+          className="footer-link hover:underline transition-colors duration-200"
         >
           GitHub
         </a>

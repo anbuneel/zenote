@@ -26,6 +26,9 @@ const changeTypeColors: Record<ChangeType, string> = {
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return dateString; // Return original string as fallback for invalid dates
+  }
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -126,9 +129,9 @@ export function ChangelogPage({ theme, onThemeToggle, onSignIn, onLogoClick, onR
 
                 {/* Changes list */}
                 <ul className="space-y-3">
-                  {entry.changes.map((change, index) => (
+                  {entry.changes.map((change) => (
                     <li
-                      key={index}
+                      key={`${entry.version}-${change.type}-${change.text.slice(0, 30)}`}
                       className="flex items-start gap-3"
                       style={{
                         fontFamily: 'var(--font-body)',

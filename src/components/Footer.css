@@ -1,0 +1,7 @@
+.footer-link {
+  color: inherit;
+}
+
+.footer-link:hover {
+  color: var(--color-accent);
+}
