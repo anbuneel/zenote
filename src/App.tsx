@@ -119,6 +119,10 @@ function App() {
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Track if we've migrated demo content (prevent duplicate migrations)
+  // Using a ref instead of state because:
+  // 1. We don't need to trigger re-renders when this changes
+  // 2. The value persists across renders without causing effect re-runs
+  // 3. Prevents race conditions if multiple effects try to migrate simultaneously
   const hasMigratedDemoContent = useRef(false);
 
   // Apply theme to document
@@ -208,6 +212,10 @@ function App() {
   }, [userId, selectedNoteId]);
 
   // Migrate demo content from landing page to user's first note
+  // Dependency: userId (string) instead of user (object) because:
+  // 1. Using the full user object would cause unnecessary re-runs on any user property change
+  // 2. We only care about identity (userId), not other user metadata
+  // 3. String comparison is stable; object reference changes on every auth state update
   useEffect(() => {
     if (!userId || hasMigratedDemoContent.current) return;
 

@@ -79,6 +79,11 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
   const [githubLoading, setGithubLoading] = useState(false);
 
   // Countdown timer for resend cooldown
+  // This effect creates a 1-second countdown by:
+  // 1. Setting a timeout that decrements the counter after 1 second
+  // 2. Re-running when resendCooldown changes (each decrement triggers next tick)
+  // 3. Cleaning up the timeout on unmount or before next run to prevent memory leaks
+  // The dependency on resendCooldown is intentional - it creates the countdown loop
   useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
