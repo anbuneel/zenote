@@ -50,6 +50,35 @@ Zenote occupies a **distinctive niche** in the note-taking landscape: a contempl
 
 > *"Your notes shouldn't be locked to one ecosystem. Zenote works on any device — Mac, Windows, Linux, iOS, Android, ChromeOS. No app to install. Just open and write."*
 
+### Potential Differentiator: Gentle AI Intelligence
+
+**Opportunity:** Layer in Gen AI to surface insights from user notes — not to help them write more (like Notion/Craft AI), but to help them **remember what matters**.
+
+| Competitor AI | Focus |
+|---------------|-------|
+| Notion AI | "Help me write more" (generation, summarization) |
+| Craft AI | "Help me write better" (editing, expansion) |
+| Obsidian + plugins | "Help me search/query" (RAG, Q&A) |
+| **Zenote (proposed)** | **"Help me remember what matters"** (proactive, gentle surfacing) |
+
+**Possible Features:**
+- Daily digest email with extracted to-dos and reminders
+- Gentle nudges about things you mentioned but may have forgotten
+- Pattern recognition ("you've written about X frequently this month")
+- Weekly reflection prompts based on your own words
+
+**Why This Aligns with Zenote's Philosophy:**
+- Non-intrusive (email digest, not push notifications)
+- Reflective, not productive
+- Surfaces YOUR words, not AI-generated content
+- Calm, not urgent
+
+**Marketing Message:**
+
+> *"Zenote doesn't just store your thoughts — it gently reminds you of what you meant to do."*
+
+**Monetization Angle:** This could be the paid tier feature that doesn't gate core note-taking functionality.
+
 ### Strategic Recommendation
 
 > **"The note-taking app for people overwhelmed by note-taking apps."**
