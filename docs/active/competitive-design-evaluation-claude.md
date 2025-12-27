@@ -50,6 +50,8 @@ Zenote occupies a **distinctive niche** in the note-taking landscape: a contempl
 
 > *"Your notes shouldn't be locked to one ecosystem. Zenote works on any device — Mac, Windows, Linux, iOS, Android, ChromeOS. No app to install. Just open and write."*
 
+**Important:** This claim is contingent on completing the Enhanced PWA work (offline editing, mobile validation). See `docs/analysis/mobile-strategy-analysis-claude.md` for implementation plan. Until then, the cross-platform advantage is theoretical.
+
 ### Potential Differentiator: Gentle AI Intelligence
 
 **Opportunity:** Layer in Gen AI to surface insights from user notes — not to help them write more (like Notion/Craft AI), but to help them **remember what matters**.

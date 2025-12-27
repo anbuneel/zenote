@@ -32,6 +32,10 @@
 | No retry logic on API failures | Note data loss on flaky networks | 1-2 days |
 | Test coverage ~5% | High regression risk | 2-3 days |
 | Share tokens visible in browser history | Privacy concern | 4 hours |
+| No offline editing (PWA gap) | Users can't use app without internet | 1-2 weeks |
+| Mobile not tested on real devices | Unknown UX issues, can't claim cross-platform | 1-2 days |
+
+> **Note:** Offline editing and mobile testing were elevated to P0 after reconciling with Mobile Strategy Analysis and Competitive Evaluation. See `docs/analysis/mobile-strategy-analysis-claude.md` for implementation approach.
 
 ### Details
 
@@ -66,7 +70,8 @@
 | "Letting Go" doesn't auto-export backup | Users lose data on departure | 4 hours |
 | Share expiration defaults to "never" | Permanent public shares | 2 hours |
 | No session timeout | Security gap (logged in forever) | 4 hours |
-| Mobile not tested on real devices | Unknown UX issues | 1 day |
+| Image attachments not supported | Expected feature by users | 3-5 days |
+| No feature discovery hints | Users miss slash commands, shortcuts | 2-3 days |
 
 ---
 
@@ -86,9 +91,11 @@
 
 | Scope | Duration |
 |-------|----------|
-| P0 fixes only | 5-7 days |
-| P0 + P1 (recommended) | 8-10 days |
-| Comprehensive (P0 + P1 + P2) | 14-18 days |
+| P0 fixes only | 2-3 weeks |
+| P0 + P1 (recommended) | 3-4 weeks |
+| Comprehensive (P0 + P1 + P2) | 5-6 weeks |
+
+> **Updated:** Timeline extended after adding offline editing (1-2 weeks) and mobile testing (1-2 days) to P0 blockers. See Mobile Strategy Analysis for Enhanced PWA implementation plan.
 
 ---
 
@@ -133,13 +140,18 @@
 
 Before launch, verify:
 
+**P0 (Must Have):**
 - [ ] Bundle size reduced to <250 KB gzip
 - [ ] API retry logic implemented for note saves
 - [ ] Integration tests added for note CRUD
 - [ ] Share token security documented
-- [ ] Rate limiting enabled on API
-- [ ] "Letting Go" includes backup download
-- [ ] Session timeout implemented
+- [ ] Offline editing works (IndexedDB + sync queue)
 - [ ] Mobile tested on real iPhone + Android
 - [ ] Sentry configured and verified
 - [ ] Production OAuth URLs verified in Supabase
+
+**P1 (Should Have):**
+- [ ] Rate limiting enabled on API
+- [ ] "Letting Go" includes backup download
+- [ ] Session timeout implemented
+- [ ] Feature discovery hints added
