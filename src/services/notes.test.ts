@@ -20,40 +20,27 @@ import {
   deleteNoteShare,
   fetchSharedNote,
 } from './notes';
-import { createMockNote, createMockTag } from '../test/factories';
+import {
+  createMockNote,
+  createMockTag,
+  createMockQueryBuilder,
+  createMockChannel,
+  type MockQueryBuilder,
+  type MockChannel,
+} from '../test/factories';
 
-// Mock crypto.randomUUID
+// Mock crypto.randomUUID for deterministic share token generation
+// This ensures tests are reproducible and assertions on tokens are reliable
 vi.stubGlobal('crypto', {
   randomUUID: vi.fn(() => 'aaaabbbb-cccc-dddd-eeee-ffffgggghhh1'),
 });
 
-// Mock the supabase client
+// Mock the supabase client with type-safe builders
 vi.mock('../lib/supabase', () => {
-  const createQueryBuilder = () => {
-    const builder: Record<string, ReturnType<typeof vi.fn>> = {
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      is: vi.fn().mockReturnThis(),
-      not: vi.fn().mockReturnThis(),
-      lt: vi.fn().mockReturnThis(),
-      or: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    };
-    return builder;
-  };
-
   return {
     supabase: {
-      from: vi.fn(() => createQueryBuilder()),
-      channel: vi.fn(() => ({
-        on: vi.fn().mockReturnThis(),
-        subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
-      })),
+      from: vi.fn(() => createMockQueryBuilder()),
+      channel: vi.fn(() => createMockChannel()),
       removeChannel: vi.fn().mockResolvedValue('ok'),
     },
   };
@@ -61,6 +48,33 @@ vi.mock('../lib/supabase', () => {
 
 // Import supabase after mocking
 import { supabase } from '../lib/supabase';
+
+// Type assertion helper for supabase.from mock - eliminates 'as never' throughout tests
+function mockSupabaseFrom(builder: MockQueryBuilder): void {
+  vi.mocked(supabase.from).mockReturnValue(builder);
+}
+
+// Type assertion helper for supabase.channel mock
+function mockSupabaseChannel(channel: MockChannel): void {
+  vi.mocked(supabase.channel).mockReturnValue(channel);
+}
+
+// Helper to create a chainable mock builder for fetchNotes
+// fetchNotes calls .order() twice (for pinned and updated_at), so we track call count
+// Client-side filtering happens after fetch, so mock returns all data for filter tests
+function createFetchNotesBuilder(data: unknown[] = [], error: Error | null = null): MockQueryBuilder {
+  let orderCallCount = 0;
+  const mockBuilder = createMockQueryBuilder();
+  mockBuilder.order = vi.fn().mockImplementation(() => {
+    orderCallCount++;
+    // Return this for first call (pinned), resolve on second call (updated_at)
+    if (orderCallCount < 2) {
+      return mockBuilder;
+    }
+    return Promise.resolve({ data, error });
+  }) as MockQueryBuilder['order'];
+  return mockBuilder;
+}
 
 // Helper to create a DB note (what Supabase returns)
 function createDbNote(overrides: Partial<{
@@ -112,27 +126,11 @@ describe('notes service', () => {
   });
 
   describe('fetchNotes', () => {
-    // Helper to create a chainable mock builder for fetchNotes
-    function createFetchNotesBuilder(data: unknown[] = [], error: Error | null = null) {
-      let orderCallCount = 0;
-      const mockBuilder = {
-        select: vi.fn().mockReturnThis(),
-        is: vi.fn().mockReturnThis(),
-        order: vi.fn().mockImplementation(function(this: typeof mockBuilder) {
-          orderCallCount++;
-          // Return this for first call (pinned), resolve on second call (updated_at)
-          if (orderCallCount < 2) {
-            return this;
-          }
-          return Promise.resolve({ data, error });
-        }),
-      };
-      return mockBuilder;
-    }
-
+    // fetchNotes calls .order() twice (for pinned and updated_at), so we need
+    // orderCallsBeforeResolve=1 to chain the first call and resolve on the second
     it('returns empty array when no notes exist', async () => {
-      const mockBuilder = createFetchNotesBuilder([]);
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      const mockBuilder = createMockQueryBuilder({ data: [], orderCallsBeforeResolve: 1 });
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchNotes();
 
@@ -150,7 +148,7 @@ describe('notes service', () => {
         },
       ];
       const mockBuilder = createFetchNotesBuilder(dbNotes);
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchNotes();
 
@@ -161,7 +159,7 @@ describe('notes service', () => {
 
     it('excludes soft-deleted notes', async () => {
       const mockBuilder = createFetchNotesBuilder([]);
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await fetchNotes();
 
@@ -185,7 +183,7 @@ describe('notes service', () => {
         },
       ];
       const mockBuilder = createFetchNotesBuilder(dbNotes);
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       // Filter by both t1 AND t2
       const result = await fetchNotes(['t1', 't2']);
@@ -197,7 +195,7 @@ describe('notes service', () => {
 
     it('orders by pinned first, then by updated_at', async () => {
       const mockBuilder = createFetchNotesBuilder([]);
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await fetchNotes();
 
@@ -207,7 +205,7 @@ describe('notes service', () => {
 
     it('throws error when fetch fails', async () => {
       const mockBuilder = createFetchNotesBuilder([], new Error('Database error'));
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(fetchNotes()).rejects.toThrow('Database error');
     });
@@ -221,7 +219,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbNote, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await createNote('user-123');
 
@@ -240,7 +238,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbNote, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await createNote('user-123', 'My Note', '<p>Content</p>');
 
@@ -257,7 +255,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbNote, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await createNote('user-123', 'Imported Note', '<p>Content</p>', { createdAt, updatedAt });
 
@@ -277,7 +275,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbNote, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await createNote('user-123');
 
@@ -290,7 +288,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: new Error('Insert failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(createNote('user-123')).rejects.toThrow('Insert failed');
     });
@@ -306,7 +304,7 @@ describe('notes service', () => {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({ data: dbNotes, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const notes = [
         { title: 'Note 1', content: '<p>Content 1</p>' },
@@ -332,7 +330,7 @@ describe('notes service', () => {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({ data: dbNotes, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const onProgress = vi.fn();
       const notes = [{ title: 'Note', content: '' }];
@@ -347,7 +345,7 @@ describe('notes service', () => {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({ data: dbNotes, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const createdAt = new Date('2023-01-01T00:00:00Z');
       const notes = [{ title: 'Note', content: '', createdAt, updatedAt: createdAt }];
@@ -366,7 +364,7 @@ describe('notes service', () => {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({ data: null, error: new Error('Batch failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const notes = [{ title: 'Note', content: '' }];
       await expect(createNotesBatch('user-123', notes)).rejects.toThrow('Batch failed');
@@ -383,7 +381,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbNote, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await updateNote(note);
 
@@ -404,7 +402,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbNote, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await updateNote(note);
 
@@ -420,7 +418,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbNote, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await updateNote(note);
 
@@ -437,7 +435,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: new Error('Update failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(updateNote(note)).rejects.toThrow('Update failed');
     });
@@ -449,7 +447,7 @@ describe('notes service', () => {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await softDeleteNote('note-123');
 
@@ -465,7 +463,7 @@ describe('notes service', () => {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: new Error('Delete failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(softDeleteNote('note-123')).rejects.toThrow('Delete failed');
     });
@@ -477,7 +475,7 @@ describe('notes service', () => {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await restoreNote('note-123');
 
@@ -490,7 +488,7 @@ describe('notes service', () => {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: new Error('Restore failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(restoreNote('note-123')).rejects.toThrow('Restore failed');
     });
@@ -502,7 +500,7 @@ describe('notes service', () => {
         delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await permanentDeleteNote('note-123');
 
@@ -516,7 +514,7 @@ describe('notes service', () => {
         delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: new Error('Delete failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(permanentDeleteNote('note-123')).rejects.toThrow('Delete failed');
     });
@@ -528,7 +526,7 @@ describe('notes service', () => {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await toggleNotePin('note-123', true);
 
@@ -541,7 +539,7 @@ describe('notes service', () => {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await toggleNotePin('note-123', false);
 
@@ -553,7 +551,7 @@ describe('notes service', () => {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: new Error('Toggle failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(toggleNotePin('note-123', true)).rejects.toThrow('Toggle failed');
     });
@@ -584,7 +582,7 @@ describe('notes service', () => {
       const dbNotes = [{ ...createDbNote(), note_tags: [] }];
       // Empty query calls fetchNotes, not the search path
       const mockBuilder = createSearchBuilder(dbNotes, null, false);
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await searchNotes('');
 
@@ -594,7 +592,7 @@ describe('notes service', () => {
     it('searches by title and content', async () => {
       const dbNotes = [{ ...createDbNote({ title: 'Found' }), note_tags: [] }];
       const mockBuilder = createSearchBuilder(dbNotes);
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await searchNotes('test');
 
@@ -604,7 +602,7 @@ describe('notes service', () => {
 
     it('excludes soft-deleted notes from search', async () => {
       const mockBuilder = createSearchBuilder([]);
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await searchNotes('query');
 
@@ -613,7 +611,7 @@ describe('notes service', () => {
 
     it('throws error when search fails', async () => {
       const mockBuilder = createSearchBuilder([], new Error('Search failed'));
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(searchNotes('query')).rejects.toThrow('Search failed');
     });
@@ -629,7 +627,7 @@ describe('notes service', () => {
         not: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: dbNotes, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchFadedNotes();
 
@@ -644,7 +642,7 @@ describe('notes service', () => {
         not: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: [], error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await fetchFadedNotes();
 
@@ -657,7 +655,7 @@ describe('notes service', () => {
         not: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: null, error: new Error('Fetch failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(fetchFadedNotes()).rejects.toThrow('Fetch failed');
     });
@@ -669,7 +667,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         not: vi.fn().mockResolvedValue({ count: 5, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await countFadedNotes();
 
@@ -682,7 +680,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         not: vi.fn().mockResolvedValue({ count: null, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await countFadedNotes();
 
@@ -694,7 +692,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         not: vi.fn().mockResolvedValue({ count: null, error: new Error('Count failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(countFadedNotes()).rejects.toThrow('Count failed');
     });
@@ -706,7 +704,7 @@ describe('notes service', () => {
         delete: vi.fn().mockReturnThis(),
         not: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await emptyFadedNotes();
 
@@ -720,7 +718,7 @@ describe('notes service', () => {
         delete: vi.fn().mockReturnThis(),
         not: vi.fn().mockResolvedValue({ error: new Error('Empty failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(emptyFadedNotes()).rejects.toThrow('Empty failed');
     });
@@ -734,7 +732,7 @@ describe('notes service', () => {
         lt: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({ data: [{ id: '1' }, { id: '2' }], error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await cleanupExpiredFadedNotes();
 
@@ -750,7 +748,7 @@ describe('notes service', () => {
         lt: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({ data: [], error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await cleanupExpiredFadedNotes();
 
@@ -764,7 +762,7 @@ describe('notes service', () => {
         lt: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({ data: null, error: new Error('Cleanup failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       // Should not throw - cleanup is non-critical
       const result = await cleanupExpiredFadedNotes();
@@ -779,7 +777,7 @@ describe('notes service', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
       };
-      vi.mocked(supabase.channel).mockReturnValue(mockChannel as never);
+      mockSupabaseChannel(mockChannel);
 
       subscribeToNotes('user-123', vi.fn(), vi.fn(), vi.fn());
 
@@ -793,7 +791,7 @@ describe('notes service', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
       };
-      vi.mocked(supabase.channel).mockReturnValue(mockChannel as never);
+      mockSupabaseChannel(mockChannel);
 
       const unsubscribe = subscribeToNotes('user-123', vi.fn(), vi.fn(), vi.fn());
 
@@ -807,7 +805,7 @@ describe('notes service', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
       };
-      vi.mocked(supabase.channel).mockReturnValue(mockChannel as never);
+      mockSupabaseChannel(mockChannel);
 
       subscribeToNotes('user-123', vi.fn(), vi.fn(), vi.fn());
 
@@ -839,7 +837,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbShare, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await createNoteShare('note-123', 'user-123', 7);
 
@@ -855,7 +853,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbShare, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await createNoteShare('note-123', 'user-123', null);
 
@@ -869,7 +867,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbShare, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await createNoteShare('note-123', 'user-123');
 
@@ -884,7 +882,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: new Error('Create failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(createNoteShare('note-123', 'user-123')).rejects.toThrow('Create failed');
     });
@@ -898,7 +896,7 @@ describe('notes service', () => {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: dbShare, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await getNoteShare('note-123');
 
@@ -912,7 +910,7 @@ describe('notes service', () => {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await getNoteShare('note-123');
 
@@ -925,7 +923,7 @@ describe('notes service', () => {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error('Fetch failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(getNoteShare('note-123')).rejects.toThrow('Fetch failed');
     });
@@ -942,7 +940,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbShare, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await updateNoteShareExpiration('note-123', 30);
 
@@ -960,7 +958,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbShare, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await updateNoteShareExpiration('note-123', null);
 
@@ -975,7 +973,7 @@ describe('notes service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: new Error('Update failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(updateNoteShareExpiration('note-123', 7)).rejects.toThrow('Update failed');
     });
@@ -987,7 +985,7 @@ describe('notes service', () => {
         delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await deleteNoteShare('note-123');
 
@@ -1001,7 +999,7 @@ describe('notes service', () => {
         delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: new Error('Delete failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(deleteNoteShare('note-123')).rejects.toThrow('Delete failed');
     });
@@ -1027,8 +1025,8 @@ describe('notes service', () => {
       };
 
       vi.mocked(supabase.from)
-        .mockReturnValueOnce(shareBuilder as never)
-        .mockReturnValueOnce(noteBuilder as never);
+        .mockReturnValueOnce(shareBuilder)
+        .mockReturnValueOnce(noteBuilder);
 
       const result = await fetchSharedNote('valid-token');
 
@@ -1042,7 +1040,7 @@ describe('notes service', () => {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchSharedNote('invalid-token');
 
@@ -1059,7 +1057,7 @@ describe('notes service', () => {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: shareData, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchSharedNote('expired-token');
 
@@ -1081,8 +1079,8 @@ describe('notes service', () => {
       };
 
       vi.mocked(supabase.from)
-        .mockReturnValueOnce(shareBuilder as never)
-        .mockReturnValueOnce(noteBuilder as never);
+        .mockReturnValueOnce(shareBuilder)
+        .mockReturnValueOnce(noteBuilder);
 
       const result = await fetchSharedNote('valid-token');
 
@@ -1095,7 +1093,7 @@ describe('notes service', () => {
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error('Fetch error') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchSharedNote('token');
 

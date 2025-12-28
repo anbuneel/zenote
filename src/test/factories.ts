@@ -1,9 +1,148 @@
 import type { Note, Tag, TagColor, NoteShare } from '../types';
+import type { Mock } from 'vitest';
 
 /**
  * Test data factories for creating mock objects
  * Use these to create consistent test data across all test files
  */
+
+// ============================================================================
+// Supabase Mock Types
+// ============================================================================
+
+/**
+ * Type-safe Supabase query builder mock
+ * Provides proper typing for chained query methods and eliminates 'as never' casts
+ */
+export interface MockQueryBuilder {
+  select: Mock<[], MockQueryBuilder>;
+  insert: Mock<[unknown], MockQueryBuilder>;
+  update: Mock<[unknown], MockQueryBuilder>;
+  delete: Mock<[], MockQueryBuilder>;
+  eq: Mock<[string, unknown], MockQueryBuilder>;
+  is: Mock<[string, unknown], MockQueryBuilder>;
+  not: Mock<[string, string, unknown], MockQueryBuilder>;
+  lt: Mock<[string, string], MockQueryBuilder>;
+  or: Mock<[string], MockQueryBuilder>;
+  order: Mock<[string, { ascending: boolean }?], MockQueryBuilder | Promise<{ data: unknown; error: unknown }>>;
+  single: Mock<[], Promise<{ data: unknown; error: unknown }>>;
+  maybeSingle: Mock<[], Promise<{ data: unknown; error: unknown }>>;
+}
+
+/**
+ * Type-safe Supabase realtime channel mock
+ */
+export interface MockChannel {
+  on: Mock<[string, unknown, (payload: unknown) => void], MockChannel>;
+  subscribe: Mock<[], { status: string }>;
+}
+
+/**
+ * Type-safe mock Supabase client
+ */
+export interface MockSupabaseClient {
+  from: Mock<[string], MockQueryBuilder>;
+  channel: Mock<[string], MockChannel>;
+  removeChannel: Mock<[MockChannel], Promise<string>>;
+}
+
+// ============================================================================
+// Mock Builder Factories
+// ============================================================================
+
+/**
+ * Create a type-safe mock query builder for Supabase operations
+ *
+ * @param options Configuration for the mock's final response
+ * @returns A properly typed mock builder that can be used with vi.mocked(supabase.from)
+ *
+ * @example
+ * // Basic usage - returns empty data
+ * const builder = createMockQueryBuilder();
+ * vi.mocked(supabase.from).mockReturnValue(builder);
+ *
+ * @example
+ * // With data
+ * const builder = createMockQueryBuilder({
+ *   data: [{ id: '1', name: 'Test' }]
+ * });
+ *
+ * @example
+ * // With error
+ * const builder = createMockQueryBuilder({
+ *   error: new Error('Database error')
+ * });
+ *
+ * @example
+ * // With custom single() behavior
+ * const builder = createMockQueryBuilder({
+ *   singleResult: { data: { id: '1' }, error: null }
+ * });
+ */
+export function createMockQueryBuilder(options: {
+  data?: unknown;
+  error?: unknown;
+  singleResult?: { data: unknown; error: unknown };
+  orderCallsBeforeResolve?: number;
+} = {}): MockQueryBuilder {
+  const {
+    data = null,
+    error = null,
+    singleResult,
+    orderCallsBeforeResolve = 0
+  } = options;
+
+  let orderCallCount = 0;
+
+  const builder: MockQueryBuilder = {
+    select: vi.fn().mockReturnThis() as Mock<[], MockQueryBuilder>,
+    insert: vi.fn().mockReturnThis() as Mock<[unknown], MockQueryBuilder>,
+    update: vi.fn().mockReturnThis() as Mock<[unknown], MockQueryBuilder>,
+    delete: vi.fn().mockReturnThis() as Mock<[], MockQueryBuilder>,
+    eq: vi.fn().mockReturnThis() as Mock<[string, unknown], MockQueryBuilder>,
+    is: vi.fn().mockReturnThis() as Mock<[string, unknown], MockQueryBuilder>,
+    not: vi.fn().mockReturnThis() as Mock<[string, string, unknown], MockQueryBuilder>,
+    lt: vi.fn().mockReturnThis() as Mock<[string, string], MockQueryBuilder>,
+    or: vi.fn().mockReturnThis() as Mock<[string], MockQueryBuilder>,
+    order: vi.fn().mockImplementation(() => {
+      orderCallCount++;
+      if (orderCallCount <= orderCallsBeforeResolve) {
+        return builder;
+      }
+      return Promise.resolve({ data, error });
+    }) as Mock<[string, { ascending: boolean }?], MockQueryBuilder | Promise<{ data: unknown; error: unknown }>>,
+    single: vi.fn().mockResolvedValue(
+      singleResult ?? { data, error }
+    ) as Mock<[], Promise<{ data: unknown; error: unknown }>>,
+    maybeSingle: vi.fn().mockResolvedValue(
+      singleResult ?? { data, error }
+    ) as Mock<[], Promise<{ data: unknown; error: unknown }>>,
+  };
+
+  return builder;
+}
+
+/**
+ * Create a type-safe mock realtime channel for Supabase subscriptions
+ *
+ * @example
+ * const channel = createMockChannel();
+ * vi.mocked(supabase.channel).mockReturnValue(channel);
+ */
+export function createMockChannel(): MockChannel {
+  const channel: MockChannel = {
+    on: vi.fn().mockReturnThis() as Mock<[string, unknown, (payload: unknown) => void], MockChannel>,
+    subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }) as Mock<[], { status: string }>,
+  };
+  return channel;
+}
+
+// Need to import vi for the mock functions
+import { vi } from 'vitest';
+
+// ============================================================================
+// Data Factories
+// ============================================================================
 
 let idCounter = 0;
 

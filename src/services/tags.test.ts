@@ -9,30 +9,20 @@ import {
   getNoteTags,
   subscribeToTags,
 } from './tags';
-import { TAG_COLOR_OPTIONS } from '../test/factories';
+import {
+  TAG_COLOR_OPTIONS,
+  createMockQueryBuilder,
+  createMockChannel,
+  type MockQueryBuilder,
+  type MockChannel,
+} from '../test/factories';
 
-// Mock the supabase client
+// Mock the supabase client with type-safe builders
 vi.mock('../lib/supabase', () => {
-  const createQueryBuilder = () => {
-    const builder: Record<string, ReturnType<typeof vi.fn>> = {
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    };
-    return builder;
-  };
-
   return {
     supabase: {
-      from: vi.fn(() => createQueryBuilder()),
-      channel: vi.fn(() => ({
-        on: vi.fn().mockReturnThis(),
-        subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
-      })),
+      from: vi.fn(() => createMockQueryBuilder()),
+      channel: vi.fn(() => createMockChannel()),
       removeChannel: vi.fn().mockResolvedValue('ok'),
     },
   };
@@ -40,6 +30,16 @@ vi.mock('../lib/supabase', () => {
 
 // Import supabase after mocking
 import { supabase } from '../lib/supabase';
+
+// Type assertion helper for supabase.from mock - eliminates 'as never' throughout tests
+function mockSupabaseFrom(builder: MockQueryBuilder): void {
+  vi.mocked(supabase.from).mockReturnValue(builder);
+}
+
+// Type assertion helper for supabase.channel mock
+function mockSupabaseChannel(channel: MockChannel): void {
+  vi.mocked(supabase.channel).mockReturnValue(channel);
+}
 
 // Helper to create a DB tag (what Supabase returns)
 function createDbTag(overrides: Partial<{
@@ -70,7 +70,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: [], error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchTags();
 
@@ -90,7 +90,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: dbTags, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchTags();
 
@@ -111,7 +111,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: [dbTag], error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await fetchTags();
 
@@ -131,7 +131,7 @@ describe('tags service', () => {
           error: new Error('Database error')
         }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(fetchTags()).rejects.toThrow('Database error');
     });
@@ -145,7 +145,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbTag, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await createTag('user-123', 'Projects', 'gold');
 
@@ -165,7 +165,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbTag, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await createTag('user-123', '  Trimmed  ', 'terracotta');
 
@@ -197,7 +197,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbTag, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await createTag('user-123', 'a'.repeat(20), 'terracotta');
 
@@ -213,7 +213,7 @@ describe('tags service', () => {
           error: new Error('Duplicate tag name')
         }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(createTag('user-123', 'Duplicate', 'terracotta'))
         .rejects.toThrow('Duplicate tag name');
@@ -227,7 +227,7 @@ describe('tags service', () => {
           select: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({ data: dbTag, error: null }),
         };
-        vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+        mockSupabaseFrom(mockBuilder);
 
         const result = await createTag('user-123', 'Test', color);
         expect(result.color).toBe(color);
@@ -244,7 +244,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbTag, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await updateTag('tag-123', { name: 'Updated Name' });
 
@@ -261,7 +261,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbTag, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await updateTag('tag-123', { color: 'forest' });
 
@@ -277,7 +277,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: dbTag, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await updateTag('tag-123', { name: 'New Name', color: 'gold' });
 
@@ -310,7 +310,7 @@ describe('tags service', () => {
           error: new Error('Update failed')
         }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(updateTag('tag-123', { name: 'Valid' }))
         .rejects.toThrow('Update failed');
@@ -323,7 +323,7 @@ describe('tags service', () => {
         delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await deleteTag('tag-123');
 
@@ -337,7 +337,7 @@ describe('tags service', () => {
         delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: new Error('Delete failed') }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(deleteTag('tag-123')).rejects.toThrow('Delete failed');
     });
@@ -348,7 +348,7 @@ describe('tags service', () => {
       const mockBuilder = {
         insert: vi.fn().mockResolvedValue({ error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await addTagToNote('note-123', 'tag-456');
 
@@ -364,7 +364,7 @@ describe('tags service', () => {
       const mockBuilder = {
         insert: vi.fn().mockResolvedValue({ error: duplicateError }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       // Should not throw
       await expect(addTagToNote('note-123', 'tag-456')).resolves.toBeUndefined();
@@ -375,7 +375,7 @@ describe('tags service', () => {
       const mockBuilder = {
         insert: vi.fn().mockResolvedValue({ error: otherError }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(addTagToNote('note-123', 'tag-456'))
         .rejects.toEqual(otherError);
@@ -395,7 +395,7 @@ describe('tags service', () => {
         return this;
       }).mockResolvedValueOnce({ error: null });
 
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await removeTagFromNote('note-123', 'tag-456');
 
@@ -416,7 +416,7 @@ describe('tags service', () => {
         return this;
       }).mockResolvedValueOnce({ error: new Error('Remove failed') });
 
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(removeTagFromNote('note-123', 'tag-456'))
         .rejects.toThrow('Remove failed');
@@ -429,7 +429,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ data: [], error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await getNoteTags('note-123');
 
@@ -448,7 +448,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ data: dbData, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await getNoteTags('note-123');
 
@@ -466,7 +466,7 @@ describe('tags service', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ data: dbData, error: null }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       const result = await getNoteTags('note-123');
 
@@ -482,7 +482,7 @@ describe('tags service', () => {
           error: new Error('Fetch failed')
         }),
       };
-      vi.mocked(supabase.from).mockReturnValue(mockBuilder as never);
+      mockSupabaseFrom(mockBuilder);
 
       await expect(getNoteTags('note-123')).rejects.toThrow('Fetch failed');
     });
@@ -497,7 +497,7 @@ describe('tags service', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
       };
-      vi.mocked(supabase.channel).mockReturnValue(mockChannel as never);
+      mockSupabaseChannel(mockChannel);
 
       subscribeToTags('user-123', onInsert, onUpdate, onDelete);
 
@@ -511,7 +511,7 @@ describe('tags service', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
       };
-      vi.mocked(supabase.channel).mockReturnValue(mockChannelInstance as never);
+      mockSupabaseChannel(mockChannelInstance);
 
       const unsubscribe = subscribeToTags('user-123', vi.fn(), vi.fn(), vi.fn());
 
@@ -528,7 +528,7 @@ describe('tags service', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
       };
-      vi.mocked(supabase.channel).mockReturnValue(mockChannel as never);
+      mockSupabaseChannel(mockChannel);
 
       subscribeToTags('user-123', vi.fn(), vi.fn(), vi.fn());
 
@@ -549,7 +549,7 @@ describe('tags service', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
       };
-      vi.mocked(supabase.channel).mockReturnValue(mockChannel as never);
+      mockSupabaseChannel(mockChannel);
 
       subscribeToTags('user-123', vi.fn(), vi.fn(), vi.fn());
 
@@ -570,7 +570,7 @@ describe('tags service', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnValue({ status: 'SUBSCRIBED' }),
       };
-      vi.mocked(supabase.channel).mockReturnValue(mockChannel as never);
+      mockSupabaseChannel(mockChannel);
 
       subscribeToTags('user-123', vi.fn(), vi.fn(), vi.fn());
 
