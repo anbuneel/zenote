@@ -66,7 +66,8 @@ src/
 │   ├── exportImport.ts    # Export/import utilities (JSON, Markdown) with validation
 │   ├── formatTime.ts      # Relative time formatting
 │   ├── sanitize.ts        # HTML/text sanitization (XSS prevention)
-│   └── temporalGrouping.ts # Group notes by time (Pinned, This Week, Last Week, etc.)
+│   ├── temporalGrouping.ts # Group notes by time (Pinned, This Week, Last Week, etc.)
+│   └── withRetry.ts       # Retry utility with exponential backoff and error discrimination
 ├── themes/
 │   ├── index.ts           # Theme exports and utilities
 │   ├── types.ts           # ThemeConfig type definitions
@@ -263,6 +264,7 @@ npm run theme:preview                              # Preview without changing
 - `--color-bg-primary`, `--color-bg-secondary`, `--color-bg-tertiary`
 - `--color-text-primary`, `--color-text-secondary`
 - `--color-accent`, `--color-accent-hover`, `--color-accent-glow`
+- `--color-error`, `--color-error-light` (error states)
 - `--color-status-progress`, `--color-status-coming`, `--color-status-exploring`
 - `--color-change-improvement`, `--color-change-fix`
 - `--font-display` (Cormorant Garamond), `--font-body` (Inter)
@@ -400,6 +402,12 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Share as Letter (temporary, read-only share links for notes)
 - [x] Configurable share expiration (1 day, 7 days, 30 days, never)
 - [x] Public shared note view with preserved formatting and tags
+- [x] API retry with exponential backoff (3 attempts for failed saves)
+- [x] Smart error discrimination (4xx fail fast, 5xx/network retry)
+- [x] In-flight save tracking (navigation awaits pending saves)
+- [x] Sentry session replay privacy (note content masked)
+- [x] Error design tokens (--color-error in all themes)
+- [x] Space key accessibility (keyboard navigation for all interactive elements)
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (Apple, etc.)

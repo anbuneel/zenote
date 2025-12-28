@@ -35,7 +35,8 @@ A calm, distraction-free note-taking app inspired by Japanese stationery and wab
 - **Pin Notes** - Pin important notes to the top of your library
 - **Toast Notifications** - Modern, non-intrusive feedback for all actions
 - **Network Detection** - Alerts when you go offline or come back online
-- **Error Monitoring** - Optional Sentry integration for production error tracking
+- **Error Monitoring** - Optional Sentry integration with privacy-aware session replay
+- **Resilient Saves** - Auto-retry with exponential backoff, smart error handling (4xx fail fast, 5xx/network retry)
 - **Test Coverage** - Comprehensive tests with Vitest, React Testing Library, and Playwright E2E tests
 - **CI/CD Pipeline** - Automated testing and builds via GitHub Actions
 - **Code Splitting** - Lazy-loaded editor for faster initial page loads
