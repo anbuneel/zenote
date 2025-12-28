@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { vi, beforeEach, afterEach } from 'vitest';
+import { resetIdCounter } from './factories';
 
 /**
  * Global test setup
@@ -31,9 +32,29 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock sessionStorage (same interface as localStorage)
+// Mock sessionStorage (separate instance to avoid shared state with localStorage)
+const sessionStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: vi.fn((index: number) => Object.keys(store)[index] ?? null),
+  };
+})();
+
 Object.defineProperty(window, 'sessionStorage', {
-  value: { ...localStorageMock },
+  value: sessionStorageMock,
 });
 
 // Mock clipboard API
@@ -132,7 +153,9 @@ vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key');
 // Reset mocks before each test
 beforeEach(() => {
   localStorageMock.clear();
+  sessionStorageMock.clear();
   vi.clearAllMocks();
+  resetIdCounter();
 });
 
 // Cleanup after each test
@@ -141,4 +164,4 @@ afterEach(() => {
 });
 
 // Export mocks for direct access in tests
-export { localStorageMock, clipboardMock };
+export { localStorageMock, sessionStorageMock, clipboardMock };
