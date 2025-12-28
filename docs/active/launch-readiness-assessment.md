@@ -70,7 +70,7 @@
 | Bundle size 594KB | P0 Blocker | ⚠️ **Improved** | 332KB (target <250KB, -44%) |
 | Test coverage ~5% | P0 Blocker | ✅ **RESOLVED** | 439 unit + 42 E2E passing |
 | API retry logic | P0 Blocker | ❓ Unverified | Needs investigation |
-| Share token security | P0 Blocker | ❓ Unverified | Needs documentation |
+| Share token security | P0 Blocker | ✅ **VERIFIED** | 128-bit entropy, RLS protected, documented |
 | Offline editing | P0 Blocker | ❓ Unverified | PWA sync queue status unknown |
 | Mobile real device testing | P0 Blocker | ❓ Unverified | Not tested on physical devices |
 
@@ -116,6 +116,7 @@
 - [x] ~~Test coverage significantly improved~~ ✅ 439 unit tests
 - [ ] E2E tests all passing (currently 42/81)
 - [ ] API retry logic verified
+- [x] ~~Share token security verified~~ ✅ See `docs/analysis/share-token-security-analysis-claude.md`
 - [ ] Offline editing verified
 - [ ] Mobile tested on real devices
 - [x] ~~Sentry configured~~ ✅
@@ -284,7 +285,7 @@ Before launch, verify:
 - [ ] Bundle size reduced to <250 KB gzip
 - [ ] API retry logic implemented for note saves
 - [ ] Integration tests added for note CRUD
-- [ ] Share token security documented
+- [x] Share token security documented ✅ See `docs/analysis/share-token-security-analysis-claude.md`
 - [ ] Offline editing works (IndexedDB + sync queue)
 - [ ] Mobile tested on real iPhone + Android
 - [ ] Sentry configured and verified

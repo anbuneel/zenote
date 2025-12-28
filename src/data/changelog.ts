@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.9.4',
+    date: '2025-12-28',
+    changes: [
+      { type: 'improvement', text: 'Share link privacy notice - tooltip explains browser history implications' },
+      { type: 'improvement', text: 'Security documentation - share token implementation verified and documented' },
+    ],
+  },
+  {
     version: '1.9.3',
     date: '2025-12-28',
     changes: [

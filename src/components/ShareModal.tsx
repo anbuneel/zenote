@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import type { Note, NoteShare } from '../types';
 import {
@@ -31,6 +31,8 @@ export function ShareModal({ isOpen, onClose, note, userId }: ShareModalProps) {
   const [isRevoking, setIsRevoking] = useState(false);
   const [selectedExpiration, setSelectedExpiration] = useState<ExpirationOption>(7);
   const [copied, setCopied] = useState(false);
+  const [showPrivacyTip, setShowPrivacyTip] = useState(false);
+  const privacyTipRef = useRef<HTMLDivElement>(null);
 
   // Generate share URL
   const getShareUrl = (token: string) => {
@@ -292,15 +294,49 @@ export function ShareModal({ isOpen, onClose, note, userId }: ShareModalProps) {
           <div className="space-y-6">
             {/* Share link */}
             <div>
-              <label
-                className="block text-sm mb-2"
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
-                Share link
-              </label>
+              <div className="flex items-center gap-2 mb-2">
+                <label
+                  className="text-sm"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  Share link
+                </label>
+                {/* Privacy info icon */}
+                <div className="relative" ref={privacyTipRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyTip(!showPrivacyTip)}
+                    onMouseEnter={() => setShowPrivacyTip(true)}
+                    onMouseLeave={() => setShowPrivacyTip(false)}
+                    className="w-4 h-4 rounded-full flex items-center justify-center transition-colors"
+                    style={{
+                      color: 'var(--color-text-tertiary)',
+                    }}
+                    aria-label="Privacy information"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                  {/* Tooltip */}
+                  {showPrivacyTip && (
+                    <div
+                      className="absolute left-0 top-6 z-10 w-64 p-3 rounded-lg shadow-lg text-xs"
+                      style={{
+                        background: 'var(--color-bg-tertiary)',
+                        border: '1px solid var(--glass-border)',
+                        color: 'var(--color-text-secondary)',
+                        fontFamily: 'var(--font-body)',
+                      }}
+                    >
+                      This link may appear in the recipient's browser history. For sensitive content, consider setting an expiration or revoking access after they've read it.
+                    </div>
+                  )}
+                </div>
+              </div>
               <div
                 className="flex items-center gap-2 p-3 rounded-lg"
                 style={{
