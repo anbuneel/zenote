@@ -6,6 +6,7 @@ import { ChapteredLibrary } from './components/ChapteredLibrary';
 import { Auth } from './components/Auth';
 import { LandingPage } from './components/LandingPage';
 import { sanitizeText } from './utils/sanitize';
+import { withRetry } from './utils/withRetry';
 
 // Lazy load heavy components to reduce initial bundle size
 const Editor = lazy(() => import('./components/Editor').then(module => ({ default: module.Editor })));
@@ -139,7 +140,6 @@ function App() {
   });
 
   // Debounce timer refs
-  const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Track if we've migrated demo content (prevent duplicate migrations)
@@ -375,21 +375,48 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [user, view, handleNewNote]);
 
-  // Debounced note update
-  const handleNoteUpdate = useCallback((updatedNote: Note) => {
-    // Update local state immediately for responsiveness
+  // Note update with retry logic
+  // Returns a Promise so Editor can track save status accurately
+  const handleNoteUpdate = useCallback(async (updatedNote: Note): Promise<void> => {
+    // Store previous state for potential rollback
+    const previousNote = notes.find((n) => n.id === updatedNote.id);
+
+    // Update local state immediately for responsiveness (optimistic update)
     setNotes((prev) =>
       prev.map((n) => (n.id === updatedNote.id ? updatedNote : n))
     );
 
-    // Debounce the server update
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
+    try {
+      // Attempt save with retry (3 attempts, exponential backoff: 1s, 2s, 4s)
+      await withRetry(
+        () => updateNote(updatedNote),
+        {
+          maxAttempts: 3,
+          initialDelayMs: 1000,
+          onRetry: (attempt, error) => {
+            console.warn(`Note save retry ${attempt}/3:`, error.message);
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Note save failed after retries:', error);
+
+      // Rollback optimistic update
+      if (previousNote) {
+        setNotes((prev) =>
+          prev.map((n) => (n.id === updatedNote.id ? previousNote : n))
+        );
+      }
+
+      // Show error toast
+      toast.error('Failed to save note. Please check your connection and try again.', {
+        duration: 5000,
+      });
+
+      // Re-throw so Editor can show error state
+      throw error;
     }
-    updateTimeoutRef.current = setTimeout(() => {
-      updateNote(updatedNote).catch(console.error);
-    }, 500);
-  }, []);
+  }, [notes]);
 
   // Soft delete a note (move to Faded Notes)
   const handleNoteDelete = async (id: string) => {

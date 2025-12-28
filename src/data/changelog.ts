@@ -8,6 +8,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.9.5',
+    date: '2025-12-28',
+    changes: [
+      { type: 'feature', text: 'Auto-retry for note saves - 3 attempts with exponential backoff on network failure' },
+      { type: 'improvement', text: 'Honest save status - indicator now reflects actual save result, not just timer' },
+      { type: 'improvement', text: 'Error notification - toast message when save fails after retries' },
+      { type: 'fix', text: 'Optimistic update rollback - reverts local changes if server save fails' },
+    ],
+  },
+  {
     version: '1.9.4',
     date: '2025-12-28',
     changes: [

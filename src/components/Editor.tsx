@@ -22,7 +22,7 @@ interface EditorProps {
   tags: Tag[];
   userId: string;
   onBack: () => void;
-  onUpdate: (note: Note) => void;
+  onUpdate: (note: Note) => Promise<void>;
   onDelete: (id: string) => void;
   onToggleTag: (noteId: string, tagId: string) => void;
   onCreateTag?: () => void;
@@ -31,7 +31,7 @@ interface EditorProps {
   onSettingsClick: () => void;
 }
 
-type SaveStatus = 'idle' | 'saving' | 'saved' | 'copied';
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'copied' | 'error';
 
 export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggleTag, onCreateTag, theme, onThemeToggle, onSettingsClick }: EditorProps) {
   const [title, setTitle] = useState(note.title);
@@ -59,19 +59,11 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note.id]);
 
-  // Perform the actual save
-  const performSave = useCallback(() => {
+  // Perform the actual save (async with proper status tracking)
+  const performSave = useCallback(async () => {
     if (title === note.title && content === note.content) return;
 
-    setSaveStatus('saving');
-    onUpdate({
-      ...note,
-      title,
-      content,
-      updatedAt: new Date(),
-    });
-
-    // Clear any existing indicator timeouts (flat structure, no nesting)
+    // Clear any existing indicator timeouts
     if (savePhaseTimeoutRef.current) {
       clearTimeout(savePhaseTimeoutRef.current);
     }
@@ -79,15 +71,32 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
       clearTimeout(hideIndicatorTimeoutRef.current);
     }
 
-    // After 500ms, transition from "Saving..." to "Saved"
-    savePhaseTimeoutRef.current = setTimeout(() => {
-      setSaveStatus('saved');
-    }, 500);
+    setSaveStatus('saving');
 
-    // After 2500ms total, hide the indicator
-    hideIndicatorTimeoutRef.current = setTimeout(() => {
-      setSaveStatus('idle');
-    }, 2500);
+    try {
+      await onUpdate({
+        ...note,
+        title,
+        content,
+        updatedAt: new Date(),
+      });
+
+      // Save succeeded - show success state
+      setSaveStatus('saved');
+
+      // Hide indicator after 2 seconds
+      hideIndicatorTimeoutRef.current = setTimeout(() => {
+        setSaveStatus('idle');
+      }, 2000);
+    } catch {
+      // Save failed after retries - show error state
+      setSaveStatus('error');
+
+      // Keep error visible for 5 seconds
+      hideIndicatorTimeoutRef.current = setTimeout(() => {
+        setSaveStatus('idle');
+      }, 5000);
+    }
   }, [title, content, note, onUpdate]);
 
   // Auto-save when content changes (debounced)
@@ -136,17 +145,13 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-      if (savePhaseTimeoutRef.current) {
-        clearTimeout(savePhaseTimeoutRef.current);
-      }
-      if (hideIndicatorTimeoutRef.current) {
-        clearTimeout(hideIndicatorTimeoutRef.current);
-      }
-      // Note: Don't clear focus cache here - it causes issues with React StrictMode
-      // The cache is cleared when switching to a different note in RichTextEditor
+      // These refs are intentionally accessed in cleanup to clear any pending timeouts
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (savePhaseTimeoutRef.current) clearTimeout(savePhaseTimeoutRef.current);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (hideIndicatorTimeoutRef.current) clearTimeout(hideIndicatorTimeoutRef.current);
     };
   }, []);
 
@@ -341,8 +346,16 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
           `}
           style={{
             fontFamily: 'var(--font-body)',
-            color: saveStatus === 'saving' ? 'var(--color-accent)' : 'var(--color-success)',
-            background: saveStatus === 'saving' ? 'var(--color-accent-glow)' : 'var(--color-success-glow)',
+            color: saveStatus === 'saving'
+              ? 'var(--color-accent)'
+              : saveStatus === 'error'
+                ? 'var(--color-error, #dc2626)'
+                : 'var(--color-success)',
+            background: saveStatus === 'saving'
+              ? 'var(--color-accent-glow)'
+              : saveStatus === 'error'
+                ? 'var(--color-error-glow, rgba(220, 38, 38, 0.1))'
+                : 'var(--color-success-glow)',
           }}
         >
           {saveStatus === 'saving' ? (
@@ -352,6 +365,13 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
                 style={{ background: 'var(--color-accent)' }}
               />
               Saving...
+            </>
+          ) : saveStatus === 'error' ? (
+            <>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Save failed
             </>
           ) : saveStatus === 'copied' ? (
             <>

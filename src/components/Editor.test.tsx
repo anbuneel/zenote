@@ -93,7 +93,7 @@ describe('Editor', () => {
     tags: mockTags,
     userId: 'user-123',
     onBack: vi.fn(),
-    onUpdate: vi.fn(),
+    onUpdate: vi.fn().mockResolvedValue(undefined),
     onDelete: vi.fn(),
     onToggleTag: vi.fn(),
     onCreateTag: vi.fn(),
@@ -190,7 +190,7 @@ describe('Editor', () => {
 
   describe('auto-save', () => {
     it('triggers save after 1.5 seconds of inactivity', async () => {
-      const onUpdate = vi.fn();
+      const onUpdate = vi.fn().mockResolvedValue(undefined);
       render(<Editor {...defaultProps} onUpdate={onUpdate} />);
 
       const titleInput = screen.getByDisplayValue('Test Note');
@@ -210,7 +210,7 @@ describe('Editor', () => {
     });
 
     it('resets timer when content changes again', async () => {
-      const onUpdate = vi.fn();
+      const onUpdate = vi.fn().mockResolvedValue(undefined);
       render(<Editor {...defaultProps} onUpdate={onUpdate} />);
 
       const titleInput = screen.getByDisplayValue('Test Note');
@@ -410,7 +410,7 @@ describe('Editor', () => {
   describe('keyboard shortcuts', () => {
     it('saves and goes back on Escape', async () => {
       const onBack = vi.fn();
-      const onUpdate = vi.fn();
+      const onUpdate = vi.fn().mockResolvedValue(undefined);
       render(<Editor {...defaultProps} onBack={onBack} onUpdate={onUpdate} />);
 
       // Make a change first
@@ -441,6 +441,33 @@ describe('Editor', () => {
 
   describe('save status indicator', () => {
     it('shows saving indicator during save', async () => {
+      // Use a deferred promise to control when save completes
+      let resolveSave: () => void;
+      const savePromise = new Promise<void>((resolve) => {
+        resolveSave = resolve;
+      });
+      const onUpdate = vi.fn().mockReturnValue(savePromise);
+
+      render(<Editor {...defaultProps} onUpdate={onUpdate} />);
+
+      const titleInput = screen.getByDisplayValue('Test Note');
+      fireEvent.change(titleInput, { target: { value: 'Changed' } });
+
+      // Trigger save (debounce timeout)
+      await act(async () => {
+        vi.advanceTimersByTime(1500);
+      });
+
+      // Should show "Saving..." while save is in progress
+      expect(screen.getByText('Saving...')).toBeInTheDocument();
+
+      // Resolve the save
+      await act(async () => {
+        resolveSave!();
+      });
+    });
+
+    it('shows saved indicator after save completes', async () => {
       render(<Editor {...defaultProps} />);
 
       const titleInput = screen.getByDisplayValue('Test Note');
@@ -451,26 +478,33 @@ describe('Editor', () => {
         vi.advanceTimersByTime(1500);
       });
 
-      // Should show "Saving..." initially
-      expect(screen.getByText('Saving...')).toBeInTheDocument();
+      // Wait for promise to resolve and state to update
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(screen.getByText('Saved')).toBeInTheDocument();
     });
 
-    it('shows saved indicator after save completes', async () => {
-      render(<Editor {...defaultProps} />);
+    it('shows error indicator when save fails', async () => {
+      const onUpdate = vi.fn().mockRejectedValue(new Error('Save failed'));
+
+      render(<Editor {...defaultProps} onUpdate={onUpdate} />);
 
       const titleInput = screen.getByDisplayValue('Test Note');
       fireEvent.change(titleInput, { target: { value: 'Changed' } });
 
-      // Trigger save and wait for "Saved" transition
+      // Trigger save
       await act(async () => {
-        vi.advanceTimersByTime(1500); // Trigger save
+        vi.advanceTimersByTime(1500);
       });
 
+      // Wait for promise to reject and state to update
       await act(async () => {
-        vi.advanceTimersByTime(500); // Wait for "Saved" state
+        await Promise.resolve();
       });
 
-      expect(screen.getByText('Saved')).toBeInTheDocument();
+      expect(screen.getByText('Save failed')).toBeInTheDocument();
     });
   });
 
