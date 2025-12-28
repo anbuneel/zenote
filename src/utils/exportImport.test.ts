@@ -7,6 +7,9 @@ import {
   parseMultiNoteMarkdown,
   exportNoteToJSON,
   exportNoteToMarkdown,
+  exportAllNotesToMarkdown,
+  downloadMarkdownZip,
+  readFileAsText,
   getSanitizedFilename,
   formatNoteForClipboard,
   formatNoteForClipboardHtml,
@@ -555,6 +558,113 @@ describe('exportImport', () => {
     });
   });
 
+  describe('exportAllNotesToMarkdown', () => {
+    it('exports each note as separate file object', () => {
+      const notes = [
+        createMockNote({ title: 'First Note' }),
+        createMockNote({ title: 'Second Note' }),
+      ];
+
+      const result = exportAllNotesToMarkdown(notes);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].filename).toBe('First-Note.md');
+      expect(result[0].content).toContain('# First Note');
+      expect(result[1].filename).toBe('Second-Note.md');
+      expect(result[1].content).toContain('# Second Note');
+    });
+
+    it('sanitizes filenames', () => {
+      const note = createMockNote({ title: 'Test: Note! @#$%' });
+
+      const result = exportAllNotesToMarkdown([note]);
+
+      expect(result[0].filename).toBe('Test-Note-.md');
+    });
+
+    it('handles untitled notes with index', () => {
+      const notes = [
+        createMockNote({ title: '' }),
+        createMockNote({ title: '' }),
+      ];
+
+      const result = exportAllNotesToMarkdown(notes);
+
+      expect(result[0].filename).toBe('Untitled-1.md');
+      expect(result[1].filename).toBe('Untitled-2.md');
+    });
+
+    it('truncates long filenames', () => {
+      const note = createMockNote({ title: 'A'.repeat(100) });
+
+      const result = exportAllNotesToMarkdown([note]);
+
+      // Filename should be truncated to 50 chars + .md
+      expect(result[0].filename.length).toBe(53); // 50 + '.md'
+    });
+  });
+
+  describe('downloadMarkdownZip', () => {
+    beforeEach(() => {
+      const mockLink = {
+        href: '',
+        download: '',
+        click: vi.fn(),
+      };
+      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLAnchorElement);
+      vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as unknown as HTMLAnchorElement);
+      vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as unknown as HTMLAnchorElement);
+    });
+
+    it('creates combined markdown file', async () => {
+      const notes = [
+        createMockNote({ title: 'Note 1', content: '<p>Content 1</p>' }),
+        createMockNote({ title: 'Note 2', content: '<p>Content 2</p>' }),
+      ];
+
+      await downloadMarkdownZip(notes);
+
+      expect(URL.createObjectURL).toHaveBeenCalled();
+      expect(document.createElement).toHaveBeenCalledWith('a');
+    });
+
+    it('uses date-based filename', async () => {
+      const mockLink = { href: '', download: '', click: vi.fn() };
+      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLAnchorElement);
+
+      await downloadMarkdownZip([createMockNote()]);
+
+      // Filename should contain 'zenote-export-' and date format
+      expect(mockLink.download).toMatch(/zenote-export-\d{4}-\d{2}-\d{2}\.md/);
+    });
+  });
+
+  describe('readFileAsText', () => {
+    it('resolves with file contents', async () => {
+      const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
+
+      const result = await readFileAsText(file);
+
+      expect(result).toBe('test content');
+    });
+
+    it('handles empty file', async () => {
+      const file = new File([''], 'empty.txt', { type: 'text/plain' });
+
+      const result = await readFileAsText(file);
+
+      expect(result).toBe('');
+    });
+
+    it('handles unicode content', async () => {
+      const file = new File(['Hello 世界 🌍'], 'unicode.txt', { type: 'text/plain' });
+
+      const result = await readFileAsText(file);
+
+      expect(result).toBe('Hello 世界 🌍');
+    });
+  });
+
   describe('getSanitizedFilename', () => {
     it('keeps alphanumeric characters', () => {
       expect(getSanitizedFilename('Test Note 123')).toBe('Test-Note-123');
@@ -715,10 +825,7 @@ describe('exportImport', () => {
   describe('copyNoteWithFormatting', () => {
     beforeEach(() => {
       vi.clearAllMocks();
-      // Mock ClipboardItem as a class
-      global.ClipboardItem = class MockClipboardItem {
-        constructor(public data: Record<string, Blob>) {}
-      } as unknown as typeof ClipboardItem;
+      // ClipboardItem is now mocked globally in setup.ts
     });
 
     it('copies with both plain text and HTML formats', async () => {

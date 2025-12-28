@@ -227,7 +227,7 @@ Day 1 (PR 1): ✅ COMPLETE
   → PR #33
 
 Day 2 (PR 2): ✅ COMPLETE
-  [x] 2.2 exportImport.test.ts (85 tests)
+  [x] 2.2 exportImport.test.ts (94 tests)
   → PR #34
 
 Day 3-4 (PR 3):
@@ -264,7 +264,7 @@ Day 8-9 (PR 6):
 | `src/test/factories.ts` | Factory | - | ✅ |
 | `src/test/test-utils.tsx` | Utility | - | ✅ |
 | `src/utils/temporalGrouping.test.ts` | Unit | 35 | ✅ |
-| `src/utils/exportImport.test.ts` | Unit | 85 | ✅ |
+| `src/utils/exportImport.test.ts` | Unit | 94 | ✅ |
 | `src/services/tags.test.ts` | Unit | 30 | |
 | `src/services/notes.test.ts` | Unit | 60 | |
 | `src/components/TagModal.test.tsx` | Integration | 12 | |
@@ -283,7 +283,7 @@ Day 8-9 (PR 6):
 | `e2e/settings.spec.ts` | E2E | 3 | |
 
 **Total: 21 new files, ~268 new tests**
-**Progress: 5 files created, 120 tests written**
+**Progress: 5 files created, 129 tests written**
 
 ---
 

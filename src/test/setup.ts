@@ -72,6 +72,12 @@ Object.defineProperty(navigator, 'clipboard', {
   configurable: true,
 });
 
+// Mock ClipboardItem for rich clipboard operations
+class MockClipboardItem {
+  constructor(public data: Record<string, Blob>) {}
+}
+global.ClipboardItem = MockClipboardItem as unknown as typeof ClipboardItem;
+
 // Mock window.matchMedia (for theme detection and responsive tests)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
