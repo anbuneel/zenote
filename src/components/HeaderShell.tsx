@@ -165,6 +165,7 @@ export function HeaderShell({
           "
           style={{ color: 'var(--color-text-secondary)' }}
           aria-label="Toggle theme"
+          data-testid="theme-toggle"
         >
           {theme === 'light' ? (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,6 +201,7 @@ export function HeaderShell({
               aria-label="Profile menu"
               aria-expanded={isProfileMenuOpen}
               title={userDisplayName}
+              data-testid="avatar-button"
             >
               {userInitials}
             </button>
@@ -207,6 +209,8 @@ export function HeaderShell({
             {/* Dropdown Menu */}
             {isProfileMenuOpen && (
               <div
+                role="menu"
+                aria-label="Profile menu"
                 className="
                   absolute right-0 top-full mt-2
                   min-w-[200px]
@@ -249,6 +253,7 @@ export function HeaderShell({
 
                 {onSettingsClick && (
                   <button
+                    role="menuitem"
                     onClick={() => {
                       setIsProfileMenuOpen(false);
                       onSettingsClick();
@@ -283,6 +288,7 @@ export function HeaderShell({
                     {section.items.map((item, itemIndex) => (
                       <button
                         key={itemIndex}
+                        role="menuitem"
                         onClick={() => {
                           setIsProfileMenuOpen(false);
                           item.onClick();
@@ -313,6 +319,7 @@ export function HeaderShell({
                 />
 
                 <button
+                  role="menuitem"
                   onClick={() => {
                     setIsProfileMenuOpen(false);
                     signOut();

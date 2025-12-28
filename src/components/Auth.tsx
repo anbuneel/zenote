@@ -91,6 +91,26 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
     }
   }, [resendCooldown]);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    if (!isModal) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // Check if form is dirty
+        const isDirty = email.length > 0 || password.length > 0 || fullName.length > 0;
+        if (isDirty && !awaitingConfirmation) {
+          setShowCloseConfirm(true);
+        } else {
+          onClose?.();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isModal, email, password, fullName, awaitingConfirmation, onClose]);
+
   const handleResendConfirmation = async () => {
     if (resendCooldown > 0) return;
     setError(null);
@@ -249,16 +269,18 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
         >
           Zenote
         </h1>
-        <p
+        <h2
+          id="auth-modal-title"
           className="text-center mb-6 md:mb-10"
           style={{
             fontFamily: 'var(--font-body)',
             color: 'var(--color-text-secondary)',
             fontSize: '0.95rem',
+            fontWeight: 'normal',
           }}
         >
           {awaitingConfirmation ? 'Check your inbox' : getTitle()}
-        </p>
+        </h2>
 
         {/* Confirmation waiting state */}
         {awaitingConfirmation ? (
@@ -383,6 +405,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
           {mode === 'signup' && (
             <div className="mb-4 md:mb-5">
               <label
+                htmlFor="auth-fullname"
                 className="block text-sm mb-2"
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -392,6 +415,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
                 Full Name <span style={{ color: 'var(--color-text-tertiary)' }}>(optional)</span>
               </label>
               <input
+                id="auth-fullname"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -422,6 +446,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
           {mode !== 'reset' && (
             <div className="mb-4 md:mb-5">
               <label
+                htmlFor="auth-email"
                 className="block text-sm mb-2"
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -431,6 +456,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
                 Email
               </label>
               <input
+                id="auth-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -461,6 +487,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
           {mode !== 'forgot' && (
             <div className="mb-4 md:mb-5">
               <label
+                htmlFor="auth-password"
                 className="block text-sm mb-2"
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -470,6 +497,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
                 {mode === 'reset' ? 'New Password' : 'Password'}
               </label>
               <input
+                id="auth-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -512,6 +540,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
           {mode === 'reset' && (
             <div className="mb-4 md:mb-5">
               <label
+                htmlFor="auth-confirm-password"
                 className="block text-sm mb-2"
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -521,6 +550,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
                 Confirm Password
               </label>
               <input
+                id="auth-confirm-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -851,7 +881,13 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
   if (isModal) {
     return (
       <div className="auth-modal-overlay" onClick={handleModalClose}>
-        <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+        className="auth-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
           {/* Close button */}
           <button
             className="auth-modal-close"

@@ -84,26 +84,28 @@ test.describe('Authentication', () => {
       await page.getByRole('button', { name: /create.*account|sign up/i }).click();
 
       await expect(page.getByRole('heading', { name: /create.*account|sign up/i })).toBeVisible();
-      await expect(page.getByPlaceholder(/name/i)).toBeVisible();
+      // Full Name field uses label, placeholder is "John Doe"
+      await expect(page.getByLabel(/full name/i)).toBeVisible();
     });
 
     test('shows password requirements', async ({ page }) => {
       await page.getByRole('button', { name: /sign in/i }).click();
       await page.getByRole('button', { name: /create.*account|sign up/i }).click();
 
-      // Password hint should be visible
-      await expect(page.getByText(/8 characters/i)).toBeVisible();
+      // Password hint should be visible (shows "8+ characters")
+      await expect(page.getByText(/8\+?\s*characters/i)).toBeVisible();
     });
 
     test('validates password length', async ({ page }) => {
       await page.getByRole('button', { name: /sign in/i }).click();
       await page.getByRole('button', { name: /create.*account|sign up/i }).click();
 
-      await page.getByRole('textbox', { name: /email/i }).fill('newuser@example.com');
+      await page.getByLabel(/^email$/i).fill('newuser@example.com');
       await page.getByLabel(/^password$/i).fill('short');
       await page.getByRole('button', { name: /sign up|create/i }).click();
 
-      await expect(page.getByText(/8 characters/i)).toBeVisible();
+      // Password hint shows "8+ characters"
+      await expect(page.getByText(/8\+?\s*characters/i)).toBeVisible();
     });
   });
 
@@ -183,13 +185,13 @@ test.describe('Authentication', () => {
       await page.getByRole('button', { name: /sign in/i }).click();
 
       // Type something to make form dirty
-      await page.getByRole('textbox', { name: /email/i }).fill('test@example.com');
+      await page.getByLabel(/^email$/i).fill('test@example.com');
 
       // Try to close
       await page.keyboard.press('Escape');
 
-      // Should show confirmation
-      await expect(page.getByText(/discard|unsaved/i)).toBeVisible();
+      // Should show confirmation dialog with heading
+      await expect(page.getByRole('heading', { name: /discard changes/i })).toBeVisible();
     });
   });
 });

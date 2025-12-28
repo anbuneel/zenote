@@ -374,6 +374,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 suppressContentEditableWarning
+                data-testid="demo-editor"
                 data-placeholder={DEFAULT_PLACEHOLDER}
               />
 

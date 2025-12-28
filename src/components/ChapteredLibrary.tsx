@@ -226,6 +226,7 @@ export function ChapteredLibrary({
       <main
         className="flex-1 overflow-y-auto pb-32"
         style={{ scrollbarWidth: 'none' }}
+        data-testid="library-view"
       >
         {/* Render each non-empty chapter */}
         {chapters.map((chapter) => (

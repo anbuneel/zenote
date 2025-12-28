@@ -571,6 +571,7 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
     <div
       className="h-screen overflow-y-auto"
       style={{ background: 'var(--color-bg-primary)' }}
+      data-testid="note-editor"
     >
       {/* Sticky Zone: Header only */}
       <div

@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.9.2',
+    date: '2025-12-28',
+    changes: [
+      { type: 'improvement', text: 'Accessibility improvements - proper ARIA roles for dialogs, menus, and form labels' },
+      { type: 'improvement', text: 'Auth modal now supports Escape key to close (with dirty form confirmation)' },
+      { type: 'improvement', text: 'E2E test infrastructure updated for auth and notes flows' },
+    ],
+  },
+  {
     version: '1.9.1',
     date: '2025-12-26',
     changes: [

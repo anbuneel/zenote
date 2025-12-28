@@ -162,7 +162,7 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
   }
 
   return (
-    <div className="rich-text-editor">
+    <div className="rich-text-editor" data-testid="rich-text-editor">
       <EditorContent editor={editor} />
     </div>
   );

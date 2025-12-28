@@ -7,8 +7,8 @@ import { test as base, expect, Page } from '@playwright/test';
 
 // Test user credentials (use test accounts in Supabase)
 export const TEST_USER = {
-  email: process.env.E2E_TEST_EMAIL || 'e2e-test@zenote.app',
-  password: process.env.E2E_TEST_PASSWORD || 'TestPassword123!',
+  email: process.env.E2E_TEST_EMAIL || 'anbs.temp@gmail.com',
+  password: process.env.E2E_TEST_PASSWORD || '7JjN9TGMzxPqF3',
   name: 'E2E Test User',
 };
 
@@ -34,15 +34,16 @@ export async function loginUser(page: Page, email: string, password: string): Pr
   // Click Sign In button on landing page
   await page.getByRole('button', { name: /sign in/i }).click();
 
-  // Wait for auth modal
+  // Wait for auth modal with dialog role
+  await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
 
-  // Fill in credentials
-  await page.getByRole('textbox', { name: /email/i }).fill(email);
-  await page.getByLabel(/password/i).fill(password);
+  // Fill in credentials using accessible label associations
+  await page.getByLabel(/^email$/i).fill(email);
+  await page.getByLabel(/^password$/i).fill(password);
 
-  // Submit login
-  await page.getByRole('button', { name: /sign in/i }).click();
+  // Submit login (use form's submit button, not header button)
+  await page.locator('form').getByRole('button', { name: /sign in/i }).click();
 
   // Wait for redirect to library
   await expect(page.getByTestId('library-view')).toBeVisible({ timeout: 10000 });
@@ -70,8 +71,8 @@ export async function createNote(
   title: string,
   content?: string
 ): Promise<void> {
-  // Click new note button
-  await page.getByRole('button', { name: /new note/i }).click();
+  // Click new note button (use aria-label to avoid matching note card text)
+  await page.getByRole('button', { name: 'New note', exact: true }).click();
 
   // Wait for editor
   await expect(page.getByTestId('note-editor')).toBeVisible();
@@ -93,7 +94,8 @@ export async function createNote(
  * Navigate back to library from editor
  */
 export async function goToLibrary(page: Page): Promise<void> {
-  await page.getByRole('link', { name: /zenote/i }).click();
+  // Logo is a button, not a link
+  await page.getByRole('button', { name: /zenote/i }).click();
   await expect(page.getByTestId('library-view')).toBeVisible();
 }
 
@@ -101,7 +103,8 @@ export async function goToLibrary(page: Page): Promise<void> {
  * Open a note by title
  */
 export async function openNote(page: Page, title: string): Promise<void> {
-  await page.getByRole('article').filter({ hasText: title }).click();
+  // Note cards have role="button" (they're clickable articles)
+  await page.locator('article').filter({ hasText: title }).click();
   await expect(page.getByTestId('note-editor')).toBeVisible();
 }
 
@@ -109,7 +112,8 @@ export async function openNote(page: Page, title: string): Promise<void> {
  * Delete a note from the library view
  */
 export async function deleteNoteFromLibrary(page: Page, title: string): Promise<void> {
-  const noteCard = page.getByRole('article').filter({ hasText: title });
+  // Note cards are <article> elements with role="button"
+  const noteCard = page.locator('article').filter({ hasText: title });
 
   // Hover to reveal delete button
   await noteCard.hover();
@@ -117,8 +121,8 @@ export async function deleteNoteFromLibrary(page: Page, title: string): Promise<
   // Click delete
   await noteCard.getByRole('button', { name: /delete/i }).click();
 
-  // Wait for undo toast or confirmation
-  await expect(page.getByText(/undo/i)).toBeVisible({ timeout: 3000 });
+  // Wait for undo toast (use button with exact role to avoid matching note titles)
+  await expect(page.getByRole('button', { name: /^undo$/i })).toBeVisible({ timeout: 3000 });
 }
 
 /**
@@ -161,10 +165,10 @@ export async function clearTagFilters(page: Page): Promise<void> {
 }
 
 /**
- * Search for notes
+ * Search for notes (uses first visible search input for desktop/mobile)
  */
 export async function searchNotes(page: Page, query: string): Promise<void> {
-  await page.getByPlaceholder(/search/i).fill(query);
+  await page.getByPlaceholder(/search/i).first().fill(query);
   // Wait for search results to update
   await page.waitForTimeout(500);
 }
@@ -173,7 +177,7 @@ export async function searchNotes(page: Page, query: string): Promise<void> {
  * Clear search
  */
 export async function clearSearch(page: Page): Promise<void> {
-  await page.getByPlaceholder(/search/i).clear();
+  await page.getByPlaceholder(/search/i).first().clear();
 }
 
 /**
@@ -211,7 +215,8 @@ export async function expectToast(page: Page, message: string | RegExp): Promise
  * Get note count in library
  */
 export async function getNoteCount(page: Page): Promise<number> {
-  const notes = page.getByRole('article');
+  // Note cards are <article> elements
+  const notes = page.locator('article');
   return await notes.count();
 }
 
@@ -219,6 +224,6 @@ export async function getNoteCount(page: Page): Promise<number> {
  * Check if note exists in library
  */
 export async function noteExists(page: Page, title: string): Promise<boolean> {
-  const noteCard = page.getByRole('article').filter({ hasText: title });
+  const noteCard = page.locator('article').filter({ hasText: title });
   return await noteCard.isVisible();
 }
