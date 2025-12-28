@@ -2,15 +2,16 @@
 
 **Author:** Claude (Opus 4.5)
 **Date:** 2025-12-27
-**Status:** In Progress (Phase 6 Complete)
+**Updated:** 2025-12-28
+**Status:** In Progress (Phase 6.1 Complete - Accessibility Fixes)
 
 ---
 
 ## Overview
 Implement comprehensive automated testing to enable safe feature development and regression prevention.
 
-**Current State:** 15 test files, 439 tests
-**Target State:** ~450 tests (unit + integration + E2E), >75% coverage on critical paths
+**Current State:** 22 test files, 439 unit tests + 42 E2E tests passing (37 E2E pending accessibility fixes)
+**Target State:** ~525 tests (unit + integration + E2E), >75% coverage on critical paths
 
 **Approach:** Incremental PRs after each phase for easier review
 
@@ -572,3 +573,60 @@ npm run e2e:report   # View HTML test report
 - Test user account configured in Supabase
 - Environment variables: `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`
 - Dev server running (or use webServer config in playwright.config.ts)
+
+---
+
+### Phase 6.1: E2E Accessibility Fixes (Complete)
+
+**Commit:** `73e0ce5` - feat: Add accessibility improvements and fix E2E tests
+**Date:** 2025-12-28
+
+#### Issue
+E2E tests were failing due to selectors expecting ARIA roles and label associations that didn't exist in the components. Tests used accessible queries like `getByRole('dialog')`, `getByRole('menuitem')`, and `getByLabel(/email/i)` but components lacked proper accessibility attributes.
+
+#### Accessibility Improvements Made
+
+| Component | Changes |
+|-----------|---------|
+| Auth.tsx | Added `role="dialog"`, `aria-modal="true"`, `aria-labelledby`; Changed `<p>` to `<h2>` for modal title; Added `htmlFor`/`id` for all form inputs; Added Escape key handler with dirty form confirmation |
+| HeaderShell.tsx | Added `role="menu"` to dropdown container; Added `role="menuitem"` to all menu items |
+| ChapteredLibrary.tsx | Added `data-testid="library-view"` |
+| Editor.tsx | Added `data-testid="note-editor"` |
+| LandingPage.tsx | Added `data-testid="theme-toggle"` |
+| RichTextEditor.tsx | Added `data-testid="rich-text-editor"` |
+
+#### E2E Test Updates
+
+| File | Changes | Status |
+|------|---------|--------|
+| auth.spec.ts | Updated to use accessible queries (dialog role, label associations, heading role) | ✅ 18/18 passing |
+| notes.spec.ts | Updated selectors, added timing waits, fixed Undo button exact matching | ✅ 19/19 passing |
+| fixtures.ts | Updated loginUser and helper functions to use accessible selectors | ✅ |
+| export-import.spec.ts | Needs similar accessibility updates | ⏳ Issue #39 |
+| settings.spec.ts | Needs SettingsModal dialog role | ⏳ Issue #40 |
+| sharing.spec.ts | Needs ShareModal dialog role | ⏳ Issue #41 |
+| tags.spec.ts | Needs TagModal dialog role | ⏳ Issue #42 |
+
+#### Current E2E Status
+
+| Test File | Passing | Total | Notes |
+|-----------|---------|-------|-------|
+| auth.spec.ts | 18 | 18 | ✅ Complete |
+| notes.spec.ts | 19 | 19 | ✅ Complete |
+| export-import.spec.ts | 4 | 9 | Needs modal/menu role updates |
+| settings.spec.ts | 0 | 10 | Needs SettingsModal dialog role |
+| sharing.spec.ts | 0 | 9 | Needs ShareModal dialog role |
+| tags.spec.ts | 0 | 16 | Needs TagModal dialog role |
+| **Total** | **42** | **81** | 52% passing |
+
+#### Remaining Work (Issues #39-42)
+
+Components needing accessibility updates:
+- `SettingsModal.tsx` - Add `role="dialog"`, `aria-modal`, label associations
+- `ShareModal.tsx` - Add `role="dialog"`, `aria-modal`, label associations
+- `TagModal.tsx` - Add `role="dialog"`, `aria-modal`, label associations
+
+E2E tests needing selector updates:
+- Update to use `getByRole('dialog')` instead of custom selectors
+- Update form inputs to use `getByLabel()` with proper associations
+- Update menu interactions to use `getByRole('menuitem')`
