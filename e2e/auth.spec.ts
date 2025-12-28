@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USER, loginUser, logoutUser } from './fixtures';
+import { TEST_USER, loginUser, logoutUser, E2E_CREDENTIALS_CONFIGURED } from './fixtures';
+
+// Skip tests that require real credentials if not configured
+const testWithCredentials = E2E_CREDENTIALS_CONFIGURED ? test : test.skip;
 
 test.describe('Authentication', () => {
   test.beforeEach(async ({ page }) => {
@@ -57,7 +60,7 @@ test.describe('Authentication', () => {
       await expect(page.getByText(/invalid|incorrect|wrong/i)).toBeVisible({ timeout: 10000 });
     });
 
-    test('logs in with valid credentials', async ({ page }) => {
+    testWithCredentials('logs in with valid credentials', async ({ page }) => {
       await loginUser(page, TEST_USER.email, TEST_USER.password);
 
       // Should be on library page
@@ -67,7 +70,7 @@ test.describe('Authentication', () => {
       await expect(page.getByTestId('avatar-button')).toBeVisible();
     });
 
-    test('persists login across page reload', async ({ page }) => {
+    testWithCredentials('persists login across page reload', async ({ page }) => {
       await loginUser(page, TEST_USER.email, TEST_USER.password);
 
       // Reload page
@@ -118,7 +121,7 @@ test.describe('Authentication', () => {
       await expect(page.getByRole('button', { name: /send.*reset.*link/i })).toBeVisible();
     });
 
-    test('sends reset email', async ({ page }) => {
+    testWithCredentials('sends reset email', async ({ page }) => {
       await page.getByRole('button', { name: /sign in/i }).click();
       await page.getByRole('button', { name: /forgot.*password/i }).click();
 
@@ -131,7 +134,7 @@ test.describe('Authentication', () => {
   });
 
   test.describe('Logout', () => {
-    test('logs out user', async ({ page }) => {
+    testWithCredentials('logs out user', async ({ page }) => {
       await loginUser(page, TEST_USER.email, TEST_USER.password);
       await logoutUser(page);
 

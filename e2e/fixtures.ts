@@ -5,19 +5,31 @@ import { test as base, expect, Page } from '@playwright/test';
  * Provides reusable test helpers and page objects
  */
 
-// Test user credentials (use test accounts in Supabase)
+// Test user credentials - MUST be set via environment variables
+// Set these in .env.local (git-ignored) or as CI secrets
+// See .env.example for documentation
 export const TEST_USER = {
-  email: process.env.E2E_TEST_EMAIL || 'anbs.temp@gmail.com',
-  password: process.env.E2E_TEST_PASSWORD || '7JjN9TGMzxPqF3',
+  email: process.env.E2E_TEST_EMAIL || '',
+  password: process.env.E2E_TEST_PASSWORD || '',
   name: 'E2E Test User',
 };
+
+// Check if E2E credentials are configured
+export const E2E_CREDENTIALS_CONFIGURED = Boolean(
+  TEST_USER.email && TEST_USER.password
+);
 
 // Extend base test with custom fixtures
 export const test = base.extend<{
   authenticatedPage: Page;
 }>({
   // Authenticated page fixture - logs in before each test
-  authenticatedPage: async ({ page }, use) => {
+  // Skips test if E2E credentials are not configured
+  authenticatedPage: async ({ page }, use, testInfo) => {
+    if (!E2E_CREDENTIALS_CONFIGURED) {
+      testInfo.skip(true, 'E2E credentials not configured. Set E2E_TEST_EMAIL and E2E_TEST_PASSWORD in .env.local');
+      return;
+    }
     await loginUser(page, TEST_USER.email, TEST_USER.password);
     await use(page);
   },
