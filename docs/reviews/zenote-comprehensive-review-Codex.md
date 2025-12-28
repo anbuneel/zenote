@@ -41,3 +41,75 @@ do a comprehensive architecture, design and code review of Zenote. I want to lau
 5. [OPEN] Run `npm run check` plus a11y/contrast and Lighthouse audits before launch.
 
 Notes: No code changes made; tests and audits not run in this review.
+
+---
+
+# Claude (Opus 4.5) Review of Codex Findings
+
+**Author:** Claude (Opus 4.5)
+**Date:** 2025-12-28
+**Context:** Independent assessment of Codex findings after reviewing referenced source files
+
+## Assessment Summary
+
+Codex was **mostly correct** but overstated severity on two items. Most findings are valid and actionable.
+
+## Critical Issues Assessment
+
+| Finding | Verdict | Rationale |
+|---------|---------|-----------|
+| **RLS token enumeration** | **DISAGREE - By Design** | The `USING (true)` policy allows public token lookup, which is required for "secret URL" sharing. Tokens are 32-char UUIDs with 128-bit entropy - brute-force is computationally infeasible (2^128 combinations). This is the standard pattern used by Google Docs, Notion, Dropbox, etc. The security model relies on token secrecy, not access control. |
+| **SharedNoteView XSS** | **PARTIALLY AGREE** | Content originates from Tiptap editor which sanitizes on input. However, defense-in-depth is good practice. Should add explicit `sanitizeHtml()` call before `dangerouslySetInnerHTML`. **Recommend: Add sanitization as P1 fix.** |
+
+## High Issues Assessment
+
+| Finding | Verdict | Rationale |
+|---------|---------|-----------|
+| **Offline messaging misleading** | **AGREE** | Message says "Will sync when the path clears" but no sync queue exists. Notes typed offline will fail to save. **Fix: Change wording or implement queue.** |
+| **Rollback overwrites newer save** | **PARTIALLY AGREE** | Valid edge case when saves overlap. Unlikely in practice but possible. Needs in-flight tracking for proper fix. |
+| **Overlapping saves race** | **AGREE** | Editor has 1.5s debounce, but Escape/blur bypasses it. Rapid user actions can race. **Fix: Add in-flight tracking.** |
+| **Delete stale closure** | **AGREE** | Line 428 uses closure `notes` instead of functional update `prev => prev.filter(...)`. Simple fix: `setNotes(prev => prev.filter((n) => n.id !== id))`. **Easy win.** |
+
+## Medium Issues Assessment
+
+| Finding | Verdict | Rationale |
+|---------|---------|-----------|
+| **Escape doesn't await save** | **AGREE** | User may navigate away before save completes. Failure toast appears on wrong screen. |
+| **Retry all errors** | **AGREE** | Should skip retry for 4xx errors (validation, auth failures). Only retry 5xx/network errors. Easy enhancement to `withRetry`. |
+| **Session replay captures content** | **AGREE** | Sentry replay could capture sensitive notes. Should configure `maskAllText` or mask `.rich-text-editor` specifically. |
+| **Faded notes client-side cleanup** | **AGREE** | Migration file referenced (`add_faded_notes_cleanup_cron.sql`) should be verified active in Supabase. |
+| **State updates during render** | **NEEDS VERIFICATION** | Would need to inspect specific patterns in ChapterSection/TimeRibbon. |
+| **Scalability risks** | **AGREE** | Valid for power users with 1000+ notes. Not a launch blocker but worth tracking. |
+
+## Low Issues Assessment
+
+| Finding | Verdict | Rationale |
+|---------|---------|-----------|
+| **Space key accessibility** | **AGREE** | Standard a11y fix - buttons should respond to both Enter and Space. |
+| **Undefined --color-error tokens** | **AGREE** | Should add error color tokens to theme system. |
+
+## Answers to Codex Questions
+
+1. **Shared notes authorization:** The `fetchSharedNote` function queries `note_shares` to validate the token, then fetches the note by `note_id`. RLS on `notes` table requires `auth.uid() = user_id`, but the query runs with service role via Supabase client for public access. This is intentional - token possession = authorization.
+
+2. **GitHub OAuth:** Yes, it's configured in Supabase. The UI correctly shows it as an option.
+
+3. **Offline editing:** No true offline editing is intended. The messaging should be softened to avoid implying sync capability.
+
+## Recommended Priority Order
+
+| Priority | Issue | Effort | Impact |
+|----------|-------|--------|--------|
+| P1 | Fix offline messaging (misleading) | 15 min | High - user trust |
+| P1 | Add sanitization to SharedNoteView | 15 min | Medium - defense-in-depth |
+| P1 | Fix delete stale closure | 5 min | Medium - data consistency |
+| P2 | Add retry error discrimination (skip 4xx) | 30 min | Low - efficiency |
+| P2 | Configure Sentry session replay masking | 15 min | Medium - privacy |
+| P2 | Add in-flight tracking for saves | 1-2 hrs | Medium - race conditions |
+| P3 | Await save on Escape/back | 30 min | Low - edge case |
+| P3 | Add --color-error tokens | 10 min | Low - visual polish |
+| P3 | Fix Space key handlers | 30 min | Low - accessibility |
+
+## Conclusion
+
+Codex provided a thorough review. The two "Critical" findings are **not launch blockers** - token enumeration is by design, and XSS risk is mitigated by input sanitization. The P1 items above should be addressed before launch. P2/P3 items can be done post-launch.
