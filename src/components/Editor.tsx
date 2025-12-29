@@ -766,19 +766,23 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
           onClick={() => setShowDeleteConfirm(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-dialog-title"
             className="
               w-[400px]
               p-8
               shadow-2xl
             "
             style={{
-              background: 'var(--color-bg-primary)',
+              background: 'var(--color-bg-secondary)',
               borderRadius: 'var(--radius-card)',
               border: '1px solid var(--glass-border)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3
+              id="delete-dialog-title"
               className="text-xl font-semibold mb-3"
               style={{
                 fontFamily: 'var(--font-display)',

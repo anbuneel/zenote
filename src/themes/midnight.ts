@@ -32,7 +32,7 @@ export const midnight: ThemeConfig = {
     accentMuted: 'rgba(212, 175, 55, 0.6)',
 
     // Semantic
-    destructive: '#E07A5F',
+    destructive: '#EF4444',
     success: '#4CAF50',
     successGlow: 'rgba(76, 175, 80, 0.2)',
     error: '#EF4444',

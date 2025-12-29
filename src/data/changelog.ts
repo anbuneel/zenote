@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.9.11',
+    date: '2025-12-29',
+    changes: [
+      { type: 'fix', text: 'Dark mode delete button now uses proper red color instead of coral' },
+      { type: 'improvement', text: 'Delete confirmation dialog accessibility improvements' },
+    ],
+  },
+  {
     version: '1.9.10',
     date: '2025-12-29',
     changes: [
