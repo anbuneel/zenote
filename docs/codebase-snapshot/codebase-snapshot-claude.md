@@ -34,7 +34,7 @@ SERVICE LAYER
 - tags.ts: CRUD operations, Color management
 
 UTILITY LAYER
-- sanitize (XSS), exportImport (Backup), formatTime (Relative), temporalGrouping, withRetry (Network)
+- sanitize (XSS), exportImport (Backup), formatTime (Relative), temporalGrouping, withRetry (Network), lazyWithRetry (Smart Chunk Loading)
 
 EXTERNAL SERVICES
 - Supabase: PostgreSQL (Database), Auth (OAuth+PW), Real-time (Sync), RLS (Security)
@@ -162,7 +162,7 @@ note_shares
 - expires_at (timestamptz, nullable)
 - created_at (timestamptz)
 
-### Features Implemented (v1.9.8)
+### Features Implemented (v1.9.10)
 
 **Core Functionality:**
 - Wabi-sabi design with light/dark themes (dark default)
@@ -212,6 +212,16 @@ note_shares
 | E2E Tests | 6 | auth, notes, tags, sharing, export-import, settings |
 
 ### Notable Changes Since Last Snapshot
+
+**v1.9.10 (2025-12-29):** Smart chunk loading
+- Added `lazyWithRetry` utility for graceful version update handling
+- Auto-retries chunk loads and quietly reloads when safe (no unsaved work)
+- Added data-save-status attribute to Editor for detecting in-flight saves
+
+**v1.9.9 (2025-12-29):** Shared notes RLS fix
+- Fixed shared notes not viewable by unauthenticated users
+- Added RLS policies for public access to notes/tags with valid share tokens
+- Updated E2E tests for correct share URL format (/?s=token)
 
 **v1.9.8 (2025-12-29):** Code cleanup - removed 230 lines of dead code
 - Deleted legacy `Library.tsx` component (replaced by ChapteredLibrary)

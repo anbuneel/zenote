@@ -64,6 +64,7 @@ src/
 ├── utils/
 │   ├── exportImport.ts    # Export/import utilities (JSON, Markdown) with validation
 │   ├── formatTime.ts      # Relative time formatting
+│   ├── lazyWithRetry.ts   # Smart lazy loading with retry and auto-reload on version updates
 │   ├── sanitize.ts        # HTML/text sanitization (XSS prevention)
 │   ├── temporalGrouping.ts # Group notes by time (Pinned, This Week, Last Week, etc.)
 │   └── withRetry.ts       # Retry utility with exponential backoff and error discrimination
