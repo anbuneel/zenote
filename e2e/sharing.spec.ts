@@ -18,8 +18,8 @@ test.describe('Share as Letter', () => {
       // Create share
       await page.getByRole('button', { name: /create.*link|share/i }).click();
 
-      // Link should appear
-      await expect(page.getByText(/zenote\.vercel\.app\/s\//i)).toBeVisible();
+      // Link should appear (format: /?s=token)
+      await expect(page.getByText(/\?s=/i)).toBeVisible();
     });
 
     test('creates share with 7-day expiration', async ({ authenticatedPage: page }) => {
@@ -117,34 +117,109 @@ test.describe('Share as Letter', () => {
       const noteTitle = `View Share ${Date.now()}`;
       const noteContent = 'Shared content visible to all';
 
-      // Create and share note
+      // Create and share note as authenticated user
       await createNote(authenticatedPage, noteTitle, noteContent);
       await authenticatedPage.getByRole('button', { name: /share/i }).click();
       await authenticatedPage.getByRole('button', { name: /create.*link|share/i }).click();
 
-      // Get the share link
-      const linkText = await authenticatedPage.getByText(/zenote\.vercel\.app\/s\//i).textContent();
-      const shareUrl = linkText?.match(/https?:\/\/[^\s]+/)?.[0];
+      // Wait for share link to appear and get the token
+      await expect(authenticatedPage.getByText(/\?s=/i)).toBeVisible();
 
-      if (shareUrl) {
-        // Open share link in incognito context (new page without auth)
-        await page.goto(shareUrl.replace('https://zenote.vercel.app', ''));
+      // Get the share URL from the input field
+      const shareInput = authenticatedPage.locator('input[readonly]').first();
+      const shareUrl = await shareInput.inputValue();
 
-        // Should see shared note
-        await expect(page.getByText(noteTitle)).toBeVisible();
-        await expect(page.getByText(noteContent)).toBeVisible();
+      // Extract the path (e.g., /?s=abc123)
+      const url = new URL(shareUrl);
+      const sharePath = `${url.pathname}${url.search}`;
 
-        // Should be read-only (no edit controls)
-        await expect(page.getByRole('button', { name: /delete/i })).not.toBeVisible();
+      // Close the modal
+      await authenticatedPage.keyboard.press('Escape');
+
+      // Open share link in a fresh browser context (simulates incognito/anonymous)
+      const browser = page.context().browser();
+      const anonymousContext = await browser!.newContext();
+      const anonymousPage = await anonymousContext.newPage();
+
+      try {
+        await anonymousPage.goto(sharePath);
+
+        // Should see shared note title and content
+        await expect(anonymousPage.getByText(noteTitle)).toBeVisible({ timeout: 10000 });
+        await expect(anonymousPage.getByText(noteContent)).toBeVisible();
+
+        // Should see "Shared quietly via Zenote" attribution
+        await expect(anonymousPage.getByText(/shared quietly via zenote/i)).toBeVisible();
+
+        // Should NOT see edit controls (delete button, editor)
+        await expect(anonymousPage.getByRole('button', { name: /delete/i })).not.toBeVisible();
+        await expect(anonymousPage.getByTestId('note-editor')).not.toBeVisible();
+
+        // Should see theme toggle (public pages have this)
+        await expect(anonymousPage.getByRole('button', { name: /toggle theme/i })).toBeVisible();
+      } finally {
+        await anonymousContext.close();
       }
     });
 
-    test('shows expired message for expired share', async ({ page }) => {
-      // Navigate to a fake expired share link
-      await page.goto('/s/expiredtoken12345');
+    test('shows faded message for invalid share token', async ({ page }) => {
+      // Navigate to a fake/invalid share link
+      await page.goto('/?s=invalidtoken12345678901234567890');
 
-      // Should show expired or not found message
-      await expect(page.getByText(/expired|not found|unavailable/i)).toBeVisible();
+      // Should show "This letter has faded" message
+      await expect(page.getByText(/this letter has faded/i)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(/expired or been removed/i)).toBeVisible();
+
+      // Should have a button to go to Zenote
+      await expect(page.getByRole('button', { name: /go to zenote/i })).toBeVisible();
+    });
+
+    test('shared note displays tags correctly', async ({ page, authenticatedPage }) => {
+      const noteTitle = `Tagged Share ${Date.now()}`;
+      const noteContent = 'Note with tags for sharing';
+
+      // Create note
+      await createNote(authenticatedPage, noteTitle, noteContent);
+
+      // Add a tag to the note (via tag selector in editor)
+      const tagSelector = authenticatedPage.getByRole('button', { name: /add tag|tags/i });
+      if (await tagSelector.isVisible()) {
+        await tagSelector.click();
+        // Select first available tag or create one
+        const existingTag = authenticatedPage.locator('[role="menuitem"]').first();
+        if (await existingTag.isVisible()) {
+          await existingTag.click();
+        }
+      }
+
+      // Wait for save
+      await expect(authenticatedPage.getByText(/saved/i)).toBeVisible({ timeout: 5000 });
+
+      // Share the note
+      await authenticatedPage.getByRole('button', { name: /share/i }).click();
+      await authenticatedPage.getByRole('button', { name: /create.*link|share/i }).click();
+
+      // Get share URL
+      await expect(authenticatedPage.getByText(/\?s=/i)).toBeVisible();
+      const shareInput = authenticatedPage.locator('input[readonly]').first();
+      const shareUrl = await shareInput.inputValue();
+      const url = new URL(shareUrl);
+      const sharePath = `${url.pathname}${url.search}`;
+
+      // View as anonymous user
+      const browser = page.context().browser();
+      const anonymousContext = await browser!.newContext();
+      const anonymousPage = await anonymousContext.newPage();
+
+      try {
+        await anonymousPage.goto(sharePath);
+
+        // Should see the note
+        await expect(anonymousPage.getByText(noteTitle)).toBeVisible({ timeout: 10000 });
+        await expect(anonymousPage.getByText(noteContent)).toBeVisible();
+      } finally {
+        await anonymousContext.close();
+      }
     });
   });
 });
