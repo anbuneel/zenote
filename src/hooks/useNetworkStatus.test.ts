@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useNetworkStatus } from './useNetworkStatus';
 import toast from 'react-hot-toast';
 
@@ -68,22 +68,17 @@ describe('useNetworkStatus', () => {
     expect(toast).not.toHaveBeenCalled();
   });
 
-  it('shows offline toast when initially offline', () => {
+  it('sets isOnline to false when initially offline', () => {
     Object.defineProperty(window.navigator, 'onLine', {
       value: false,
       writable: true,
       configurable: true,
     });
 
-    renderHook(() => useNetworkStatus());
+    const { result } = renderHook(() => useNetworkStatus());
 
-    expect(toast).toHaveBeenCalledWith(
-      'Connection lost. Changes may not be saved.',
-      expect.objectContaining({
-        icon: '雲',
-        duration: 4000,
-      })
-    );
+    // Should be offline but no toast on initial render (only on transition)
+    expect(result.current.isOnline).toBe(false);
   });
 
   it('shows offline toast when going offline', () => {
@@ -96,7 +91,7 @@ describe('useNetworkStatus', () => {
     window.dispatchEvent(new Event('offline'));
 
     expect(toast).toHaveBeenCalledWith(
-      'Connection lost. Changes may not be saved.',
+      'Offline. Your notes are safe locally.',
       expect.objectContaining({
         icon: '雲',
         duration: 4000,
@@ -147,7 +142,7 @@ describe('useNetworkStatus', () => {
     // Go offline
     window.dispatchEvent(new Event('offline'));
     expect(toast).toHaveBeenCalledWith(
-      'Connection lost. Changes may not be saved.',
+      'Offline. Your notes are safe locally.',
       expect.anything()
     );
 
@@ -169,19 +164,17 @@ describe('useNetworkStatus', () => {
     // Go offline again
     window.dispatchEvent(new Event('offline'));
     expect(toast).toHaveBeenCalledWith(
-      'Connection lost. Changes may not be saved.',
+      'Offline. Your notes are safe locally.',
       expect.anything()
     );
   });
 
   it('applies correct styling to toasts', () => {
-    Object.defineProperty(window.navigator, 'onLine', {
-      value: false,
-      writable: true,
-      configurable: true,
-    });
-
     renderHook(() => useNetworkStatus());
+    vi.mocked(toast).mockClear();
+
+    // Go offline to trigger toast with styling
+    window.dispatchEvent(new Event('offline'));
 
     expect(toast).toHaveBeenCalledWith(
       expect.any(String),
@@ -193,5 +186,38 @@ describe('useNetworkStatus', () => {
         }),
       })
     );
+  });
+
+  it('returns isOnline status', () => {
+    const { result } = renderHook(() => useNetworkStatus());
+
+    expect(result.current.isOnline).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
+    expect(result.current.isOnline).toBe(false);
+
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+    expect(result.current.isOnline).toBe(true);
+  });
+
+  it('provides onReconnect callback', () => {
+    const { result } = renderHook(() => useNetworkStatus());
+    const reconnectHandler = vi.fn();
+
+    result.current.onReconnect(reconnectHandler);
+
+    // Go offline then online
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+
+    expect(reconnectHandler).toHaveBeenCalledTimes(1);
   });
 });

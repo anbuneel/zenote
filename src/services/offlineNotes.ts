@@ -2,8 +2,8 @@
  * Offline Notes Service
  *
  * Provides offline-first note operations using IndexedDB (Dexie.js).
- * Phase 1: Read-only offline support - hydrate from Supabase, read from IndexedDB.
- * Phase 2+: Will add offline writes and sync queue.
+ * All writes go to IndexedDB first (optimistic), then queue for sync.
+ * The sync engine (Phase 3) will process the queue when online.
  */
 
 import { supabase } from '../lib/supabase';
@@ -11,9 +11,12 @@ import {
   getOfflineDb,
   clearOfflineDb,
   hasOfflineDb,
+  generateMutationId,
   type LocalNote,
   type LocalTag,
   type LocalNoteTag,
+  type SyncQueueEntry,
+  type SyncOperation,
 } from '../lib/offlineDb';
 import type { Note, Tag, TagColor } from '../types';
 import type { DbNote, DbTag } from '../types/database';
@@ -346,6 +349,370 @@ export async function countFadedNotesOffline(userId: string): Promise<number> {
  */
 export async function clearOfflineData(): Promise<void> {
   await clearOfflineDb();
+}
+
+// ============================================
+// WRITE OPERATIONS (Phase 2)
+// All writes go to IndexedDB first, then queue for sync
+// ============================================
+
+/**
+ * Add an operation to the sync queue
+ */
+async function queueSyncOperation(
+  userId: string,
+  operation: SyncOperation,
+  entityType: 'note' | 'tag' | 'noteTag',
+  entityId: string,
+  payload: unknown
+): Promise<string> {
+  const db = getOfflineDb(userId);
+  const clientMutationId = generateMutationId();
+  const now = Date.now();
+
+  const entry: SyncQueueEntry = {
+    clientMutationId,
+    operation,
+    entityType,
+    entityId,
+    payload,
+    createdAt: now,
+    retryCount: 0,
+  };
+
+  // Queue compaction: remove previous pending updates to same entity
+  // (keep creates and deletes, only compact consecutive updates)
+  if (operation === 'update') {
+    await db.syncQueue
+      .where('entityId')
+      .equals(entityId)
+      .and((e) => e.operation === 'update' && e.entityType === entityType)
+      .delete();
+  }
+
+  await db.syncQueue.add(entry);
+  return clientMutationId;
+}
+
+/**
+ * Create a new note offline
+ * Generates local UUID, writes to IndexedDB, queues for sync
+ */
+export async function createNoteOffline(
+  userId: string,
+  title: string = '',
+  content: string = ''
+): Promise<Note> {
+  const db = getOfflineDb(userId);
+  const now = Date.now();
+  const noteId = crypto.randomUUID();
+
+  const localNote: LocalNote = {
+    id: noteId,
+    userId,
+    title,
+    content,
+    pinned: false,
+    deletedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    syncStatus: 'pending',
+    lastSyncedAt: null,
+    serverUpdatedAt: null,
+    localUpdatedAt: now,
+  };
+
+  // Write to IndexedDB
+  await db.notes.add(localNote);
+
+  // Queue for sync
+  await queueSyncOperation(userId, 'create', 'note', noteId, {
+    title,
+    content,
+    pinned: false,
+  });
+
+  return localNoteToNote(localNote, []);
+}
+
+/**
+ * Update a note offline
+ * Updates IndexedDB immediately, queues for sync
+ */
+export async function updateNoteOffline(
+  userId: string,
+  note: Note
+): Promise<Note> {
+  const db = getOfflineDb(userId);
+  const now = Date.now();
+
+  // Get current local note to preserve sync tracking fields
+  const existing = await db.notes.get(note.id);
+  if (!existing) {
+    throw new Error(`Note ${note.id} not found in offline database`);
+  }
+
+  const localNote: LocalNote = {
+    ...existing,
+    title: note.title,
+    content: note.content,
+    updatedAt: now,
+    localUpdatedAt: now,
+    syncStatus: existing.syncStatus === 'synced' ? 'pending' : existing.syncStatus,
+  };
+
+  // Update IndexedDB
+  await db.notes.put(localNote);
+
+  // Queue for sync (compaction will remove previous updates)
+  await queueSyncOperation(userId, 'update', 'note', note.id, {
+    title: note.title,
+    content: note.content,
+  });
+
+  return localNoteToNote(localNote, note.tags);
+}
+
+/**
+ * Soft-delete a note offline (move to Faded Notes)
+ */
+export async function softDeleteNoteOffline(
+  userId: string,
+  noteId: string
+): Promise<void> {
+  const db = getOfflineDb(userId);
+  const now = Date.now();
+
+  const existing = await db.notes.get(noteId);
+  if (!existing) {
+    throw new Error(`Note ${noteId} not found in offline database`);
+  }
+
+  // Update with soft-delete timestamp
+  await db.notes.update(noteId, {
+    deletedAt: now,
+    updatedAt: now,
+    localUpdatedAt: now,
+    syncStatus: 'pending',
+  });
+
+  // Queue for sync
+  await queueSyncOperation(userId, 'soft_delete', 'note', noteId, {
+    deletedAt: new Date(now).toISOString(),
+  });
+}
+
+/**
+ * Restore a soft-deleted note offline
+ */
+export async function restoreNoteOffline(
+  userId: string,
+  noteId: string
+): Promise<void> {
+  const db = getOfflineDb(userId);
+  const now = Date.now();
+
+  const existing = await db.notes.get(noteId);
+  if (!existing) {
+    throw new Error(`Note ${noteId} not found in offline database`);
+  }
+
+  // Clear soft-delete timestamp
+  await db.notes.update(noteId, {
+    deletedAt: null,
+    updatedAt: now,
+    localUpdatedAt: now,
+    syncStatus: 'pending',
+  });
+
+  // Queue for sync
+  await queueSyncOperation(userId, 'restore', 'note', noteId, {});
+}
+
+/**
+ * Permanently delete a note offline
+ */
+export async function permanentDeleteNoteOffline(
+  userId: string,
+  noteId: string
+): Promise<void> {
+  const db = getOfflineDb(userId);
+
+  // Delete from IndexedDB
+  await db.transaction('rw', [db.notes, db.noteTags, db.syncQueue], async () => {
+    // Remove note
+    await db.notes.delete(noteId);
+
+    // Remove related note-tag relationships
+    await db.noteTags.where('noteId').equals(noteId).delete();
+
+    // Remove any pending sync operations for this note
+    await db.syncQueue.where('entityId').equals(noteId).delete();
+  });
+
+  // Queue for sync (server delete)
+  await queueSyncOperation(userId, 'delete', 'note', noteId, {});
+}
+
+/**
+ * Toggle pin status offline
+ */
+export async function toggleNotePinOffline(
+  userId: string,
+  noteId: string,
+  pinned: boolean
+): Promise<void> {
+  const db = getOfflineDb(userId);
+  const now = Date.now();
+
+  const existing = await db.notes.get(noteId);
+  if (!existing) {
+    throw new Error(`Note ${noteId} not found in offline database`);
+  }
+
+  // Update pin status
+  await db.notes.update(noteId, {
+    pinned,
+    updatedAt: now,
+    localUpdatedAt: now,
+    syncStatus: 'pending',
+  });
+
+  // Queue for sync
+  await queueSyncOperation(userId, 'pin', 'note', noteId, { pinned });
+}
+
+/**
+ * Add a tag to a note offline
+ */
+export async function addTagToNoteOffline(
+  userId: string,
+  noteId: string,
+  tagId: string
+): Promise<void> {
+  const db = getOfflineDb(userId);
+  const now = Date.now();
+
+  // Check if relationship already exists
+  const existing = await db.noteTags
+    .where('[noteId+tagId]')
+    .equals([noteId, tagId])
+    .first();
+
+  if (existing) {
+    return; // Already exists
+  }
+
+  // Add note-tag relationship
+  const noteTag: LocalNoteTag = {
+    noteId,
+    tagId,
+    syncStatus: 'pending',
+    lastSyncedAt: null,
+  };
+
+  await db.noteTags.add(noteTag);
+
+  // Update note's updatedAt
+  await db.notes.update(noteId, {
+    updatedAt: now,
+    localUpdatedAt: now,
+  });
+
+  // Queue for sync
+  await queueSyncOperation(userId, 'add_tag', 'noteTag', `${noteId}:${tagId}`, {
+    noteId,
+    tagId,
+  });
+}
+
+/**
+ * Remove a tag from a note offline
+ */
+export async function removeTagFromNoteOffline(
+  userId: string,
+  noteId: string,
+  tagId: string
+): Promise<void> {
+  const db = getOfflineDb(userId);
+  const now = Date.now();
+
+  // Remove note-tag relationship
+  await db.noteTags.where('[noteId+tagId]').equals([noteId, tagId]).delete();
+
+  // Update note's updatedAt
+  await db.notes.update(noteId, {
+    updatedAt: now,
+    localUpdatedAt: now,
+  });
+
+  // Queue for sync
+  await queueSyncOperation(userId, 'remove_tag', 'noteTag', `${noteId}:${tagId}`, {
+    noteId,
+    tagId,
+  });
+}
+
+/**
+ * Get pending sync queue entries
+ * Returns entries in FIFO order, respecting dependencies
+ */
+export async function getPendingSyncQueue(userId: string): Promise<SyncQueueEntry[]> {
+  const db = getOfflineDb(userId);
+
+  const entries = await db.syncQueue.orderBy('createdAt').toArray();
+
+  // Dependency ordering: creates before add_tag, notes/tags before noteTags
+  // Sort by: 1) create operations first, 2) note/tag entities before noteTag
+  return entries.sort((a, b) => {
+    // Creates always first
+    if (a.operation === 'create' && b.operation !== 'create') return -1;
+    if (b.operation === 'create' && a.operation !== 'create') return 1;
+
+    // Notes and tags before noteTags
+    if (a.entityType !== 'noteTag' && b.entityType === 'noteTag') return -1;
+    if (b.entityType !== 'noteTag' && a.entityType === 'noteTag') return 1;
+
+    // Otherwise maintain FIFO order
+    return a.createdAt - b.createdAt;
+  });
+}
+
+/**
+ * Remove a processed sync queue entry
+ */
+export async function removeSyncQueueEntry(
+  userId: string,
+  clientMutationId: string
+): Promise<void> {
+  const db = getOfflineDb(userId);
+  await db.syncQueue.where('clientMutationId').equals(clientMutationId).delete();
+}
+
+/**
+ * Mark a note as synced after successful server sync
+ */
+export async function markNoteSynced(
+  userId: string,
+  noteId: string,
+  serverUpdatedAt: Date
+): Promise<void> {
+  const db = getOfflineDb(userId);
+  const now = Date.now();
+
+  await db.notes.update(noteId, {
+    syncStatus: 'synced',
+    lastSyncedAt: now,
+    serverUpdatedAt: serverUpdatedAt.getTime(),
+  });
+}
+
+/**
+ * Get count of pending sync operations
+ */
+export async function getPendingSyncCount(userId: string): Promise<number> {
+  const db = getOfflineDb(userId);
+  return db.syncQueue.count();
 }
 
 // Re-export for convenience
