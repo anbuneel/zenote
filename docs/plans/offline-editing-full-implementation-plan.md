@@ -1,6 +1,6 @@
 # Offline Editing Implementation Plan
 
-**Version:** 1.3
+**Version:** 1.4
 **Last Updated:** 2026-01-07
 **Status:** In Progress
 **Author:** Claude (Opus 4.5)
@@ -31,7 +31,7 @@ Full offline editing for Zenote using IndexedDB (Dexie.js) with automatic sync w
 | Phase 1 | ✅ Complete | `64f2958` | IndexedDB Foundation + Service Worker with full offline-first |
 | Phase 2 | ✅ Complete | `190f230` | Offline Writes with sync queue, compaction, dependency ordering |
 | Phase 3 | ✅ Complete | `eb87431` | Sync Engine with self-ignore and conflict detection |
-| Phase 4 | ⏳ Pending | - | Conflict Resolution UI ("Two Paths" modal) |
+| Phase 4 | ✅ Complete | - | Conflict Resolution UI ("Two Paths" modal) |
 | Phase 5 | ⏳ Pending | - | UI Polish and testing |
 
 ### Phase 0 Summary (Complete)
@@ -92,13 +92,37 @@ Full offline editing for Zenote using IndexedDB (Dexie.js) with automatic sync w
 - Track: `pendingCount`, `conflicts`, `lastResult`, `lastSyncAt`
 - `resolveConflict()` for 'local', 'server', or 'both' resolution
 
+### Phase 4 Summary (Complete)
+**New Files:**
+- `src/components/ConflictModal.tsx` - "Two Paths" zen-styled conflict resolution UI
+
+**ConflictModal Features:**
+- Zen messaging: "Two paths have formed" header
+- Side-by-side comparison of local vs server versions
+- Shows title, content preview, and timestamps for each version
+- Three resolution options: Keep local / Keep server / Keep both
+- "Keep both" creates a copy with "(copy)" suffix
+- Kintsugi glow animation on resolution
+- Loading states with spinners during resolution
+- Accessible: ARIA labels, focus management, Escape to dismiss
+- Respects `prefers-reduced-motion` via CSS
+
+**App.tsx Integration:**
+- Added `useSyncEngine` hook for conflict tracking
+- `activeConflict` state shows first unresolved conflict
+- `handleConflictResolve()` calls `resolveConflict()` and refreshes notes
+- ConflictModal rendered in both library and editor views
+
+**CSS Additions:**
+- `@keyframes kintsugi-glow` - Golden glow animation for resolved conflicts
+
 ---
 
 ## Review Log
 
 - 2026-01-07 - Codex (GPT-5): Added review findings, recommendations, and open questions for offline architecture and UX.
 - 2026-01-07 - User: Approved decisions on open questions. Plan status → Approved.
-- 2026-01-07 - Implementation: Phases 0-3 completed. All 455 tests passing.
+- 2026-01-07 - Implementation: Phases 0-4 completed. All 455 tests passing.
 
 ---
 
@@ -185,7 +209,7 @@ interface SyncQueueEntry {
 | `src/services/syncEngine.ts` | Queue processor, conflict detection, mutation tracking | ✅ Created |
 | `src/hooks/useSyncEngine.ts` | React hook for sync engine lifecycle | ✅ Created |
 | `src/components/SyncIndicator.tsx` | Subtle offline indicator (accessible, SVG icons) | ⏳ Phase 5 |
-| `src/components/ConflictModal.tsx` | "Two Paths" conflict UI (respects prefers-reduced-motion) | ⏳ Phase 4 |
+| `src/components/ConflictModal.tsx` | "Two Paths" conflict UI (respects prefers-reduced-motion) | ✅ Created |
 | `src/lib/offlineDb.test.ts` | Unit tests for IndexedDB operations | ⏳ Phase 5 |
 | `src/services/syncEngine.test.ts` | Unit tests for sync engine | ⏳ Phase 5 |
 
