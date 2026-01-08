@@ -81,6 +81,16 @@ export default defineConfig({
             purpose: 'maskable',
           },
         ],
+        // Share Target API - receive shared text from other apps
+        share_target: {
+          action: '/?share=true',
+          method: 'GET',
+          params: {
+            title: 'title',
+            text: 'text',
+            url: 'url',
+          },
+        },
       },
     }),
   ],
