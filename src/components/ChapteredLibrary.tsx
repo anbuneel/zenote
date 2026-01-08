@@ -59,14 +59,14 @@ export function ChapteredLibrary({
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
               setCurrentChapter(chapter.key as ChapterKey);
             }
           });
         },
         {
-          threshold: [0.3, 0.5, 0.7],
-          rootMargin: '-100px 0px -50% 0px',
+          threshold: [0.1, 0.3, 0.5],
+          rootMargin: '-80px 0px -20% 0px',
         }
       );
 
