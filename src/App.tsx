@@ -70,6 +70,7 @@ import {
 import { sanitizeHtml } from './utils/sanitize';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useSyncEngine, resolveConflict } from './hooks/useSyncEngine';
+import { useViewTransition } from './hooks/useViewTransition';
 import { ConflictModal } from './components/ConflictModal';
 import './App.css';
 
@@ -104,6 +105,9 @@ function App() {
   // Sync engine for offline support
   const { conflicts, removeConflict } = useSyncEngine();
   const [activeConflict, setActiveConflict] = useState<typeof conflicts[0] | null>(null);
+
+  // View transitions for smooth navigation
+  const { startTransition } = useViewTransition();
 
   // Show first conflict when conflicts array changes
   useEffect(() => {
@@ -393,26 +397,32 @@ function App() {
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
 
   const handleNoteClick = (id: string) => {
-    setSelectedNoteId(id);
-    setView('editor');
+    startTransition(() => {
+      setSelectedNoteId(id);
+      setView('editor');
+    });
   };
 
   const handleBack = () => {
-    setView('library');
-    setSelectedNoteId(null);
+    startTransition(() => {
+      setView('library');
+      setSelectedNoteId(null);
+    });
   };
 
   const handleNewNote = useCallback(async () => {
     if (!user) return;
     try {
       const newNote = await createNoteOffline(user.id);
-      setNotes((prev) => [newNote, ...prev]);
-      setSelectedNoteId(newNote.id);
-      setView('editor');
+      startTransition(() => {
+        setNotes((prev) => [newNote, ...prev]);
+        setSelectedNoteId(newNote.id);
+        setView('editor');
+      });
     } catch (error) {
       console.error('Failed to create note:', error);
     }
-  }, [user]);
+  }, [user, startTransition]);
 
   // Keyboard shortcut: Cmd/Ctrl + N to create new note
   useEffect(() => {
@@ -574,7 +584,9 @@ function App() {
   const handleFadedNotesClick = async () => {
     if (!user) return;
 
-    setView('faded');
+    startTransition(() => {
+      setView('faded');
+    });
     setFadedNotesLoading(true);
     try {
       const faded = await fetchFadedNotesOffline(user.id);
@@ -1057,8 +1069,8 @@ function App() {
             window.history.replaceState({}, '', window.location.pathname);
             setShareToken(null);
           }}
-          onChangelogClick={() => setView('changelog')}
-          onRoadmapClick={() => setView('roadmap')}
+          onChangelogClick={() => startTransition(() => setView('changelog'))}
+          onRoadmapClick={() => startTransition(() => setView('roadmap'))}
         />
         </Suspense>
       </ErrorBoundary>
@@ -1078,8 +1090,8 @@ function App() {
                 setAuthModalMode('login');
                 setShowAuthModal(true);
               }}
-              onLogoClick={() => setView('library')}
-              onRoadmapClick={() => setView('roadmap')}
+              onLogoClick={() => startTransition(() => setView('library'))}
+              onRoadmapClick={() => startTransition(() => setView('roadmap'))}
               onSettingsClick={() => setShowSettingsModal(true)}
             />
           </Suspense>
@@ -1109,8 +1121,8 @@ function App() {
                 setAuthModalMode('login');
                 setShowAuthModal(true);
               }}
-              onLogoClick={() => setView('library')}
-              onChangelogClick={() => setView('changelog')}
+              onLogoClick={() => startTransition(() => setView('library'))}
+              onChangelogClick={() => startTransition(() => setView('changelog'))}
               onSettingsClick={() => setShowSettingsModal(true)}
             />
           </Suspense>
@@ -1143,8 +1155,8 @@ function App() {
           }}
           theme={theme}
           onThemeToggle={handleThemeToggle}
-          onChangelogClick={() => setView('changelog')}
-          onRoadmapClick={() => setView('roadmap')}
+          onChangelogClick={() => startTransition(() => setView('changelog'))}
+          onRoadmapClick={() => startTransition(() => setView('roadmap'))}
         />
         {showAuthModal && (
           <Auth
@@ -1194,7 +1206,7 @@ function App() {
           <FadedNotesView
             notes={fadedNotes}
             isLoading={fadedNotesLoading}
-            onBack={() => setView('library')}
+            onBack={() => startTransition(() => setView('library'))}
             onRestore={handleRestoreNote}
             onPermanentDelete={handlePermanentDelete}
             onEmptyAll={handleEmptyFadedNotes}
@@ -1303,8 +1315,8 @@ function App() {
 
         {/* Footer */}
         <Footer
-          onChangelogClick={() => setView('changelog')}
-          onRoadmapClick={() => setView('roadmap')}
+          onChangelogClick={() => startTransition(() => setView('changelog'))}
+          onRoadmapClick={() => startTransition(() => setView('roadmap'))}
         />
 
         {/* Import Loading Overlay with Progress */}

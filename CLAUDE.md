@@ -68,7 +68,8 @@ src/
 ├── hooks/
 │   ├── useNetworkStatus.ts # Network connectivity monitoring (singleton pattern)
 │   ├── useSyncEngine.ts    # Sync engine React integration, conflict resolution
-│   └── useSyncStatus.ts    # Sync state for UI (pending count, online status)
+│   ├── useSyncStatus.ts    # Sync state for UI (pending count, online status)
+│   └── useViewTransition.ts # View Transitions API wrapper for smooth page transitions
 ├── utils/
 │   ├── exportImport.ts    # Export/import utilities (JSON, Markdown) with validation
 │   ├── formatTime.ts      # Relative time formatting
@@ -438,6 +439,7 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Sync queue with conflict detection and resolution
 - [x] "Two Paths" conflict modal for concurrent edit resolution
 - [x] SyncIndicator component (shows offline/pending status, zen "absence is peace")
+- [x] View Transitions API for smooth page navigation (Chrome/Edge/Safari, graceful fallback)
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (Apple, etc.)
