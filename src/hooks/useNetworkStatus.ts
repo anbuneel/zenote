@@ -1,20 +1,32 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import toast from 'react-hot-toast';
 
-/**
- * Hook that monitors network connectivity and shows toast notifications
- * when the user goes offline or comes back online.
- *
- * Uses Zen-inspired messaging that aligns with wabi-sabi design:
- * - Offline is presented as natural, not alarming
- * - Online return is quiet, not celebratory
- */
-export function useNetworkStatus() {
-  const wasOffline = useRef(false);
+export interface NetworkStatus {
+  /** Whether the browser reports being online */
+  isOnline: boolean;
+  /** Callback to register for reconnect events (used by sync engine) */
+  onReconnect: (callback: () => void) => () => void;
+}
 
-  useEffect(() => {
+// Singleton state to prevent duplicate listeners across hook instances
+let isInitialized = false;
+let wasOffline = !navigator.onLine;
+const reconnectCallbacks = new Set<() => void>();
+const subscribers = new Set<() => void>();
+
+function getSnapshot(): boolean {
+  return navigator.onLine;
+}
+
+function subscribe(callback: () => void): () => void {
+  subscribers.add(callback);
+
+  // Initialize listeners only once
+  if (!isInitialized) {
+    isInitialized = true;
+
     const handleOnline = () => {
-      if (wasOffline.current) {
+      if (wasOffline) {
         toast('The path has cleared.', {
           icon: '〇',
           duration: 3000,
@@ -24,13 +36,17 @@ export function useNetworkStatus() {
             border: '1px solid var(--glass-border)',
           },
         });
+
+        // Trigger all reconnect callbacks (for sync engine)
+        reconnectCallbacks.forEach((cb) => cb());
       }
-      wasOffline.current = false;
+      wasOffline = false;
+      subscribers.forEach((sub) => sub());
     };
 
     const handleOffline = () => {
-      wasOffline.current = true;
-      toast('Connection lost. Changes may not be saved.', {
+      wasOffline = true;
+      toast('Offline. Your notes are safe locally.', {
         icon: '雲',
         duration: 4000,
         style: {
@@ -39,28 +55,39 @@ export function useNetworkStatus() {
           border: '1px solid var(--glass-border)',
         },
       });
+      subscribers.forEach((sub) => sub());
     };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+  }
 
-    // Check initial state
-    if (!navigator.onLine) {
-      wasOffline.current = true;
-      toast('Connection lost. Changes may not be saved.', {
-        icon: '雲',
-        duration: 4000,
-        style: {
-          background: 'var(--color-bg-secondary)',
-          color: 'var(--color-text-primary)',
-          border: '1px solid var(--glass-border)',
-        },
-      });
-    }
+  return () => {
+    subscribers.delete(callback);
+  };
+}
 
+/**
+ * Hook that monitors network connectivity and shows toast notifications
+ * when the user goes offline or comes back online.
+ *
+ * Uses Zen-inspired messaging that aligns with wabi-sabi design:
+ * - Offline is presented as natural, not alarming
+ * - Online return is quiet, not celebratory
+ *
+ * Uses singleton pattern to prevent duplicate listeners when called
+ * from multiple components (App, useSyncEngine, useSyncStatus).
+ */
+export function useNetworkStatus(): NetworkStatus {
+  // Use useSyncExternalStore for singleton pattern
+  const isOnline = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
+  const onReconnect = useCallback((callback: () => void) => {
+    reconnectCallbacks.add(callback);
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      reconnectCallbacks.delete(callback);
     };
   }, []);
+
+  return { isOnline, onReconnect };
 }

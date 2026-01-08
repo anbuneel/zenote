@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Theme } from '../types';
 import { HeaderShell, type MenuSectionConfig } from './HeaderShell';
+import { SyncIndicator } from './SyncIndicator';
 
 interface HeaderProps {
   theme: Theme;
@@ -210,13 +211,21 @@ export function Header({
     </button>
   );
 
+  // Combine sync indicator and new note button as right actions
+  const rightActionsContent = (
+    <div className="flex items-center gap-2 sm:gap-3">
+      <SyncIndicator />
+      {newNoteButton}
+    </div>
+  );
+
   return (
     <>
       <HeaderShell
         theme={theme}
         onThemeToggle={onThemeToggle}
         center={centerContent}
-        rightActions={newNoteButton}
+        rightActions={rightActionsContent}
         onSettingsClick={onSettingsClick}
         menuSections={menuSections}
       />

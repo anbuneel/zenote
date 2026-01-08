@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { hydrateFromServer, clearOfflineData, needsHydration } from '../services/offlineNotes';
+import { clearSyncState } from '../services/syncEngine';
 
 interface AuthContextType {
   user: User | null;
@@ -21,6 +23,9 @@ interface AuthContextType {
   cancelOffboarding: () => Promise<{ error: Error | null }>;
   isDeparting: boolean;
   daysUntilRelease: number | null;
+  // Offline support
+  isHydrating: boolean;
+  hydrateOfflineDb: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +35,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [isHydrating, setIsHydrating] = useState(false);
+
+  // Track the current user ID to prevent race conditions during hydration
+  const hydrationUserIdRef = useRef<string | null>(null);
+
+  // Hydrate offline database from server
+  const hydrateOfflineDb = useCallback(async () => {
+    if (!user) return;
+
+    // Store the user ID we're hydrating for
+    const hydratingForUserId = user.id;
+    hydrationUserIdRef.current = hydratingForUserId;
+
+    try {
+      setIsHydrating(true);
+      const needs = await needsHydration(hydratingForUserId);
+
+      // Check if user changed during async operation
+      if (hydrationUserIdRef.current !== hydratingForUserId) {
+        console.log('Hydration aborted: user changed');
+        return;
+      }
+
+      if (needs) {
+        await hydrateFromServer(hydratingForUserId);
+      }
+    } catch (error) {
+      // Only log error if we're still hydrating for the same user
+      if (hydrationUserIdRef.current === hydratingForUserId) {
+        console.error('Failed to hydrate offline DB:', error);
+      }
+      // Non-fatal - app continues to work online
+    } finally {
+      // Only update state if we're still hydrating for the same user
+      if (hydrationUserIdRef.current === hydratingForUserId) {
+        setIsHydrating(false);
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     // Get initial session
@@ -55,6 +99,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Hydrate offline DB when user is available
+  useEffect(() => {
+    if (user && !loading) {
+      hydrateOfflineDb();
+    }
+  }, [user, loading, hydrateOfflineDb]);
 
   const clearPasswordRecovery = () => {
     setIsPasswordRecovery(false);
@@ -100,6 +151,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    // Clear hydration state to prevent race conditions
+    hydrationUserIdRef.current = null;
+    // Clear sync state to prevent memory leaks
+    clearSyncState();
+    // Clear offline database on logout (security: prevent data leakage)
+    await clearOfflineData();
     await supabase.auth.signOut();
   };
 
@@ -165,7 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })();
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signInWithGitHub, signUp, signOut, resetPassword, updatePassword, updateProfile, initiateOffboarding, cancelOffboarding, isDeparting, daysUntilRelease }}>
+    <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signInWithGitHub, signUp, signOut, resetPassword, updatePassword, updateProfile, initiateOffboarding, cancelOffboarding, isDeparting, daysUntilRelease, isHydrating, hydrateOfflineDb }}>
       {children}
     </AuthContext.Provider>
   );
