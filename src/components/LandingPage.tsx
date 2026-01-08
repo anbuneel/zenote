@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { TAG_COLORS, type Theme, type TagColor } from '../types';
 import { HeaderShell } from './HeaderShell';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
 
 interface LandingPageProps {
   onStartWriting: () => void;
@@ -48,6 +49,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
   const [hasTyped, setHasTyped] = useState(() => getInitialContent().length > 0);
   const [isFocused, setIsFocused] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const { isInstallable, isInstalled, triggerInstall } = useInstallPrompt();
 
   useEffect(() => {
     if (editorRef.current && demoContent && !editorRef.current.innerText) {
@@ -162,6 +164,31 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
               >
                 GitHub
               </a>
+              {isInstallable && !isInstalled && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <button
+                    onClick={triggerInstall}
+                    className="landing-nav-link hover:underline transition-colors duration-200 flex items-center gap-1.5"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                    Install
+                  </button>
+                </>
+              )}
             </nav>
           </div>
         </div>

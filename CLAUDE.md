@@ -32,6 +32,7 @@ src/
 │   ├── TimeRibbon.tsx     # Mobile chapter scrubber navigation
 │   ├── Header.tsx         # Library header with search, new note button (uses HeaderShell)
 │   ├── HeaderShell.tsx    # Shared header component for consistent layout across all pages
+│   ├── InstallPrompt.tsx  # Zen-styled PWA install prompt (shown after engagement)
 │   ├── LandingPage.tsx    # Split-screen landing page with interactive demo
 │   ├── LettingGoModal.tsx # Account departure modal with keepsakes export
 │   ├── NoteCard.tsx       # Individual note card with tag badges
@@ -69,7 +70,9 @@ src/
 │   ├── useNetworkStatus.ts # Network connectivity monitoring (singleton pattern)
 │   ├── useSyncEngine.ts    # Sync engine React integration, conflict resolution
 │   ├── useSyncStatus.ts    # Sync state for UI (pending count, online status)
-│   └── useViewTransition.ts # View Transitions API wrapper for smooth page transitions
+│   ├── useViewTransition.ts # View Transitions API wrapper for smooth page transitions
+│   ├── useInstallPrompt.ts  # PWA install prompt with engagement tracking
+│   └── useShareTarget.ts    # Handle incoming shares from Share Target API
 ├── utils/
 │   ├── exportImport.ts    # Export/import utilities (JSON, Markdown) with validation
 │   ├── formatTime.ts      # Relative time formatting
@@ -440,6 +443,9 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] "Two Paths" conflict modal for concurrent edit resolution
 - [x] SyncIndicator component (shows offline/pending status, zen "absence is peace")
 - [x] View Transitions API for smooth page navigation (Chrome/Edge/Safari, graceful fallback)
+- [x] PWA Share Target API (receive shared text from other apps on mobile)
+- [x] Custom install prompt with engagement tracking (shows after 3+ notes or 2+ visits)
+- [x] Landing page install CTA (subtle install link in footer nav)
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (Apple, etc.)

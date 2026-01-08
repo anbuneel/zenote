@@ -71,7 +71,10 @@ import { sanitizeHtml } from './utils/sanitize';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useSyncEngine, resolveConflict } from './hooks/useSyncEngine';
 import { useViewTransition } from './hooks/useViewTransition';
+import { useInstallPrompt } from './hooks/useInstallPrompt';
+import { useShareTarget, formatSharedContent } from './hooks/useShareTarget';
 import { ConflictModal } from './components/ConflictModal';
+import { InstallPrompt } from './components/InstallPrompt';
 import './App.css';
 
 const DEMO_STORAGE_KEY = 'zenote-demo-content';
@@ -108,6 +111,12 @@ function App() {
 
   // View transitions for smooth navigation
   const { startTransition } = useViewTransition();
+
+  // PWA install prompt management
+  const { shouldShowPrompt, triggerInstall, dismissPrompt, trackNoteCreated } = useInstallPrompt();
+
+  // Share Target handling
+  const { sharedData, clearSharedData, hasStoredShare } = useShareTarget();
 
   // Show first conflict when conflicts array changes
   useEffect(() => {
@@ -179,6 +188,7 @@ function App() {
   // 2. The value persists across renders without causing effect re-runs
   // 3. Prevents race conditions if multiple effects try to migrate simultaneously
   const hasMigratedDemoContent = useRef(false);
+  const isCreatingNoteFromShare = useRef(false);
 
   // Apply theme to document
   useEffect(() => {
@@ -192,6 +202,14 @@ function App() {
       setShowWelcomeBack(true);
     }
   }, [user, isDeparting]);
+
+  // Show auth modal for unauthenticated users with shared content
+  useEffect(() => {
+    if (!user && hasStoredShare) {
+      setAuthModalMode('signup');
+      setShowAuthModal(true);
+    }
+  }, [user, hasStoredShare]);
 
   // Fetch notes when user is authenticated and hydration is complete
   // Use user?.id as dependency to avoid refetching when user object reference changes
@@ -319,6 +337,36 @@ function App() {
     }
   }, [userId]);
 
+  // Handle Share Target data for authenticated users
+  useEffect(() => {
+    if (!userId || !sharedData) return;
+    // Prevent duplicate note creation (race condition in Strict Mode)
+    if (isCreatingNoteFromShare.current) return;
+    isCreatingNoteFromShare.current = true;
+
+    const { title, content } = formatSharedContent(sharedData);
+
+    createNoteOffline(userId, title, content)
+      .then((newNote) => {
+        clearSharedData();
+        trackNoteCreated();
+        toast.success('Note created from share');
+        startTransition(() => {
+          setNotes((prev) => [newNote, ...prev]);
+          setSelectedNoteId(newNote.id);
+          setView('editor');
+        });
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to create note from share:', error);
+        toast.error('Failed to create note from share');
+      })
+      .finally(() => {
+        // Reset flag to allow future share-target launches in same session
+        isCreatingNoteFromShare.current = false;
+      });
+  }, [userId, sharedData, clearSharedData, trackNoteCreated, startTransition]);
+
   // Fetch tags when user is authenticated and hydration is complete
   useEffect(() => {
     if (!userId) {
@@ -414,6 +462,7 @@ function App() {
     if (!user) return;
     try {
       const newNote = await createNoteOffline(user.id);
+      trackNoteCreated(); // Track for install prompt engagement
       startTransition(() => {
         setNotes((prev) => [newNote, ...prev]);
         setSelectedNoteId(newNote.id);
@@ -422,7 +471,7 @@ function App() {
     } catch (error) {
       console.error('Failed to create note:', error);
     }
-  }, [user, startTransition]);
+  }, [user, startTransition, trackNoteCreated]);
 
   // Keyboard shortcut: Cmd/Ctrl + N to create new note
   useEffect(() => {
@@ -1379,6 +1428,14 @@ function App() {
           onResolve={handleConflictResolve}
           onDismiss={handleConflictDismiss}
         />
+
+        {/* PWA Install Prompt */}
+        {shouldShowPrompt && (
+          <InstallPrompt
+            onInstall={triggerInstall}
+            onDismiss={dismissPrompt}
+          />
+        )}
       </div>
     );
   }
