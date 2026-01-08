@@ -6,9 +6,13 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAuth } from '../contexts/AuthContext';
 import { getPendingSyncCount } from '../services/offlineNotes';
 import { useNetworkStatus } from './useNetworkStatus';
+
+// On native platforms, assume online (network detection is unreliable in WebViews)
+const isNative = Capacitor.isNativePlatform();
 
 export interface SyncStatus {
   /** Number of pending operations in the sync queue */
@@ -70,10 +74,13 @@ export function useSyncStatus(): SyncStatus {
     }
   }, [isOnline, refresh]);
 
+  // On native, treat as always online (sync will naturally fail if truly offline)
+  const effectiveOnline = isNative || isOnline;
+
   return {
     pendingCount,
-    isOnline,
-    isSynced: pendingCount === 0 && isOnline,
+    isOnline: effectiveOnline,
+    isSynced: pendingCount === 0 && effectiveOnline,
     lastChecked,
     refresh,
   };

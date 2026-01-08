@@ -99,6 +99,7 @@ Currently in-progress implementation plans and follow-ups.
 |----------|-------------|------|
 | [competitive-growth-plan-claude.md](active/competitive-growth-plan-claude.md) | Competitive growth strategy and positioning | 2026-01-06 |
 | [zenote-competitive-roadmap-notes-codex.md](active/zenote-competitive-roadmap-notes-codex.md) | Competitive roadmap analysis (Codex) | 2026-01-06 |
+| [ios-pwa-experience-checklist-codex.md](active/ios-pwa-experience-checklist-codex.md) | iOS PWA experience checklist (install, offline, keyboard, performance) | 2026-01-08 |
 | [pwa-enhancements-plan.md](plans/pwa-enhancements-plan.md) | PWA enhancements (Share Target, Install Prompt) - **COMPLETE** | 2026-01-08 |
 | [onboarding-ux-followup.md](active/onboarding-ux-followup.md) | Onboarding improvements follow-up items | 2025-12-24 |
 

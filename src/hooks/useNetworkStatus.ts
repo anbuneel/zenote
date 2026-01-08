@@ -1,8 +1,10 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import toast from 'react-hot-toast';
+import { Network } from '@capacitor/network';
+import { Capacitor } from '@capacitor/core';
 
 export interface NetworkStatus {
-  /** Whether the browser reports being online */
+  /** Whether the device/browser reports being online */
   isOnline: boolean;
   /** Callback to register for reconnect events (used by sync engine) */
   onReconnect: (callback: () => void) => () => void;
@@ -10,12 +12,75 @@ export interface NetworkStatus {
 
 // Singleton state to prevent duplicate listeners across hook instances
 let isInitialized = false;
-let wasOffline = !navigator.onLine;
+let currentOnlineStatus = true; // Assume online initially
+let wasOffline = false;
 const reconnectCallbacks = new Set<() => void>();
 const subscribers = new Set<() => void>();
 
+function notifySubscribers() {
+  subscribers.forEach((sub) => sub());
+}
+
+function handleStatusChange(isOnline: boolean) {
+  const previousStatus = currentOnlineStatus;
+  currentOnlineStatus = isOnline;
+
+  if (isOnline && wasOffline) {
+    toast('The path has cleared.', {
+      icon: '〇',
+      duration: 3000,
+      style: {
+        background: 'var(--color-bg-secondary)',
+        color: 'var(--color-text-primary)',
+        border: '1px solid var(--glass-border)',
+      },
+    });
+    // Trigger all reconnect callbacks (for sync engine)
+    reconnectCallbacks.forEach((cb) => cb());
+  } else if (!isOnline && previousStatus) {
+    toast('Offline. Your notes are safe locally.', {
+      icon: '雲',
+      duration: 4000,
+      style: {
+        background: 'var(--color-bg-secondary)',
+        color: 'var(--color-text-primary)',
+        border: '1px solid var(--glass-border)',
+      },
+    });
+  }
+
+  wasOffline = !isOnline;
+  notifySubscribers();
+}
+
+async function initializeCapacitorNetwork() {
+  try {
+    // Get initial status
+    const status = await Network.getStatus();
+    currentOnlineStatus = status.connected;
+    wasOffline = !status.connected;
+
+    // Listen for changes
+    await Network.addListener('networkStatusChange', (status) => {
+      handleStatusChange(status.connected);
+    });
+  } catch (error) {
+    console.warn('Capacitor Network plugin error, falling back to browser API:', error);
+    // Fall back to browser API
+    initializeBrowserNetwork();
+  }
+}
+
+function initializeBrowserNetwork() {
+  currentOnlineStatus = navigator.onLine;
+  wasOffline = !navigator.onLine;
+
+  window.addEventListener('online', () => handleStatusChange(true));
+  window.addEventListener('offline', () => handleStatusChange(false));
+}
+
 function getSnapshot(): boolean {
-  return navigator.onLine;
+  return currentOnlineStatus;
 }
 
 function subscribe(callback: () => void): () => void {
@@ -25,41 +90,13 @@ function subscribe(callback: () => void): () => void {
   if (!isInitialized) {
     isInitialized = true;
 
-    const handleOnline = () => {
-      if (wasOffline) {
-        toast('The path has cleared.', {
-          icon: '〇',
-          duration: 3000,
-          style: {
-            background: 'var(--color-bg-secondary)',
-            color: 'var(--color-text-primary)',
-            border: '1px solid var(--glass-border)',
-          },
-        });
-
-        // Trigger all reconnect callbacks (for sync engine)
-        reconnectCallbacks.forEach((cb) => cb());
-      }
-      wasOffline = false;
-      subscribers.forEach((sub) => sub());
-    };
-
-    const handleOffline = () => {
-      wasOffline = true;
-      toast('Offline. Your notes are safe locally.', {
-        icon: '雲',
-        duration: 4000,
-        style: {
-          background: 'var(--color-bg-secondary)',
-          color: 'var(--color-text-primary)',
-          border: '1px solid var(--glass-border)',
-        },
-      });
-      subscribers.forEach((sub) => sub());
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    if (Capacitor.isNativePlatform()) {
+      // Use Capacitor Network plugin for native apps
+      initializeCapacitorNetwork();
+    } else {
+      // Use browser API for web
+      initializeBrowserNetwork();
+    }
   }
 
   return () => {
@@ -71,6 +108,9 @@ function subscribe(callback: () => void): () => void {
  * Hook that monitors network connectivity and shows toast notifications
  * when the user goes offline or comes back online.
  *
+ * Uses Capacitor Network plugin for native apps (Android/iOS) which provides
+ * more reliable network detection than the browser's navigator.onLine API.
+ *
  * Uses Zen-inspired messaging that aligns with wabi-sabi design:
  * - Offline is presented as natural, not alarming
  * - Online return is quiet, not celebratory
@@ -80,7 +120,7 @@ function subscribe(callback: () => void): () => void {
  */
 export function useNetworkStatus(): NetworkStatus {
   // Use useSyncExternalStore for singleton pattern
-  const isOnline = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const isOnline = useSyncExternalStore(subscribe, getSnapshot, () => true);
 
   const onReconnect = useCallback((callback: () => void) => {
     reconnectCallbacks.add(callback);

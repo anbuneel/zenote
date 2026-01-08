@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useCallback, useState, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAuth } from '../contexts/AuthContext';
 import { useNetworkStatus } from './useNetworkStatus';
 import {
@@ -16,6 +17,9 @@ import {
   type ConflictInfo,
 } from '../services/syncEngine';
 import { getPendingSyncCount } from '../services/offlineNotes';
+
+// On native platforms, always attempt sync (let API calls fail naturally)
+const isNative = Capacitor.isNativePlatform();
 
 export interface SyncState {
   /** Whether a sync is currently in progress */
@@ -52,7 +56,9 @@ export function useSyncEngine(): SyncState {
 
   // Sync function
   const doSync = useCallback(async () => {
-    if (!user || isHydrating || !isOnline) return;
+    // On native platforms, always try to sync (network detection is unreliable)
+    // On web, respect the isOnline status
+    if (!user || isHydrating || (!isNative && !isOnline)) return;
     if (isSyncInProgress()) return;
 
     setIsSyncing(true);
@@ -65,6 +71,7 @@ export function useSyncEngine(): SyncState {
         // Refresh pending count
         const count = await getPendingSyncCount(user.id);
         setPendingCount(count);
+
       }
     } catch (error) {
       console.error('Sync failed:', error);
@@ -98,16 +105,17 @@ export function useSyncEngine(): SyncState {
 
   // Initial sync after hydration
   useEffect(() => {
-    if (user && !isHydrating && isOnline) {
+    // On native, always try; on web, respect isOnline
+    if (user && !isHydrating && (isNative || isOnline)) {
       // Delay initial sync slightly
       const timeout = setTimeout(doSync, 2000);
       return () => clearTimeout(timeout);
     }
   }, [user, isHydrating, isOnline, doSync]);
 
-  // Periodic sync every 30 seconds while online
+  // Periodic sync every 30 seconds while online (or always on native)
   useEffect(() => {
-    if (!user || !isOnline) return;
+    if (!user || (!isNative && !isOnline)) return;
 
     const interval = setInterval(() => {
       if (!isSyncInProgress()) {

@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
     backgroundColor: '#1a1f1a', // Dark theme background (Midnight theme)
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: false, // Set true for debugging
+    webContentsDebuggingEnabled: true, // Enable for debugging
   },
   server: {
     // Uncomment for live reload during development:

@@ -30,6 +30,7 @@
     "@capacitor/android": "^8.0.0",
     "@capacitor/cli": "^8.0.0",
     "@capacitor/core": "^8.0.0",
+    "@capacitor/network": "^8.0.0",
     "@sentry/react": "^10.30.0",
     "@supabase/supabase-js": "^2.86.2",
     "@tiptap/extension-highlight": "^3.13.0",
