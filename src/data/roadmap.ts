@@ -9,12 +9,6 @@ export interface RoadmapItem {
 
 export const roadmap: RoadmapItem[] = [
   {
-    id: '1',
-    title: 'Offline Support',
-    description: 'Access and edit your notes without an internet connection. Changes sync automatically when you reconnect.',
-    status: 'coming-soon',
-  },
-  {
     id: '2',
     title: 'Image Attachments',
     description: 'Add images, screenshots, and diagrams directly into your notes.',

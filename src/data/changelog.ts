@@ -8,6 +8,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.0.0',
+    date: '2026-01-07',
+    changes: [
+      { type: 'feature', text: 'Offline editing - notes now persist locally and sync automatically when you reconnect' },
+      { type: 'feature', text: 'Conflict resolution - "Two Paths" modal helps you choose when edits conflict' },
+      { type: 'feature', text: 'Sync indicator - subtle status shows pending changes and offline state' },
+      { type: 'fix', text: 'Mobile time ribbon touch targets improved for easier navigation' },
+    ],
+  },
+  {
     version: '1.9.11',
     date: '2025-12-29',
     changes: [

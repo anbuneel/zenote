@@ -441,7 +441,6 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (Apple, etc.)
-- [ ] Wire offline CRUD through App.tsx (infrastructure ready, integration pending)
 - [ ] Image attachments
 - [ ] Virtual scrolling for large note lists
 - [ ] Analytics
