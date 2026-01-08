@@ -123,12 +123,12 @@ Don't chase Notion/Obsidian on features. Double down on the calm. The aesthetic 
 
 ### Critical Gaps Before Launch
 
-| Gap | Priority |
-|-----|----------|
-| Real mobile device testing | P0 |
-| Offline sync (PWA) | P0 |
-| Image attachments | P1 |
-| Feature discovery hints | P1 |
+| Gap | Priority | Status |
+|-----|----------|--------|
+| Real mobile device testing | P0 | ❓ Unverified |
+| Offline sync (PWA) | P0 | ✅ **DONE** (v2.0.0) |
+| Image attachments | P1 | ❌ Not started |
+| Feature discovery hints | P1 | ❌ Not started |
 
 ---
 
@@ -439,7 +439,7 @@ Editor
 
 | Feature | Present In | Impact | Priority |
 |---------|-----------|--------|----------|
-| **Offline sync** | Apple Notes, Bear, Craft | Critical for mobile | P0 |
+| ~~Offline sync~~ | Apple Notes, Bear, Craft | ~~Critical for mobile~~ | ✅ Done |
 | **Image attachments** | All competitors | Expected feature | P1 |
 | **Linked notes / backlinking** | Obsidian, Notion, Roam | Power user expectation | P2 |
 | **Folder/hierarchy** | Apple Notes, Evernote | Organization at scale | P3 |
@@ -462,7 +462,7 @@ Editor
 ### Recommendations by Priority
 
 **P0 (Before Launch):**
-- Offline sync (at least for PWA app shell)
+- ~~Offline sync~~ ✅ Complete (v2.0.0 - full IndexedDB + sync queue)
 
 **P1 (Near-term):**
 - Image attachments
@@ -532,6 +532,6 @@ Zenote has established a **strong visual identity** that differentiates it from 
 
 **The opportunity:** There is an underserved market of users overwhelmed by feature-rich productivity apps. Zenote can own this niche by doubling down on aesthetic quality and simplicity.
 
-**The risk:** Without mobile polish, offline support, and image attachments, Zenote may feel incomplete compared to even simpler alternatives like Apple Notes.
+**The risk:** Without mobile polish and image attachments, Zenote may feel incomplete compared to even simpler alternatives like Apple Notes. *(Note: Offline support was added in v2.0.0)*
 
-**The path forward:** Ship with P0 blockers addressed, validate mobile experience, then iterate on micro-interactions and feature discovery. Resist the temptation to add complexity. The calm is the product.
+**The path forward:** Validate mobile experience, add image attachments, then iterate on micro-interactions and feature discovery. Resist the temptation to add complexity. The calm is the product.

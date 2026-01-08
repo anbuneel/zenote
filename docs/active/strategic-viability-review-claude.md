@@ -1,7 +1,7 @@
 # Zenote: Strategic Viability Review
 
-**Version:** 1.0
-**Last Updated:** 2026-01-06
+**Version:** 1.1
+**Last Updated:** 2026-01-07
 **Status:** Living Document
 **Author:** Claude (Opus 4.5)
 
@@ -17,7 +17,7 @@
 
 Zenote occupies a distinctive niche in the note-taking landscape with genuine differentiators (wabi-sabi aesthetic, temporal chapters, cross-platform freedom). However, critical gaps remain before competitive launch: offline editing, image attachments, branding assets, and mobile validation.
 
-**Bottom Line:** The product is 93% ready technically, but 60% ready for competitive launch. The gaps are addressable. This is worth finishing.
+**Bottom Line:** The product is ~95% ready technically. Offline editing (the biggest gap) is now complete. Remaining gaps: image attachments and mobile validation. This is worth finishing.
 
 ---
 
@@ -58,16 +58,16 @@ Apple Notes requires Apple. Bear is Apple-only. Notion is heavy. Obsidian requir
 
 | Gap | Competitor Baseline | Zenote Status | Impact |
 |-----|---------------------|---------------|--------|
-| **Offline editing** | All major apps have it | Not implemented | **Dealbreaker** for mobile users |
+| ~~**Offline editing**~~ | All major apps have it | ✅ **DONE** (v2.0.0) | ~~Dealbreaker~~ Resolved |
 | **Image attachments** | Table stakes | Not implemented | Limits use cases significantly |
 | **Native mobile feel** | Apple Notes, Bear excel | PWA only, untested | Trust/discovery barrier |
 | **Quick capture** | Bear, Apple shine | No shortcuts/widget | Daily use friction |
 | **App store presence** | Expected for mobile | None | Discovery/credibility issue |
 | **Branding/Logo** | All have icons | Wordmark only | Weak app icon, poor OG sharing |
 
-### The Offline Problem is Existential
+### ~~The Offline Problem is Existential~~ ✅ RESOLVED
 
-Existing docs identify this as P0. **A note app that doesn't work offline is fundamentally broken.** Users expect to jot notes on the subway, on a plane, in a cafe with bad WiFi. Right now, they can't.
+~~Existing docs identify this as P0.~~ **This was fixed in v2.0.0.** Full offline editing with IndexedDB (Dexie.js), sync queue with compaction, and "Two Paths" conflict resolution modal. Users can now jot notes on the subway, on a plane, in a cafe with bad WiFi.
 
 ### The Image Problem is Real
 
@@ -135,12 +135,12 @@ The monogram "Z" concept in the branding doc is solid. A Cormorant Garamond "Z" 
 
 ### Phase 1: "Minimum Viable Calm" (Before Any Marketing Push)
 
-| Feature | Why | Effort |
-|---------|-----|--------|
-| **Offline editing** | Existential | 2-4 weeks |
-| **App icon/OG image** | Basic credibility | 1-2 days |
-| **Mobile device testing** | Verify core experience | 1-2 days |
-| **Install prompt polish** | PWA needs discoverability | 1 week |
+| Feature | Why | Effort | Status |
+|---------|-----|--------|--------|
+| **Offline editing** | Existential | 2-4 weeks | ✅ **DONE** |
+| **App icon/OG image** | Basic credibility | 1-2 days | ❌ Not started |
+| **Mobile device testing** | Verify core experience | 1-2 days | ❓ Untested |
+| **Install prompt polish** | PWA needs discoverability | 1 week | ❌ Not started |
 
 ### Phase 2: "Table Stakes" (Next 2-3 Months)
 
@@ -230,7 +230,7 @@ A beautifully designed, philosophically coherent note-taking app with genuine di
 
 ### What's Missing
 
-1. **Offline support** — non-negotiable, must fix before launch
+1. ~~**Offline support**~~ — ✅ **DONE** (v2.0.0)
 2. **Images** — expected by users, limits use cases without
 3. **Branding assets** — can't market without app icon/OG image
 4. **Mobile validation** — can't claim cross-platform without testing it
@@ -284,11 +284,11 @@ Zenote's winning formula:
 
 ## Next Steps (Prioritized)
 
-1. **Immediate**: Create app icon + OG image (1-2 days)
-2. **This week**: Test on real mobile devices
-3. **This month**: Implement offline editing (the critical blocker)
-4. **Next month**: Add image attachments
-5. **Then**: ProductHunt launch with strong visuals
+1. ~~**This month**: Implement offline editing~~ ✅ **DONE** (v2.0.0)
+2. **Now**: Test on real mobile devices
+3. **Next**: Add image attachments
+4. **Then**: Create app icon + OG image
+5. **Launch**: ProductHunt with strong visuals
 
 ---
 

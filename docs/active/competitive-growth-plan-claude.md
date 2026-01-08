@@ -1,7 +1,7 @@
 # Competitive Growth Plan for Zenote
 
-**Version:** 1.0
-**Last Updated:** 2026-01-06
+**Version:** 1.1
+**Last Updated:** 2026-01-07
 **Status:** Living Document
 **Author:** Claude (Opus 4.5)
 
@@ -34,7 +34,7 @@ Zenote's competitive strategy combines **table stakes features** (offline, image
 - Distinctive philosophy ("Faded Notes", "Letting Go")
 
 ### Weaknesses vs Competitors
-- No offline editing (Apple Notes, Bear, Craft all have this)
+- ~~No offline editing~~ ✅ **RESOLVED in v2.0.0** (IndexedDB + sync queue + conflict resolution)
 - No image attachments (expected feature)
 - No linked notes/backlinking (Obsidian's killer feature)
 - Web-only (no native mobile integrations)
@@ -45,19 +45,19 @@ Zenote's competitive strategy combines **table stakes features** (offline, image
 
 *Remove barriers preventing users from switching*
 
-| Feature | Why It Matters | Competitor Parity |
-|---------|----------------|-------------------|
-| **Offline editing** | Users can't use app on subway, flights | Apple Notes, Bear, Craft |
-| **Image attachments** | Expected feature, blocks many users | All competitors |
-| **Mobile polish** | Real device testing, PWA install flow | All competitors |
+| Feature | Why It Matters | Competitor Parity | Status |
+|---------|----------------|-------------------|--------|
+| **Offline editing** | Users can't use app on subway, flights | Apple Notes, Bear, Craft | ✅ **DONE** (v2.0.0) |
+| **Image attachments** | Expected feature, blocks many users | All competitors | ❌ Not started |
+| **Mobile polish** | Real device testing, PWA install flow | All competitors | ❓ Untested |
 
 ### Implementation Notes
 
-**Offline Editing:**
-- IndexedDB for local storage
-- Sync queue for pending changes
-- Conflict resolution strategy
-- See `docs/active/offline-support-implementation-plan.md`
+**Offline Editing:** ✅ **COMPLETE**
+- IndexedDB via Dexie.js
+- Sync queue with compaction and dependency ordering
+- "Two Paths" conflict resolution modal
+- See `docs/archive/plans/offline-editing-full-implementation-plan.md`
 
 **Image Attachments:**
 - Supabase Storage for file hosting
@@ -165,7 +165,7 @@ Zenote's competitive strategy combines **table stakes features** (offline, image
 
 ## Recommended Priority Order
 
-1. **Offline editing** — P0, removes biggest competitive gap
+1. ~~**Offline editing**~~ — ✅ **DONE** (v2.0.0)
 2. **Image attachments** — P1, most-requested missing feature
 3. **Gentle AI Reflection** — The differentiator (start with weekly email digest)
 4. **Daily Whisper** — Low effort, high delight
@@ -189,7 +189,7 @@ This keeps the core product free (important for growth) while offering genuine v
 ## Success Metrics
 
 ### Phase 1 (Foundation)
-- Offline: Users can create/edit notes without internet
+- Offline: ✅ Users can create/edit notes without internet
 - Images: >50% of active users attach at least one image
 - Mobile: <5% mobile-specific bug reports
 
@@ -209,5 +209,5 @@ This keeps the core product free (important for growth) while offering genuine v
 
 - [Competitive Design Evaluation](competitive-design-evaluation-claude.md) — Detailed competitor analysis
 - [Launch Readiness Assessment](launch-readiness-assessment.md) — Current blockers and status
-- [Offline Support Implementation Plan](offline-support-implementation-plan.md) — Technical approach
+- [Offline Implementation Plan](../archive/plans/offline-editing-full-implementation-plan.md) — ✅ Complete
 - [Mobile Strategy Analysis](../analysis/mobile-strategy-analysis-claude.md) — Mobile roadmap

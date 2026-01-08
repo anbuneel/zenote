@@ -76,9 +76,9 @@ Capacitor wraps your exact React code—no rewrite needed.
 ### Current PWA Limitations
 | Feature | Status | Impact |
 |---------|--------|--------|
-| Offline note editing | Partial (shell only) | Medium - users expect offline access |
+| Offline note editing | ✅ **DONE** (v2.0.0) | ~~Medium~~ Resolved |
 | Push notifications | Not implemented | Low - note apps rarely need push |
-| Background sync | Not implemented | Medium - sync on reconnect is valuable |
+| Background sync | ✅ **DONE** (v2.0.0) | ~~Medium~~ Resolved |
 | iOS install UX | Poor (Safari only) | High - users don't know how to install |
 | App store presence | None | Medium - discovery and trust factor |
 
@@ -495,14 +495,14 @@ For a note-taking app, the only significant gap is **widgets** and **app store p
 
 ## Next Steps
 
-If proceeding with Phase 1 (Enhanced PWA):
+Phase 1 (Enhanced PWA) Progress:
 
-1. [ ] Audit current service worker capabilities
-2. [ ] Implement IndexedDB storage layer with Dexie.js
-3. [ ] Add offline sync queue with conflict resolution
+1. [x] ~~Audit current service worker capabilities~~ ✅ Done
+2. [x] ~~Implement IndexedDB storage layer with Dexie.js~~ ✅ Done (v2.0.0)
+3. [x] ~~Add offline sync queue with conflict resolution~~ ✅ Done (v2.0.0)
 4. [ ] Implement View Transitions API
 5. [ ] Add Share Target to manifest
 6. [ ] Create custom install prompt UI
 7. [ ] Test thoroughly on iOS Safari and Android Chrome
-8. [ ] Add offline indicator to header
+8. [x] ~~Add offline indicator to header~~ ✅ Done (SyncIndicator)
 9. [ ] Update landing page to promote "install" option
