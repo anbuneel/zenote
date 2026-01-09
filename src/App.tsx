@@ -14,6 +14,7 @@ const ChangelogPage = lazyWithRetry(() => import('./components/ChangelogPage').t
 const RoadmapPage = lazyWithRetry(() => import('./components/RoadmapPage').then(module => ({ default: module.RoadmapPage })));
 const FadedNotesView = lazyWithRetry(() => import('./components/FadedNotesView').then(module => ({ default: module.FadedNotesView })));
 const SharedNoteView = lazyWithRetry(() => import('./components/SharedNoteView').then(module => ({ default: module.SharedNoteView })));
+const DemoPage = lazyWithRetry(() => import('./pages/DemoPage').then(module => ({ default: module.DemoPage })));
 
 import { TagFilterBar } from './components/TagFilterBar';
 import { WelcomeBackPrompt } from './components/WelcomeBackPrompt';
@@ -67,6 +68,11 @@ import {
   ValidationError,
   MAX_IMPORT_FILE_SIZE,
 } from './utils/exportImport';
+import {
+  hasDemoState,
+  getDemoDataForMigration,
+  clearDemoState,
+} from './services/demoStorage';
 import { sanitizeHtml } from './utils/sanitize';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useSyncEngine, resolveConflict } from './hooks/useSyncEngine';
@@ -177,6 +183,11 @@ function App() {
   const [shareToken, setShareToken] = useState<string | null>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('s');
+  });
+
+  // Demo page state (for /demo route)
+  const [isDemo, setIsDemo] = useState<boolean>(() => {
+    return window.location.pathname === '/demo';
   });
 
   // Debounce timer refs
@@ -355,6 +366,78 @@ function App() {
       hasMigratedDemoContent.current = true;
     }
   }, [userId]);
+
+  // Migrate full demo notes (from /demo page) after user signs up
+  // Uses separate ref to track migration status
+  const hasMigratedDemoNotes = useRef(false);
+  useEffect(() => {
+    if (!userId || hasMigratedDemoNotes.current) return;
+
+    // Check if user has demo notes to migrate
+    if (!hasDemoState()) {
+      hasMigratedDemoNotes.current = true;
+      return;
+    }
+
+    hasMigratedDemoNotes.current = true;
+    const { notes: demoNotes, tags: demoTags } = getDemoDataForMigration();
+
+    if (demoNotes.length === 0) {
+      clearDemoState();
+      return;
+    }
+
+    // Migrate demo data asynchronously
+    (async () => {
+      try {
+        // Create tags first
+        const tagIdMap = new Map<string, string>(); // localId -> new server id
+        for (const demoTag of demoTags) {
+          const existingTag = tags.find((t) => t.name.toLowerCase() === demoTag.name.toLowerCase());
+          if (existingTag) {
+            tagIdMap.set(demoTag.localId, existingTag.id);
+          } else {
+            const newTag = await createTagOffline(userId, demoTag.name, demoTag.color);
+            tagIdMap.set(demoTag.localId, newTag.id);
+            setTags((prev) => [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)));
+          }
+        }
+
+        // Create notes
+        for (const demoNote of demoNotes) {
+          const newNote = await createNoteOffline(
+            userId,
+            demoNote.title,
+            sanitizeHtml(demoNote.content)
+          );
+
+          // Add tags to note
+          for (const localTagId of demoNote.tagIds) {
+            const newTagId = tagIdMap.get(localTagId);
+            if (newTagId) {
+              await addTagToNoteOffline(userId, newNote.id, newTagId);
+            }
+          }
+
+          setNotes((prev) => [newNote, ...prev]);
+        }
+
+        // Clear demo state after successful migration
+        clearDemoState();
+
+        toast.success(
+          demoNotes.length === 1
+            ? 'Your demo note has been migrated!'
+            : `${demoNotes.length} demo notes have been migrated!`
+        );
+      } catch (error) {
+        console.error('Failed to migrate demo notes:', error);
+        toast.error('Some notes could not be migrated. Please try refreshing.');
+        // Don't clear demo state on error so user can retry
+        hasMigratedDemoNotes.current = false;
+      }
+    })();
+  }, [userId, tags]);
 
   // Handle Share Target data for authenticated users
   useEffect(() => {
@@ -1143,6 +1226,47 @@ function App() {
         </Suspense>
       </ErrorBoundary>
     );
+  }
+
+  // Show demo page for /demo route (accessible without login)
+  if (isDemo && !user) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback message="Preparing your practice space..." />}>
+          <DemoPage
+            onSignUp={() => {
+              setAuthModalMode('signup');
+              setShowAuthModal(true);
+            }}
+            onSignIn={() => {
+              setAuthModalMode('login');
+              setShowAuthModal(true);
+            }}
+            theme={theme}
+            onThemeToggle={handleThemeToggle}
+            onChangelogClick={() => startTransition(() => setView('changelog'))}
+            onRoadmapClick={() => startTransition(() => setView('roadmap'))}
+          />
+        </Suspense>
+        {showAuthModal && (
+          <Auth
+            theme={theme}
+            onThemeToggle={handleThemeToggle}
+            initialMode={authModalMode}
+            isModal
+            onClose={() => setShowAuthModal(false)}
+          />
+        )}
+      </ErrorBoundary>
+    );
+  }
+
+  // Redirect from /demo to library if user is logged in
+  if (isDemo && user) {
+    // Update URL to remove /demo path
+    window.history.replaceState({}, '', '/');
+    setIsDemo(false);
+    // Continue to show the library view
   }
 
   // Public pages (accessible without login)
