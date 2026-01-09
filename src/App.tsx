@@ -207,6 +207,15 @@ function App() {
     localStorage.setItem('zenote-theme', theme);
   }, [theme]);
 
+  // Redirect from /demo to library when user logs in
+  // Using useEffect to avoid state updates during render
+  useEffect(() => {
+    if (isDemo && user) {
+      window.history.replaceState({}, '', '/');
+      setIsDemo(false);
+    }
+  }, [isDemo, user]);
+
   // Show WelcomeBackPrompt when user signs in during grace period
   useEffect(() => {
     if (user && isDeparting) {
@@ -369,8 +378,13 @@ function App() {
 
   // Migrate full demo notes (from /demo page) after user signs up
   // Uses separate ref to track migration status
+  // IMPORTANT: Must wait for hydration to complete to avoid:
+  // 1. needsHydration returning false (skipping server pull)
+  // 2. Hydration clearing IndexedDB and losing demo notes
   const hasMigratedDemoNotes = useRef(false);
   useEffect(() => {
+    // Gate on hydration complete to avoid race conditions
+    if (isHydrating) return;
     if (!userId || hasMigratedDemoNotes.current) return;
 
     // Check if user has demo notes to migrate
@@ -437,7 +451,7 @@ function App() {
         hasMigratedDemoNotes.current = false;
       }
     })();
-  }, [userId, tags]);
+  }, [userId, tags, isHydrating]);
 
   // Handle Share Target data for authenticated users
   useEffect(() => {
@@ -1259,14 +1273,6 @@ function App() {
         )}
       </ErrorBoundary>
     );
-  }
-
-  // Redirect from /demo to library if user is logged in
-  if (isDemo && user) {
-    // Update URL to remove /demo path
-    window.history.replaceState({}, '', '/');
-    setIsDemo(false);
-    // Continue to show the library view
   }
 
   // Public pages (accessible without login)

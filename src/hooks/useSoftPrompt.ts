@@ -108,15 +108,11 @@ export function useSoftPrompt({
     // Must meet minimum requirements
     if (!meetsMinimumRequirements) return false;
 
-    // Must not have been recently dismissed
+    // Must not have been recently dismissed (within 24h cooldown)
     if (promptRecentlyDismissed) return false;
 
-    // Must not have been dismissed at all in this session
-    // (We only show the modal once per session until cooldown expires)
-    if (metadata?.promptDismissedAt) return false;
-
     return true;
-  }, [meetsMinimumRequirements, promptRecentlyDismissed, metadata?.promptDismissedAt]);
+  }, [meetsMinimumRequirements, promptRecentlyDismissed]);
 
   // Should show inline nudge (fallback after modal dismissed)
   const shouldShowInlineNudge = useMemo(() => {

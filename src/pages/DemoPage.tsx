@@ -293,6 +293,7 @@ export function DemoPage({
           theme={theme}
           onThemeToggle={onThemeToggle}
           onSettingsClick={onSignUp} // Settings opens signup in demo
+          isDemo // Hide share functionality
         />
 
         {/* Tag Modal */}

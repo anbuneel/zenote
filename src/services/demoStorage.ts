@@ -132,6 +132,19 @@ export function saveDemoState(state: DemoState): void {
 }
 
 /**
+ * Check if a welcome note has been edited from its default state
+ */
+function hasWelcomeNoteBeenEdited(note: DemoNote): boolean {
+  if (note.localId !== 'welcome-note') return false;
+  return (
+    note.title !== DEFAULT_WELCOME_NOTE.title ||
+    note.content !== DEFAULT_WELCOME_NOTE.content ||
+    note.pinned !== DEFAULT_WELCOME_NOTE.pinned ||
+    note.tagIds.length > 0
+  );
+}
+
+/**
  * Check if demo state exists in localStorage
  */
 export function hasDemoState(): boolean {
@@ -139,8 +152,10 @@ export function hasDemoState(): boolean {
     const stored = localStorage.getItem(DEMO_STORAGE_KEY);
     if (!stored) return false;
     const parsed = JSON.parse(stored) as DemoState;
-    // Only consider it "has state" if there are user-created notes
-    return parsed.notes.some((n) => n.localId !== 'welcome-note');
+    // Has state if: user-created notes exist OR welcome note was edited
+    return parsed.notes.some(
+      (n) => n.localId !== 'welcome-note' || hasWelcomeNoteBeenEdited(n)
+    );
   } catch {
     return false;
   }
@@ -366,8 +381,10 @@ export function getDemoDataForMigration(): {
 } {
   const state = getDemoState();
   return {
-    // Exclude the welcome note from migration
-    notes: state.notes.filter((n) => n.localId !== 'welcome-note'),
+    // Include welcome note only if it has been edited, exclude if unchanged
+    notes: state.notes.filter(
+      (n) => n.localId !== 'welcome-note' || hasWelcomeNoteBeenEdited(n)
+    ),
     tags: state.tags,
   };
 }
