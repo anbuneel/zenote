@@ -5,6 +5,7 @@
  * Handles conflict detection and self-ignore for realtime events.
  */
 
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '../lib/supabase';
 import {
   getOfflineDb,
@@ -18,6 +19,9 @@ import {
   markNoteSynced,
 } from './offlineNotes';
 import { markTagSynced } from './offlineTags';
+
+// On native platforms, navigator.onLine is unreliable in WebViews
+const isNative = Capacitor.isNativePlatform();
 
 // Track pending mutations to self-ignore realtime events
 const pendingMutations = new Set<string>();
@@ -434,8 +438,8 @@ async function doProcessQueue(userId: string): Promise<SyncResult> {
     errors: [],
   };
 
-  // Check if online
-  if (!navigator.onLine) {
+  // Check if online (skip check on native - navigator.onLine is unreliable in WebViews)
+  if (!isNative && !navigator.onLine) {
     return result;
   }
 
