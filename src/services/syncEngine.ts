@@ -6,6 +6,7 @@
  */
 
 import { Capacitor } from '@capacitor/core';
+import { Network } from '@capacitor/network';
 import { supabase } from '../lib/supabase';
 import {
   getOfflineDb,
@@ -20,8 +21,32 @@ import {
 } from './offlineNotes';
 import { markTagSynced } from './offlineTags';
 
-// On native platforms, navigator.onLine is unreliable in WebViews
-const isNative = Capacitor.isNativePlatform();
+// Lazy check for native platform (avoids issues at module initialization)
+let _isNative: boolean | null = null;
+function isNativePlatform(): boolean {
+  if (_isNative === null) {
+    try {
+      _isNative = Capacitor.isNativePlatform();
+    } catch {
+      _isNative = false;
+    }
+  }
+  return _isNative;
+}
+
+// Check if online - uses Capacitor Network on native, navigator.onLine on web
+async function isOnline(): Promise<boolean> {
+  if (isNativePlatform()) {
+    try {
+      const status = await Network.getStatus();
+      return status.connected;
+    } catch {
+      // If Network plugin fails, assume online and let API calls fail naturally
+      return true;
+    }
+  }
+  return navigator.onLine;
+}
 
 // Track pending mutations to self-ignore realtime events
 const pendingMutations = new Set<string>();
@@ -438,8 +463,8 @@ async function doProcessQueue(userId: string): Promise<SyncResult> {
     errors: [],
   };
 
-  // Check if online (skip check on native - navigator.onLine is unreliable in WebViews)
-  if (!isNative && !navigator.onLine) {
+  // Check if online (uses Capacitor Network on native for reliable detection)
+  if (!(await isOnline())) {
     return result;
   }
 
