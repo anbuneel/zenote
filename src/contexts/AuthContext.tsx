@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Check if user changed during async operation
         if (hydrationUserIdRef.current !== hydratingForUserId) {
-          console.log('Hydration aborted: user changed');
           return;
         }
 
@@ -91,10 +90,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session with timeout to prevent hanging on Android
+    const sessionTimeout = setTimeout(() => {
+      console.warn('getSession timed out after 5s');
+      setLoading(false);
+    }, 5000);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(sessionTimeout);
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch((error) => {
+      clearTimeout(sessionTimeout);
+      console.error('getSession failed:', error);
       setLoading(false);
     });
 
