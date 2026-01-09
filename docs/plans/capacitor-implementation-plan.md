@@ -1,7 +1,7 @@
 # Capacitor Implementation Plan for Zenote
 
-**Version:** 1.0
-**Last Updated:** 2026-01-08
+**Version:** 1.1
+**Last Updated:** 2026-01-09
 **Status:** Ready to Implement
 **Author:** Claude (Opus 4.5)
 
@@ -606,6 +606,156 @@ zenote/
 ### Both: Web content not updating
 - Run `npx cap sync` after every `npm run build`
 - Clear app data/reinstall if caching issues
+
+---
+
+## Achieving Native Look & Feel
+
+### Why Capacitor Apps Don't Automatically Feel Native
+
+Capacitor wraps your web app in a native WebView container - it's essentially Chrome (on Android) or Safari (on iOS) running inside a native app shell. This gives you:
+
+- ✅ Access to native APIs (camera, filesystem, etc.)
+- ✅ App Store / Play Store distribution
+- ✅ Home screen icon with no browser chrome
+
+But it does **NOT** automatically give you:
+
+- ❌ Native UI components (Material Design / iOS HIG)
+- ❌ Platform-specific animations and transitions
+- ❌ Native navigation patterns (swipe gestures, bottom tabs)
+- ❌ Haptic feedback
+- ❌ Status bar integration
+
+### What Makes an App Feel "Native"
+
+| Feature | Web Default | Native Feel |
+|---------|-------------|-------------|
+| **Navigation** | Browser-style (back button) | Swipe gestures, stack navigation, bottom tabs |
+| **Status bar** | Default browser style | Matches app theme, immersive mode |
+| **Animations** | CSS transitions | Platform-specific (Material motion, iOS springs) |
+| **Touch feedback** | Hover states only | Ripple effects, haptic vibration |
+| **Pull to refresh** | None | Native gesture with animation |
+| **Keyboard** | Default behavior | Smooth viewport adjustment, accessory bar |
+| **Scrolling** | Standard scroll | Momentum, rubber-band, overscroll glow |
+| **Loading states** | Spinners | Skeleton screens, shimmer effects |
+
+### Native Feel Roadmap
+
+#### Quick Wins (Capacitor Plugins) - Recommended First
+
+These add significant native feel with minimal code changes:
+
+| Plugin | Impact | Effort |
+|--------|--------|--------|
+| **@capacitor/status-bar** | Status bar matches app theme | Low |
+| **@capacitor/haptics** | Touch feedback on actions | Low |
+| **@capacitor/splash-screen** | Proper native splash | Low |
+| **@capacitor/keyboard** | Smooth keyboard handling | Low |
+| **Edge-to-edge display** | Use full screen area | Medium |
+
+Implementation example:
+
+```typescript
+// src/utils/native.ts
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+
+export async function initNativeFeatures(theme: 'light' | 'dark') {
+  if (!Capacitor.isNativePlatform()) return;
+
+  // Status bar matches theme
+  await StatusBar.setStyle({
+    style: theme === 'dark' ? Style.Dark : Style.Light
+  });
+  await StatusBar.setBackgroundColor({
+    color: theme === 'dark' ? '#1a1f1a' : '#f5f0e8'
+  });
+}
+
+export async function hapticFeedback(style: 'light' | 'medium' | 'heavy' = 'light') {
+  if (!Capacitor.isNativePlatform()) return;
+
+  const impactStyle = {
+    light: ImpactStyle.Light,
+    medium: ImpactStyle.Medium,
+    heavy: ImpactStyle.Heavy,
+  }[style];
+
+  await Haptics.impact({ style: impactStyle });
+}
+```
+
+Usage in components:
+
+```typescript
+// On note create/delete
+await hapticFeedback('light');
+
+// On pin toggle
+await hapticFeedback('medium');
+
+// On error
+await hapticFeedback('heavy');
+```
+
+#### Medium Effort Improvements
+
+| Feature | What It Adds | Effort |
+|---------|--------------|--------|
+| **Pull to refresh** | Native refresh gesture | Medium |
+| **Swipe-to-delete** | Swipe actions on note cards | Medium |
+| **Material ripples** | Touch feedback on buttons | Medium |
+| **Bottom sheet modals** | Native-feeling modals | Medium |
+| **Safe area insets** | Proper notch/home indicator handling | Low-Medium |
+
+#### Larger Changes (Framework-Level)
+
+For a fully native UI, consider:
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Ionic Framework** | Native-looking components, platform-adaptive | Larger bundle, learning curve |
+| **Framework7** | Beautiful native-feel UI | Different component library |
+| **Custom Material CSS** | Lightweight, full control | Manual implementation |
+| **React Native** | True native components | Complete rewrite |
+
+**Recommendation for Zenote:** Start with quick wins (Capacitor plugins), then add pull-to-refresh and swipe actions. The wabi-sabi aesthetic is distinctive enough that full Material Design might not be desired.
+
+### Zenote-Specific Native Enhancements
+
+Given Zenote's calm, wabi-sabi design philosophy:
+
+1. **Status Bar** - Match the forest green (dark) / warm paper (light) themes
+2. **Haptics** - Subtle feedback on:
+   - Note creation (light impact)
+   - Note deletion (medium impact)
+   - Pin toggle (light impact)
+   - Tag selection (light impact)
+3. **Splash Screen** - Zen-inspired with app icon on theme background
+4. **Keyboard** - Smooth adjustment when editing notes
+5. **Pull to Refresh** - Sync notes with calming animation
+6. **Safe Areas** - Proper handling for notched devices
+
+### Implementation Priority
+
+```
+Phase 1: Quick Wins (1-2 hours)
+├── Status bar theming
+├── Haptic feedback on key actions
+└── Splash screen configuration
+
+Phase 2: Polish (2-4 hours)
+├── Keyboard handling improvements
+├── Safe area insets
+└── Edge-to-edge display
+
+Phase 3: Enhanced UX (4-8 hours)
+├── Pull to refresh
+├── Swipe-to-delete on notes
+└── Bottom sheet for modals (optional)
+```
 
 ---
 
