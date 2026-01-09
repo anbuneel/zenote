@@ -216,6 +216,15 @@ function App() {
   // (e.g., when Supabase refreshes the session on tab focus)
   // Wait for hydration to complete so first-time users see their notes from server
   const userId = user?.id;
+
+  // Track if we've bypassed hydration due to timeout (state to trigger re-render)
+  const [hydrationBypassed, setHydrationBypassed] = useState(false);
+
+  // Reset bypass flag when user changes
+  useEffect(() => {
+    setHydrationBypassed(false);
+  }, [userId]);
+
   useEffect(() => {
     if (!userId) {
       setNotes([]);
@@ -224,9 +233,19 @@ function App() {
     }
 
     // Don't fetch until hydration is complete (first-time users need server data)
-    if (isHydrating) {
+    // UNLESS we've already waited too long (failsafe for Android WebView hangs)
+    if (isHydrating && !hydrationBypassed) {
       setLoading(true);
-      return;
+
+      // Failsafe: Maximum wait time for hydration (15 seconds)
+      // This ensures the app never gets stuck on "Loading notes..." forever
+      // even if all other timeout mechanisms fail (Android WebView edge cases)
+      const failsafeTimeout = setTimeout(() => {
+        console.warn('Hydration failsafe triggered - bypassing hydration wait');
+        setHydrationBypassed(true); // This triggers a re-render and effect re-run
+      }, 15000);
+
+      return () => clearTimeout(failsafeTimeout);
     }
 
     setLoading(true);
@@ -298,7 +317,7 @@ function App() {
     );
 
     return () => unsubscribe();
-  }, [userId, selectedNoteId, isHydrating]);
+  }, [userId, selectedNoteId, isHydrating, hydrationBypassed]);
 
   // Migrate demo content from landing page to user's first note
   // Dependency: userId (string) instead of user (object) because:

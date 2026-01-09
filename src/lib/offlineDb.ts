@@ -143,11 +143,40 @@ export async function clearOfflineDb(): Promise<void> {
 
 /**
  * Check if offline database exists for a user
+ * Includes timeout protection for Android WebView where indexedDB.databases() can hang
  */
 export async function hasOfflineDb(userId: string): Promise<boolean> {
   const dbName = `zenote-offline-${userId}`;
-  const databases = await Dexie.getDatabaseNames();
-  return databases.includes(dbName);
+  const TIMEOUT_MS = 3000; // 3 second timeout
+
+  try {
+    // Wrap Dexie.getDatabaseNames() with timeout - can hang on Android WebView
+    const getDatabaseNamesWithTimeout = (): Promise<string[]> => {
+      return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error('getDatabaseNames timeout'));
+        }, TIMEOUT_MS);
+
+        Dexie.getDatabaseNames()
+          .then((names) => {
+            clearTimeout(timeoutId);
+            resolve(names);
+          })
+          .catch((err) => {
+            clearTimeout(timeoutId);
+            reject(err);
+          });
+      });
+    };
+
+    const databases = await getDatabaseNamesWithTimeout();
+    return databases.includes(dbName);
+  } catch (error) {
+    // If getDatabaseNames hangs or fails, assume DB doesn't exist
+    // This is safe because needsHydration will return true, triggering a fresh hydration
+    console.warn('hasOfflineDb check failed, assuming DB does not exist:', error);
+    return false;
+  }
 }
 
 /**

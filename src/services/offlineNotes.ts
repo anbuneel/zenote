@@ -154,17 +154,40 @@ export async function hydrateFromServer(userId: string): Promise<void> {
 
 /**
  * Check if offline database needs hydration
+ * Includes timeout protection for Android WebView where IndexedDB operations can hang
  */
 export async function needsHydration(userId: string): Promise<boolean> {
-  const exists = await hasOfflineDb(userId);
-  if (!exists) return true;
+  const TIMEOUT_MS = 5000; // 5 second timeout for entire operation
 
-  const db = getOfflineDb(userId);
-  const noteCount = await db.notes.count();
+  try {
+    // Wrap the entire operation in a timeout
+    const checkHydration = async (): Promise<boolean> => {
+      const exists = await hasOfflineDb(userId);
+      if (!exists) return true;
 
-  // If we have notes locally, assume we're hydrated
-  // In a more robust implementation, we'd check a lastHydratedAt timestamp
-  return noteCount === 0;
+      const db = getOfflineDb(userId);
+      const noteCount = await db.notes.count();
+
+      // If we have notes locally, assume we're hydrated
+      // In a more robust implementation, we'd check a lastHydratedAt timestamp
+      return noteCount === 0;
+    };
+
+    // Use Promise.race with a timeout that properly resolves/rejects
+    const result = await Promise.race([
+      checkHydration(),
+      new Promise<boolean>((_, reject) =>
+        setTimeout(() => reject(new Error('needsHydration timeout')), TIMEOUT_MS)
+      ),
+    ]);
+
+    return result;
+  } catch (error) {
+    // If check fails or times out, assume we need hydration (safe default)
+    // This triggers a fresh hydration from server which is the safest path
+    console.warn('needsHydration check failed, assuming hydration needed:', error);
+    return true;
+  }
 }
 
 /**

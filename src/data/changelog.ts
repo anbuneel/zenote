@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.1.1',
+    date: '2026-01-09',
+    changes: [
+      { type: 'fix', text: 'Android app no longer gets stuck on loading screen after login (defense-in-depth timeout protection)' },
+      { type: 'improvement', text: 'IndexedDB operations now have timeout protection for Android WebView edge cases' },
+    ],
+  },
+  {
     version: '2.1.0',
     date: '2026-01-08',
     changes: [
