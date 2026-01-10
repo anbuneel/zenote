@@ -9,6 +9,12 @@ export interface RoadmapItem {
 
 export const roadmap: RoadmapItem[] = [
   {
+    id: '1',
+    title: 'Zero-Knowledge Encryption',
+    description: 'End-to-end encryption for all your notes. Even we cannot read them — your thoughts remain truly private.',
+    status: 'coming-soon',
+  },
+  {
     id: '2',
     title: 'Image Attachments',
     description: 'Add images, screenshots, and diagrams directly into your notes.',

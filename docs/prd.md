@@ -189,6 +189,7 @@ Zenote aims to be the antithesis of feature-bloated productivity tools. Where ot
 
 | Feature | Status | Description |
 |---------|--------|-------------|
+| Zero-Knowledge E2EE | Planning | Full end-to-end encryption (Standard Notes-style) |
 | Image Attachments | Coming Soon | Add images and diagrams to notes |
 | Virtual Scrolling | Coming Soon | Performance for large note collections |
 | Public Garden | Exploring | Toggle notes as minimal public blog |
@@ -392,11 +393,22 @@ Offline → Make edits → Save to IndexedDB (sync queue)
 
 | Product | Positioning | Zenote Differentiation |
 |---------|-------------|------------------------|
-| Apple Notes | Simple, ecosystem-locked | Cross-platform, exportable |
-| Notion | Feature-rich, complex | Simple, calm, no configuration |
-| Bear | Beautiful, paid | Free, web-first |
-| Obsidian | Powerful, local-first | Simpler, cloud-synced |
-| Standard Notes | Encrypted, minimal | More refined UX, richer editing |
+| Apple Notes | Simple, ecosystem-locked | Cross-platform, exportable, zero-knowledge E2EE |
+| Notion | Feature-rich, complex | Simple, calm, zero-knowledge (Notion has NO E2EE) |
+| Bear | Beautiful, paid, optional E2EE | Free, web-first, full E2EE by default |
+| Obsidian | Powerful, local-first | Simpler, cloud-synced with E2EE |
+| Standard Notes | Encrypted, minimal | Similar privacy model, more refined wabi-sabi UX |
+
+#### Encryption Comparison
+
+| Product | E2EE | Developer Can Read Notes | Zero-Knowledge |
+|---------|------|--------------------------|----------------|
+| Notion | ❌ No | ✅ Yes | ❌ No |
+| Bear | ⚠️ Optional (per-note) | ⚠️ Unencrypted only | ⚠️ Partial |
+| Standard Notes | ✅ All notes | ❌ Never | ✅ Yes |
+| **Zenote (Planned)** | ✅ All notes | ❌ Never | ✅ Yes |
+
+*See [encryption-capability-analysis-claude.md](analysis/encryption-capability-analysis-claude.md) for detailed analysis.*
 
 ### Glossary
 
@@ -412,6 +424,8 @@ Offline → Make edits → Save to IndexedDB (sync queue)
 | Impermanence Ribbon | Gentle reminder that demo notes aren't synced to cloud |
 | WhisperBack | Floating back button that appears when scrolled down |
 | Share Target | PWA API allowing the app to receive shared content from other apps |
+| Zero-Knowledge | Architecture where even the service provider cannot access user data |
+| E2EE | End-to-end encryption where only the user holds decryption keys |
 
 ---
 

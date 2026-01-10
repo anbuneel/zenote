@@ -1,7 +1,7 @@
 # Encryption Capability Analysis
 
-**Version:** 1.0
-**Last Updated:** 2026-01-09
+**Version:** 2.0
+**Last Updated:** 2026-01-10
 **Status:** Draft
 **Author:** Claude (Opus 4.5)
 
@@ -11,17 +11,88 @@
 
 > How can we implement encryption capability? How complex is it? Give me a recommendation. Think harder as this is an important feature of the app.
 
+**Follow-up requirement:**
+> Even I as the app developer shouldn't be able to see anyone's notes!
+
 ---
 
 ## Executive Summary
 
-This document analyzes encryption options for Zenote, comparing complexity, trade-offs, and alignment with the app's philosophy. The recommended approach is **Optional E2EE for "Private Notes"** - allowing users to mark specific notes as encrypted while keeping regular notes fully functional.
+This document analyzes encryption options for Zenote, comparing complexity, trade-offs, and alignment with the app's philosophy.
+
+**Key Requirement:** Zero-knowledge architecture where even the app developer cannot access user notes.
+
+**Revised Recommendation:** Given the zero-knowledge requirement, the recommended approach is now **Full E2EE (Standard Notes-style)** - all notes encrypted by default with keys derived from user password. This is more complex (~6-8 weeks) but is the only approach that truly prevents developer access.
+
+---
+
+## Competitive Analysis: How Other Apps Handle Encryption
+
+### Notion: NO E2EE ❌
+
+Notion does **not** offer end-to-end encryption:
+
+- ✅ Encryption in transit (TLS)
+- ✅ Encryption at rest (AES-256 on AWS servers)
+- ❌ **No E2EE** - Notion employees CAN technically read your notes
+
+**Source:** [Notion Security Practices](https://www.notion.com/help/security-and-privacy)
+
+**Implication:** Notion prioritizes features (search, collaboration, sharing) over zero-knowledge privacy.
+
+---
+
+### Bear: Optional Per-Note E2EE ⚠️ (Partial)
+
+Bear takes a hybrid approach:
+
+- Uses **iCloud CloudKit** for sync (Apple's encryption)
+- **Optional E2EE** for individual notes (Bear Pro feature)
+- Uses [Themis library](https://www.cossacklabs.com/case-studies/bear/) with AES-GCM-256
+- Password stored in **Apple SecureEnclave** for biometric unlock
+- [Bear 2.4 (May 2025)](https://blog.bear.app/2025/05/bear-2-4-update-better-encryption-smarter-todo-and-more/) added encrypted attachments
+
+**Key quote:** "The Bear team never gets access to any notes or that password."
+
+**Limitation:** Only encrypted notes are truly private. Unencrypted notes sync through iCloud where Apple could theoretically access them.
+
+**Source:** [Bear Encryption Blog](https://blog.bear.app/2023/10/encryption-bear-and-your-private-data/)
+
+---
+
+### Standard Notes: Full E2EE by Design ✅ (Gold Standard)
+
+Standard Notes is the benchmark for zero-knowledge note apps:
+
+- **ALL notes encrypted** before leaving your device
+- Server is treated as ["non-trustworthy entity"](https://standardnotes.com/help/security/encryption)
+- Open-source, [audited encryption specification](https://standardnotes.com/help/security)
+- Even if their servers are hacked, attackers get only encrypted gibberish
+- **You own the keys** - Standard Notes literally cannot read your notes
+
+**Architecture principle:** The server is "dumb storage" - it only stores and retrieves encrypted blobs.
+
+**Source:** [Standard Notes Encryption Whitepaper](https://standardnotes.com/help/security/encryption)
+
+---
+
+### Comparison Matrix
+
+| Feature | Notion | Bear | Standard Notes | **Zenote (Goal)** |
+|---------|--------|------|----------------|-------------------|
+| Developer can read notes | ✅ Yes | ⚠️ Unencrypted only | ❌ Never | ❌ Never |
+| E2EE available | ❌ No | ✅ Per-note (opt-in) | ✅ All notes (default) | ✅ All notes |
+| Search works | ✅ Server-side | ✅ Full | ⚠️ Client-side only | ⚠️ Client-side only |
+| Sharing works | ✅ Full | ✅ Full | ⚠️ Limited | ⚠️ Needs redesign |
+| Zero-knowledge | ❌ No | ⚠️ Partial | ✅ Yes | ✅ Yes |
+| Open-source crypto | N/A | ✅ Themis | ✅ Custom spec | ✅ Web Crypto API |
+| Password lost = data lost | N/A | ⚠️ Encrypted only | ✅ Yes | ✅ Yes |
 
 ---
 
 ## Current State
 
-Supabase already provides **encryption at rest** (AWS encrypts the underlying storage). This protects against physical disk theft but not against someone with database access.
+Supabase already provides **encryption at rest** (AWS encrypts the underlying storage). This protects against physical disk theft but not against someone with database access (including the app developer).
 
 ---
 
@@ -69,74 +140,168 @@ User → Web Crypto API → Encrypted blob → Supabase
 
 ---
 
-### 3. Full E2EE (High Complexity)
+### 3. Full E2EE (High Complexity) ⭐ RECOMMENDED FOR ZERO-KNOWLEDGE
 
 ```
-User → Derive key from password → Encrypt ALL notes → Supabase
-                                    (server sees nothing)
+┌─────────────────────────────────────────────────────────────┐
+│  USER'S DEVICE                                              │
+│  ┌─────────────┐    ┌──────────────┐    ┌───────────────┐  │
+│  │ User types  │ → │ Derive key   │ → │ Encrypt with   │  │
+│  │ "My secret" │    │ from password│    │ AES-256-GCM   │  │
+│  └─────────────┘    └──────────────┘    └───────────────┘  │
+│                                                ↓            │
+│                                    "X8f2kL9..." (ciphertext)│
+└────────────────────────────────────────────────┬────────────┘
+                                                 ↓
+┌────────────────────────────────────────────────┴────────────┐
+│  SERVER (Supabase) - "Dumb Storage"                         │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  content: "X8f2kL9mNpQrStUvWxYz..."                 │   │
+│  │  (Developer sees only gibberish - CANNOT decrypt)   │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 **How it works:**
-- Master password required to use app
-- All notes encrypted with AES-256-GCM
-- Key derived via Argon2/PBKDF2
+- Master password required to use app (separate from login, or combined)
+- All notes encrypted with AES-256-GCM before leaving device
+- Key derived via Argon2/PBKDF2 from password + user-specific salt
+- Server stores only encrypted blobs - treated as untrusted
+- Decryption happens only on user's device
 
 | Aspect | Assessment |
 |--------|------------|
-| **Pros** | Maximum privacy (like Standard Notes) |
-| **Cons** | Breaks search, sharing, real-time sync preview; password lost = all data lost |
+| **Pros** | Maximum privacy, zero-knowledge, developer cannot access notes |
+| **Cons** | Breaks server-side search, sharing needs redesign, password lost = all data lost |
 | **Effort** | ~6-8 weeks |
-| **Breaks** | Search, "Share as Letter", real-time sync, multi-device without key sync |
+| **Breaks** | Server-side search, "Share as Letter" (needs rework), real-time preview |
 
 ---
 
-## Recommendation: Option 2 (Optional E2EE)
+## Recommendation: Option 3 (Full E2EE) - For Zero-Knowledge Requirement
 
-This fits Zenote's philosophy of **calm simplicity with thoughtful depth**:
+Given the requirement that **even the developer cannot see notes**, only Option 3 satisfies this constraint.
 
-| Principle | How It Aligns |
-|-----------|---------------|
-| **Wabi-sabi** | Imperfect by design - user chooses what to protect |
-| **Non-intrusive** | Regular notes work exactly as before |
-| **Honest** | Clear that "private = no search, no recovery" |
-| **Organic** | Natural extension of existing "pin" concept |
+### Why Full E2EE is Required
+
+| Approach | Developer Can See Notes? |
+|----------|--------------------------|
+| Server-side encryption | ✅ Yes (keys on server) |
+| Optional per-note E2EE | ⚠️ Unencrypted notes only |
+| **Full E2EE** | ❌ **Never** |
+
+### Trade-offs to Accept
+
+For true zero-knowledge, these features **must change**:
+
+| Feature | Current | With Full E2EE |
+|---------|---------|----------------|
+| **Search** | Server-side, instant | Client-side only, loads all notes |
+| **Share as Letter** | Generate link, anyone can view | Must include decryption key in link or separate channel |
+| **Password recovery** | Email reset | ❌ Impossible - forgot password = lost data |
+| **Note previews** | Server can render | Must decrypt on client first |
+| **Multi-device** | Automatic sync | Need to enter password on each device |
+
+### Alignment with Zenote Philosophy
+
+| Principle | How Full E2EE Aligns |
+|-----------|----------------------|
+| **Wabi-sabi** | Accepts imperfection - no password recovery is honest limitation |
+| **Calm technology** | No anxiety about data breaches - your notes are truly private |
+| **Honest presence** | Clear warning: "Your password is your key. We cannot recover it." |
+| **Organic** | Natural evolution - privacy as a core value, not an afterthought |
 
 ---
 
-## Proposed UX
+## Proposed UX for Full E2EE
 
-### Note Card with Lock Indicator
+### First-Time Setup (After Signup)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│                     🔐 Secure Your Notes                    │
+│                                                             │
+│  Your notes will be encrypted with a password only you      │
+│  know. Not even Zenote can read them.                       │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │  Encryption Password: [••••••••••••••••]              │ │
+│  └───────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │  Confirm Password:    [••••••••••••••••]              │ │
+│  └───────────────────────────────────────────────────────┘ │
+│                                                             │
+│  ⚠️ Important: This password cannot be recovered.          │
+│  If you forget it, your notes are permanently lost.        │
+│                                                             │
+│  □ I understand and accept this responsibility             │
+│                                                             │
+│                    [ Set Up Encryption ]                    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Login Flow (Returning User)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│                     🔓 Unlock Your Notes                    │
+│                                                             │
+│  Enter your encryption password to access your notes.       │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │  Encryption Password: [••••••••••••••••]              │ │
+│  └───────────────────────────────────────────────────────┘ │
+│                                                             │
+│  □ Remember on this device (use biometrics)                │
+│                                                             │
+│                       [ Unlock ]                            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Note Cards (All Encrypted by Default)
 
 ```
 ┌─────────────────────────────────────────┐
-│  Note Card                         🔒   │  ← Lock icon for private notes
+│  Note Card                         🔐   │  ← All notes show lock icon
 │  ─────────────────────────────────────  │
-│  Private Journal Entry                  │
-│  [encrypted preview unavailable]        │
+│  My Private Thoughts                    │    (decrypted on client)
+│  Today I reflected on...                │
 └─────────────────────────────────────────┘
 ```
 
-### Settings Modal - New "Privacy" Tab
+### Search (Client-Side Only)
 
 ```
-┌─────────────────────────────────────────┐
-│  🔐 Private Notes                       │
-│                                         │
-│  Encryption Password: [••••••••••]      │
-│                                         │
-│  ⚠️ This password cannot be recovered.  │
-│  If forgotten, private notes are lost.  │
-│                                         │
-│  [Set Password]                         │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  🔍 Search notes...                              [Cmd+K]    │
+│  ───────────────────────────────────────────────────────── │
+│  Searching locally (your notes never leave your device)    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Editor - Private Toggle
+### Share as Letter (Redesigned)
 
 ```
-┌─────────────────────────────────────────┐
-│  📌 Pin    🔒 Private    🏷️ Tags        │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     📬 Share as Letter                      │
+│                                                             │
+│  This note will be encrypted in the link. The recipient    │
+│  will need the password to read it.                        │
+│                                                             │
+│  Link: https://zenote.app/s/abc123#key=xyz789              │
+│        └─────────────┘ └─────────────────────┘             │
+│         (server sees)   (only in URL fragment,             │
+│                          never sent to server)             │
+│                                                             │
+│  Expires: [7 days ▾]                                       │
+│                                                             │
+│  [ Copy Link ]  [ Copy Link + Send Password Separately ]   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -232,19 +397,44 @@ src/
 
 ---
 
-## Effort Breakdown
+## Effort Breakdown (Full E2EE)
 
 | Task | Estimate |
 |------|----------|
-| Encryption utilities (encrypt/decrypt/derive) | 2-3 days |
-| Database schema changes | 1 day |
-| Settings UI (password setup/change) | 2-3 days |
-| Editor integration (private toggle) | 2 days |
-| Note card private indicator | 1 day |
-| Offline sync for encrypted notes | 3-4 days |
-| Password prompt on app load | 2 days |
-| Testing & edge cases | 3-4 days |
-| **Total** | **~3-4 weeks** |
+| **Phase 1: Core Encryption** | |
+| Encryption utilities (encrypt/decrypt/deriveKey) | 3-4 days |
+| Database schema changes (encrypted content column) | 1 day |
+| Key derivation with Argon2/PBKDF2 | 2 days |
+| **Phase 2: Auth Flow Changes** | |
+| First-time encryption setup UI | 3-4 days |
+| Unlock prompt on app load | 2-3 days |
+| Biometric unlock integration (Capacitor) | 3-4 days |
+| **Phase 3: Feature Rewrites** | |
+| Client-side search implementation | 4-5 days |
+| Share as Letter with encryption | 3-4 days |
+| Offline sync with encrypted content | 3-4 days |
+| **Phase 4: Migration & Testing** | |
+| Existing user migration strategy | 2-3 days |
+| Security testing & edge cases | 4-5 days |
+| Documentation & user communication | 2 days |
+| **Total** | **~6-8 weeks** |
+
+### Migration Strategy for Existing Users
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  ⚠️ Security Upgrade                        │
+│                                                             │
+│  Zenote now encrypts all your notes. To continue, you      │
+│  need to set an encryption password.                       │
+│                                                             │
+│  Your existing notes will be encrypted with this password. │
+│  This is a one-time process.                               │
+│                                                             │
+│  [ Set Up Encryption ] or [ Export & Delete Account ]      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -272,14 +462,23 @@ src/
 
 ## Alternatives Considered
 
-### Standard Notes Approach
-Full E2EE with encrypted search index. Too complex for Zenote's philosophy.
+### Notion Approach (No E2EE)
+Server-side encryption only. Does not meet zero-knowledge requirement.
+
+### Bear Approach (Optional Per-Note E2EE)
+Hybrid approach where users choose which notes to encrypt. Simpler (~3-4 weeks) but doesn't provide full zero-knowledge since unencrypted notes are still visible to developer.
+
+### Standard Notes Approach (Full E2EE) ← CHOSEN
+Full E2EE with all notes encrypted by default. Meets zero-knowledge requirement. This is the model to follow.
 
 ### Signal Protocol
-Designed for messaging, overkill for single-user notes.
+Designed for messaging with forward secrecy. Overkill for single-user notes and adds unnecessary complexity.
 
 ### age Encryption
-Modern, simple, but no browser implementation without WASM.
+Modern, simple encryption tool. However, no native browser implementation - would require WASM bundle (~200KB+).
+
+### Themis Library (Bear's Choice)
+Mature, audited library used by Bear. Could be an alternative to Web Crypto API but adds ~50KB dependency.
 
 ---
 
@@ -306,10 +505,25 @@ When ready to implement:
 
 ## References
 
+### Technical References
 - [Web Crypto API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
-- [Standard Notes Architecture](https://docs.standardnotes.com/specification/encryption)
+- [Standard Notes Encryption Whitepaper](https://standardnotes.com/help/security/encryption)
+- [Standard Notes Security Updates](https://standardnotes.com/help/security)
 - [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)
+
+### Competitive Analysis Sources
+- [Notion Security Practices](https://www.notion.com/help/security-and-privacy)
+- [Notion Privacy Practices](https://www.notion.com/help/privacy)
+- [Bear Encryption Blog Post](https://blog.bear.app/2023/10/encryption-bear-and-your-private-data/)
+- [Bear 2.4 Update (May 2025)](https://blog.bear.app/2025/05/bear-2-4-update-better-encryption-smarter-todo-and-more/)
+- [Bear Encryption Roadmap 2025](https://community.bear.app/t/bear-s-encryption-roadmap-for-2025/15401)
+- [Cossack Labs: E2EE in Bear](https://www.cossacklabs.com/case-studies/bear/)
+- [Themis Library Implementation](https://www.cossacklabs.com/blog/end-to-end-encryption-in-bear-app/)
+
+### Additional Reading
+- [Zero-Knowledge Encryption Guide (Hivenet)](https://www.hivenet.com/post/zero-knowledge-encryption-the-ultimate-guide-to-unbreakable-data-security)
+- [Bitwarden: E2EE and Zero Knowledge](https://bitwarden.com/blog/end-to-end-encryption-and-zero-knowledge/)
 
 ---
 
-*This analysis will be revisited when encryption becomes a priority feature.*
+*This analysis will be revisited when encryption becomes a priority feature. Last updated: January 2026 (v2.0).*
