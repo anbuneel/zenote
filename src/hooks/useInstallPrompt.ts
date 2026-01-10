@@ -1,4 +1,4 @@
-import { useState, useCallback, useSyncExternalStore } from 'react';
+import { useState, useCallback, useMemo, useSyncExternalStore } from 'react';
 
 /**
  * Hook to manage PWA install prompt with engagement tracking.
@@ -8,6 +8,7 @@ import { useState, useCallback, useSyncExternalStore } from 'react';
  * - Tracks user engagement (notes created, visits)
  * - Shows custom prompt after engagement threshold
  * - Respects user dismissal
+ * - iOS Safari detection with visual install guide
  */
 
 // Engagement thresholds
@@ -16,10 +17,57 @@ const ENGAGEMENT_THRESHOLD = {
   visits: 2,
 };
 
+/**
+ * Detect iOS device (iPhone, iPad, iPod)
+ */
+function detectIOS(): boolean {
+  if (typeof navigator === 'undefined') return false;
+
+  // Check for iOS devices
+  const isIOSUserAgent = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  // Check for iPad on iOS 13+ (reports as Mac)
+  const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+
+  // Exclude MSStream (IE detection)
+  const isMSStream = 'MSStream' in window;
+
+  return (isIOSUserAgent || isIPadOS) && !isMSStream;
+}
+
+/**
+ * Detect Safari browser (not Chrome, Firefox, etc. on iOS)
+ */
+function detectSafari(): boolean {
+  if (typeof navigator === 'undefined') return false;
+
+  const ua = navigator.userAgent;
+
+  // Safari includes "Safari" but excludes Chrome/Firefox/etc.
+  // CriOS = Chrome on iOS, FxiOS = Firefox on iOS
+  return /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(ua);
+}
+
+/**
+ * Check if app is running in standalone mode (installed PWA)
+ */
+function isStandaloneMode(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  // Standard check
+  const standaloneMedia = window.matchMedia('(display-mode: standalone)').matches;
+
+  // iOS Safari specific
+  const iosStandalone = (navigator as { standalone?: boolean }).standalone === true;
+
+  return standaloneMedia || iosStandalone;
+}
+
 const STORAGE_KEYS = {
   engagement: 'zenote-engagement',
   installDismissed: 'zenote-install-dismissed',
   installPrompted: 'zenote-install-prompted',
+  iosGuideDismissed: 'zenote-ios-guide-dismissed',
 };
 
 interface EngagementData {
@@ -113,6 +161,15 @@ export function useInstallPrompt() {
     () => localStorage.getItem(STORAGE_KEYS.installPrompted) === 'true'
   );
 
+  const [isIOSGuideDismissed, setIsIOSGuideDismissed] = useState(
+    () => localStorage.getItem(STORAGE_KEYS.iosGuideDismissed) === 'true'
+  );
+
+  // Platform detection (memoized to avoid recalculation)
+  const isIOS = useMemo(() => detectIOS(), []);
+  const isSafari = useMemo(() => detectSafari(), []);
+  const isInstalled = useMemo(() => isStandaloneMode(), []);
+
   // Track note creation (called by App.tsx)
   const trackNoteCreated = useCallback(() => {
     setEngagement((prev) => {
@@ -166,20 +223,39 @@ export function useInstallPrompt() {
     localStorage.setItem(STORAGE_KEYS.installDismissed, 'true');
   }, []);
 
-  // Check if app is installable (prompt available)
+  // Dismiss iOS guide
+  const dismissIOSGuide = useCallback(() => {
+    setIsIOSGuideDismissed(true);
+    localStorage.setItem(STORAGE_KEYS.iosGuideDismissed, 'true');
+  }, []);
+
+  // Check if app is installable (prompt available for Chrome/Android)
   const isInstallable = prompt !== null;
 
-  // Check if running as installed PWA
-  const isInstalled =
-    typeof window !== 'undefined' &&
-    window.matchMedia('(display-mode: standalone)').matches;
+  // Should show iOS install guide
+  // Show only for iOS Safari users who haven't installed and haven't dismissed
+  const shouldShowIOSGuide =
+    isIOS && isSafari && !isInstalled && !isIOSGuideDismissed && isEngaged;
+
+  // Can install on iOS (show in UI even without guide)
+  const canInstallOnIOS = isIOS && isSafari && !isInstalled;
 
   return {
+    // Chrome/Android install
     isInstallable,
-    isInstalled,
     shouldShowPrompt,
     triggerInstall,
     dismissPrompt,
+
+    // iOS install guide
+    isIOS,
+    isSafari,
+    shouldShowIOSGuide,
+    canInstallOnIOS,
+    dismissIOSGuide,
+
+    // Common
+    isInstalled,
     trackNoteCreated,
   };
 }

@@ -79,6 +79,7 @@ import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useShareTarget, formatSharedContent } from './hooks/useShareTarget';
 import { ConflictModal } from './components/ConflictModal';
 import { InstallPrompt } from './components/InstallPrompt';
+import { IOSInstallGuide } from './components/IOSInstallGuide';
 import './App.css';
 
 const DEMO_STORAGE_KEY = 'zenote-demo-content';
@@ -97,7 +98,14 @@ function App() {
   const { startTransition } = useViewTransition();
 
   // PWA install prompt management
-  const { shouldShowPrompt, triggerInstall, dismissPrompt, trackNoteCreated } = useInstallPrompt();
+  const {
+    shouldShowPrompt,
+    triggerInstall,
+    dismissPrompt,
+    trackNoteCreated,
+    shouldShowIOSGuide,
+    dismissIOSGuide,
+  } = useInstallPrompt();
 
   // Share Target handling
   const { sharedData, clearSharedData, hasStoredShare } = useShareTarget();
@@ -1524,12 +1532,17 @@ function App() {
           onDismiss={handleConflictDismiss}
         />
 
-        {/* PWA Install Prompt */}
+        {/* PWA Install Prompt (Chrome/Android) */}
         {shouldShowPrompt && (
           <InstallPrompt
             onInstall={triggerInstall}
             onDismiss={dismissPrompt}
           />
+        )}
+
+        {/* iOS Install Guide (Safari) */}
+        {shouldShowIOSGuide && (
+          <IOSInstallGuide onDismiss={dismissIOSGuide} />
         )}
       </div>
     );
