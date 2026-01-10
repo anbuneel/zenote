@@ -1,7 +1,7 @@
 # Zenote - Product Requirements Document
 
-**Version:** 1.0
-**Last Updated:** 2025-12-29
+**Version:** 2.0
+**Last Updated:** 2026-01-09
 **Status:** Living Document
 **Author:** Claude (Opus 4.5)
 
@@ -139,15 +139,61 @@ Zenote aims to be the antithesis of feature-bloated productivity tools. Where ot
 | Kintsugi Theme (Light) | Warm aged paper, terracotta accents | P0 |
 | Midnight Theme (Dark) | Deep forest green, antique gold accents (default) | P0 |
 
+#### 7. Offline & Sync
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| Offline Editing | Edit notes without internet via IndexedDB (Dexie.js) | P0 |
+| Sync Queue | Pending changes queue with automatic sync on reconnect | P0 |
+| Conflict Detection | Detects concurrent edits to same note | P1 |
+| "Two Paths" Modal | Visual conflict resolution (keep local, keep remote, or merge) | P1 |
+| Sync Indicator | Subtle status showing offline/pending state | P2 |
+
+#### 8. Progressive Web App (PWA)
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| Installable App | Add to home screen on mobile and desktop | P0 |
+| Share Target API | Receive shared text from other apps | P1 |
+| Custom Install Prompt | Zen-styled prompt after 3+ notes or 2+ visits | P2 |
+| Cached Assets | Offline app shell with service worker | P1 |
+
+#### 9. Practice Space (Demo Mode)
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| Full Demo Experience | Complete note-taking at /demo without signup | P0 |
+| Local Persistence | Demo notes saved in localStorage | P0 |
+| Soft Signup Prompts | Gentle "invitation" after 3+ notes and 5+ minutes | P1 |
+| Impermanence Ribbon | Reminder that demo notes aren't synced to cloud | P2 |
+| Demo Migration | Auto-migrate demo notes on signup (with tag deduplication) | P0 |
+
+#### 10. Native Mobile (Capacitor)
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| Android App | Native Android wrapper via Capacitor WebView | P1 |
+| iOS App (Planned) | Native iOS wrapper (requires macOS + Xcode) | P2 |
+| Hydration Timeout | Defense-in-depth protection for Android loading | P1 |
+
+#### 11. UX Enhancements
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| View Transitions API | Smooth page navigation (Chrome/Edge/Safari) | P2 |
+| WhisperBack Button | Floating back button for long notes (scroll-triggered) | P2 |
+| Chapter Navigation | Desktop dot sidebar + Mobile time ribbon scrubber | P1 |
+| Sticky Toolbar | Formatting toolbar stays visible while scrolling | P1 |
+
 ### Planned Features (Roadmap)
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| Offline Support | Coming Soon | Edit notes without internet, sync on reconnect |
 | Image Attachments | Coming Soon | Add images and diagrams to notes |
 | Virtual Scrolling | Coming Soon | Performance for large note collections |
 | Public Garden | Exploring | Toggle notes as minimal public blog |
-| Native Mobile Apps | Exploring | iOS and Android native apps |
+| Additional OAuth | Exploring | Apple Sign-In and other providers |
+| Analytics | Exploring | Privacy-respecting usage insights |
 
 ---
 
@@ -167,6 +213,26 @@ Landing Page → "Start Writing" CTA → Auth Modal (Sign Up)
 - User types in demo editor on landing page
 - "Save this note" CTA appears after typing
 - Demo content auto-migrates as first note after signup
+
+### 1b. Practice Space Flow (New)
+
+```
+Landing Page → "Explore without signing up" → Practice Space (/demo)
+                                                      ↓
+                                               Full note library
+                                                      ↓
+                                               Create notes (localStorage)
+                                                      ↓
+                                    After 3+ notes, 5+ min → Soft signup prompt
+                                                      ↓
+                                               Sign up → Demo notes migrate to account
+```
+
+**Key behaviors:**
+- Notes persist in localStorage (survives browser refresh)
+- Impermanence ribbon reminds notes aren't cloud-synced
+- Gentle "invitation" modal (not aggressive popup)
+- Tags supported, migrate with deduplication on signup
 
 ### 2. Note Creation
 
@@ -207,6 +273,24 @@ Editor → Share button → Share Modal
                     Copy link → Share externally
                            ↓
                     Recipient opens → Public read-only view
+```
+
+### 6. Offline Editing Flow (New)
+
+```
+Online → Make edits → Auto-save to Supabase
+           ↓
+       Lose connection
+           ↓
+Offline → Make edits → Save to IndexedDB (sync queue)
+           ↓
+       SyncIndicator shows pending count
+           ↓
+       Reconnect → Auto-sync queued changes
+           ↓
+       Conflict detected? → "Two Paths" modal
+                               ↓
+                        Choose: Keep local / Keep remote / Merge
 ```
 
 ---
@@ -283,9 +367,9 @@ Editor → Share button → Share Modal
 
 ### Technical Constraints
 
-- **No native apps initially:** PWA-first approach for cross-platform support
+- **PWA-first with native option:** PWA for web, Capacitor for Android (iOS planned)
 - **No real-time collaboration:** Single-user notes only (design choice)
-- **No offline-first architecture:** Requires internet for initial sync
+- **Offline-capable:** Full offline editing with IndexedDB, sync on reconnect
 
 ### Business Constraints
 
@@ -323,7 +407,12 @@ Editor → Share button → Share Modal
 | Temporal Chapters | Automatic grouping of notes by time period |
 | Kintsugi | Art of repairing broken pottery with gold (light theme name) |
 | Letting Go | Account offboarding flow with grace period |
+| Practice Space | Full-featured demo mode at /demo requiring no signup |
+| Two Paths | Conflict resolution modal for concurrent edits (offline sync) |
+| Impermanence Ribbon | Gentle reminder that demo notes aren't synced to cloud |
+| WhisperBack | Floating back button that appears when scrolled down |
+| Share Target | PWA API allowing the app to receive shared content from other apps |
 
 ---
 
-*This PRD is reverse-engineered from the implemented product and serves as living documentation.*
+*This PRD is reverse-engineered from the implemented product and serves as living documentation. Last major update: January 2026 (v2.0).*

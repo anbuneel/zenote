@@ -179,6 +179,12 @@ The `check` script runs the same steps as GitHub Actions CI:
    - Date
    - Changes array with type ('feature' | 'improvement' | 'fix') and description
 
+4. **`docs/prd.md`** - Update when implementing key features:
+   - Move features from "Planned" to "Implemented" sections
+   - Add new user flows for major features
+   - Update glossary with new terminology
+   - Update technical constraints if architecture changes
+
 Note: `AGENTS.md` is synced from `CLAUDE.md`. Run `npm run docs:sync-agents` (or `npm run docs:sync-agents:check` in CI). A pre-commit hook in `.githooks/pre-commit` keeps it updated when `core.hooksPath` is set to `.githooks`.
 
 Example changelog entry:
@@ -435,7 +441,6 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Email confirmation UX (resend email, change email options with 60s cooldown)
 - [x] Signup form polish (optional name label, password hint, modal dismiss confirmation)
 - [x] Enhanced empty library state (icon, CTA button, keyboard shortcut hint)
-- [x] Google OAuth "Instant" badge (emphasizes faster signup path)
 - [x] Mobile sample note on landing page (shows what notes look like)
 - [x] Loading spinner on auth submit button
 - [x] Copy note to clipboard (plain text or with formatting) from export menu

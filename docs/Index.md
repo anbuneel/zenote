@@ -85,6 +85,7 @@ External reviews and audits.
 
 | Document | Description | Date |
 |----------|-------------|------|
+| [landing-page-design-review-claude.md](reviews/landing-page-design-review-claude.md) | Landing page UI/UX and conversion optimization review | 2026-01-09 |
 | [zenote-comprehensive-review-Codex.md](reviews/zenote-comprehensive-review-Codex.md) | Architecture, design, and code review (Codex) | 2025-12-28 |
 | [zenote-ui-ux-review.md](reviews/zenote-ui-ux-review.md) | UI/UX review (Gemini) | 2025-12-22 |
 | [2025-12-22-code-quality-review.md](reviews/code-review/2025-12-22-code-quality-review.md) | Code quality review | 2025-12-22 |
