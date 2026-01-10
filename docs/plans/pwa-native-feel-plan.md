@@ -1,8 +1,8 @@
 # PWA Native Feel Plan (No macOS Required)
 
-**Version:** 1.0
+**Version:** 1.1
 **Last Updated:** 2026-01-10
-**Status:** Ready to Implement
+**Status:** In Progress (Phase 1 & 2 Complete)
 **Author:** Claude (Opus 4.5)
 
 ---
@@ -30,15 +30,80 @@ This plan maximizes Zenote's mobile/iOS experience using **web technologies only
 
 ---
 
+## Implementation Progress
+
+### ✅ Phase 1: Complete (2026-01-10)
+
+| Item | Status | Files |
+|------|--------|-------|
+| iOS/Safari detection | ✅ Done | `src/hooks/useInstallPrompt.ts` |
+| iOS Install Guide component | ✅ Done | `src/components/IOSInstallGuide.tsx` |
+| Apple splash screens (14 sizes) | ✅ Done | `public/splash/*.png` |
+| Splash screen generator | ✅ Done | `scripts/generate-splash-screens.ts` |
+| Integration with App.tsx | ✅ Done | `src/App.tsx` |
+
+**New hook API:**
+```typescript
+const {
+  // Chrome/Android (existing)
+  shouldShowPrompt, triggerInstall, dismissPrompt,
+  // iOS (NEW)
+  isIOS, isSafari, shouldShowIOSGuide, canInstallOnIOS, dismissIOSGuide,
+  // Common
+  isInstalled, trackNoteCreated,
+} = useInstallPrompt();
+```
+
+### ✅ Phase 2: Complete (2026-01-10)
+
+| Item | Status | Files |
+|------|--------|-------|
+| Gesture libraries | ✅ Done | `@use-gesture/react`, `@react-spring/web` |
+| SwipeableNoteCard | ✅ Done | `src/components/SwipeableNoteCard.tsx` |
+| PullToRefresh | ✅ Done | `src/components/PullToRefresh.tsx` |
+| Mobile detection hook | ✅ Done | `src/hooks/useMobileDetect.ts` |
+| ChapterSection integration | ✅ Done | `src/components/ChapterSection.tsx` |
+| ChapteredLibrary integration | ✅ Done | `src/components/ChapteredLibrary.tsx` |
+
+**Gesture behaviors:**
+
+| Gesture | Action | Visual Feedback |
+|---------|--------|-----------------|
+| Swipe Left | Reveals delete | Red gradient + trash icon |
+| Swipe Right | Reveals pin/unpin | Gold gradient + bookmark icon |
+| Full Swipe (past threshold) | Auto-triggers action | Card animates off screen |
+| Pull Down (at top) | Refreshes notes | Spinning refresh indicator |
+
+**Technical details:**
+- Spring physics via `@react-spring/web` (not linear animation)
+- Haptic feedback at action thresholds (`navigator.vibrate`)
+- Touch device detection via `useTouchCapable()` hook
+- Desktop users get existing hover-based delete/pin buttons
+
+**Bundle impact:**
+- Main chunk: 489KB → 555KB (+66KB, ~13% increase)
+- Expected from adding gesture libraries
+- Still under 600KB target
+
+### ⏳ Phase 3: Pending
+
+Animation polish (spring timing, card entrance stagger)
+
+### ⏳ Phase 4: Pending
+
+Testing & refinement
+
+---
+
 ## Timeline Summary
 
-| Phase | Duration | Focus |
-|-------|----------|-------|
-| Phase 1 | 1 week | iOS Install Experience |
-| Phase 2 | 2 weeks | Gesture Vocabulary |
-| Phase 3 | 1 week | Animation Polish |
-| Phase 4 | 1 week | Testing & Refinement |
-| **Total** | **5 weeks** | **PWA Native Feel** |
+| Phase | Duration | Focus | Status |
+|-------|----------|-------|--------|
+| Phase 1 | 1 week | iOS Install Experience | ✅ Complete |
+| Phase 2 | 2 weeks | Gesture Vocabulary | ✅ Complete |
+| Phase 3 | 1 week | Animation Polish | ⏳ Pending |
+| Phase 4 | 1 week | Testing & Refinement | ⏳ Pending |
+| **Total** | **5 weeks** | **PWA Native Feel** | **40% Complete** |
 
 ---
 

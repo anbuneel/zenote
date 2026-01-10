@@ -768,6 +768,20 @@ function App() {
     setActiveConflict(null);
   };
 
+  // Pull-to-refresh handler - refreshes notes from IndexedDB/server
+  const handleRefresh = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const refreshedNotes = await fetchNotesOffline(user.id);
+      setNotes(refreshedNotes);
+      toast.success('Notes refreshed', { duration: 1500, icon: '🔄' });
+    } catch (error) {
+      console.error('Refresh failed:', error);
+      toast.error('Failed to refresh notes');
+    }
+  }, [user]);
+
   // Tag filter handlers
   const handleTagToggle = (tagId: string) => {
     // Clear search when using tag filters
@@ -1407,6 +1421,7 @@ function App() {
             onNoteDelete={handleNoteDelete}
             onTogglePin={handleTogglePin}
             onNewNote={handleNewNote}
+            onRefresh={handleRefresh}
             searchQuery={searchQuery}
           />
         )}

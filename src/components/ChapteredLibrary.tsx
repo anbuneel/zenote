@@ -3,6 +3,8 @@ import type { Note } from '../types';
 import { ChapterSection } from './ChapterSection';
 import { ChapterNav } from './ChapterNav';
 import { TimeRibbon } from './TimeRibbon';
+import { PullToRefresh } from './PullToRefresh';
+import { useTouchCapable } from '../hooks/useMobileDetect';
 import {
   groupNotesByChapter,
   getDefaultExpansionState,
@@ -15,6 +17,7 @@ interface ChapteredLibraryProps {
   onNoteDelete: (id: string) => void;
   onTogglePin: (id: string, pinned: boolean) => void;
   onNewNote?: () => void;
+  onRefresh?: () => Promise<void>;
   searchQuery?: string;
 }
 
@@ -24,8 +27,12 @@ export function ChapteredLibrary({
   onNoteDelete,
   onTogglePin,
   onNewNote,
+  onRefresh,
   searchQuery,
 }: ChapteredLibraryProps) {
+  // Detect touch capability for pull-to-refresh
+  const isTouchDevice = useTouchCapable();
+
   // Sort notes by most recent (pinned handling is done in groupNotesByChapter)
   const sortedNotes = useMemo(() => {
     return [...notes].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
@@ -221,28 +228,40 @@ export function ChapteredLibrary({
     );
   }
 
+  // Library content (rendered inside or outside PullToRefresh based on device)
+  const libraryContent = (
+    <main
+      className="flex-1 overflow-y-auto pb-32"
+      style={{ scrollbarWidth: 'none' }}
+      data-testid="library-view"
+    >
+      {/* Render each non-empty chapter */}
+      {chapters.map((chapter) => (
+        <ChapterSection
+          key={chapter.key}
+          chapterKey={chapter.key as ChapterKey}
+          label={chapter.label}
+          notes={chapter.notes}
+          defaultExpanded={defaultExpansion[chapter.key as ChapterKey]}
+          isPinned={chapter.isPinned}
+          onNoteClick={onNoteClick}
+          onNoteDelete={onNoteDelete}
+          onTogglePin={onTogglePin}
+        />
+      ))}
+    </main>
+  );
+
   return (
     <>
-      <main
-        className="flex-1 overflow-y-auto pb-32"
-        style={{ scrollbarWidth: 'none' }}
-        data-testid="library-view"
-      >
-        {/* Render each non-empty chapter */}
-        {chapters.map((chapter) => (
-          <ChapterSection
-            key={chapter.key}
-            chapterKey={chapter.key as ChapterKey}
-            label={chapter.label}
-            notes={chapter.notes}
-            defaultExpanded={defaultExpansion[chapter.key as ChapterKey]}
-            isPinned={chapter.isPinned}
-            onNoteClick={onNoteClick}
-            onNoteDelete={onNoteDelete}
-            onTogglePin={onTogglePin}
-          />
-        ))}
-      </main>
+      {/* Wrap with PullToRefresh on touch devices when onRefresh is provided */}
+      {isTouchDevice && onRefresh ? (
+        <PullToRefresh onRefresh={onRefresh}>
+          {libraryContent}
+        </PullToRefresh>
+      ) : (
+        libraryContent
+      )}
 
       {/* Chapter Navigation - Desktop (right sidebar) */}
       <ChapterNav

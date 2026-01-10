@@ -3,6 +3,8 @@ import Masonry from 'react-masonry-css';
 import type { Note } from '../types';
 import type { ChapterKey } from '../utils/temporalGrouping';
 import { NoteCard } from './NoteCard';
+import { SwipeableNoteCard } from './SwipeableNoteCard';
+import { useTouchCapable } from '../hooks/useMobileDetect';
 
 interface ChapterSectionProps {
   chapterKey: ChapterKey;
@@ -35,6 +37,9 @@ export function ChapterSection({
   onNoteDelete,
   onTogglePin,
 }: ChapterSectionProps) {
+  // Detect touch capability for swipe gestures
+  const isTouchDevice = useTouchCapable();
+
   // Pinned section is always expanded, others follow defaultExpanded
   // Using a key-based reset pattern instead of useEffect to avoid lint warning
   const [isExpanded, setIsExpanded] = useState(isPinned ? true : defaultExpanded);
@@ -176,15 +181,25 @@ export function ChapterSection({
             className="masonry-grid px-6 md:px-12"
             columnClassName="masonry-grid-column"
           >
-            {notes.map((note) => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onClick={onNoteClick}
-                onDelete={onNoteDelete}
-                onTogglePin={onTogglePin}
-              />
-            ))}
+            {notes.map((note) =>
+              isTouchDevice ? (
+                <SwipeableNoteCard
+                  key={note.id}
+                  note={note}
+                  onClick={onNoteClick}
+                  onDelete={onNoteDelete}
+                  onTogglePin={onTogglePin}
+                />
+              ) : (
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  onClick={onNoteClick}
+                  onDelete={onNoteDelete}
+                  onTogglePin={onTogglePin}
+                />
+              )
+            )}
           </Masonry>
         </div>
       )}
