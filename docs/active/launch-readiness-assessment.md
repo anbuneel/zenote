@@ -57,6 +57,14 @@
 - `src/components/Footer.tsx` - Added optional shortcuts link
 - `src/App.tsx` - Integrated session timeout and shortcuts modal
 
+### Post-Implementation Codex Review Fixes
+| Finding | Severity | Fix |
+|---------|----------|-----|
+| useSessionTimeout re-registers effect when isWarning flips | HIGH | Use ref to track isWarning, remove from deps |
+| Scroll events from nested containers not detected | LOW | Add capture phase listener |
+| Slash commands modal shows wrong command names | MEDIUM | `/heading1` → `/h1`, add `/highlight` |
+| Same-day backups overwrite each other | Enhancement | Add HHMMSS timestamp to filenames |
+
 ---
 
 # Assessment 4 (2025-12-28)
