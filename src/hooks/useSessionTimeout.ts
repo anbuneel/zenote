@@ -62,10 +62,18 @@ export function useSessionTimeout({
   // Stable refs for callbacks to avoid effect re-runs
   const onWarningRef = useRef(onWarning);
   const onTimeoutRef = useRef(onTimeout);
+  // Track isWarning in a ref so event handlers see current value without re-registering
+  const isWarningRef = useRef(isWarning);
+
   useEffect(() => {
     onWarningRef.current = onWarning;
     onTimeoutRef.current = onTimeout;
   }, [onWarning, onTimeout]);
+
+  // Keep isWarningRef in sync with isWarning state
+  useEffect(() => {
+    isWarningRef.current = isWarning;
+  }, [isWarning]);
 
   const clearAllTimers = useCallback(() => {
     if (timeoutRef.current) {
@@ -141,12 +149,20 @@ export function useSessionTimeout({
       return;
     }
 
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'] as const;
+    const events = ['mousedown', 'keydown', 'touchstart'] as const;
 
     const handleActivity = () => {
       // Only reset if not already in warning state
       // (let the modal handle the reset via resetTimeout)
-      if (!isWarning) {
+      // Use ref to avoid re-registering effect when isWarning changes
+      if (!isWarningRef.current) {
+        resetTimeout();
+      }
+    };
+
+    // Use capture phase for scroll to catch events from nested scrollable containers
+    const handleScroll = () => {
+      if (!isWarningRef.current) {
         resetTimeout();
       }
     };
@@ -155,6 +171,8 @@ export function useSessionTimeout({
     events.forEach((event) => {
       window.addEventListener(event, handleActivity, { passive: true });
     });
+    // Scroll needs capture phase since scroll events don't bubble
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
 
     // Initialize timeout on mount
     // Use queueMicrotask to avoid synchronous setState warning in effects
@@ -164,9 +182,10 @@ export function useSessionTimeout({
       events.forEach((event) => {
         window.removeEventListener(event, handleActivity);
       });
+      window.removeEventListener('scroll', handleScroll, { capture: true });
       clearAllTimers();
     };
-  }, [enabled, resetTimeout, clearAllTimers, isWarning]);
+  }, [enabled, resetTimeout, clearAllTimers]);
 
   return { resetTimeout, minutesRemaining, isWarning };
 }

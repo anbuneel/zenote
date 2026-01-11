@@ -628,14 +628,14 @@ describe('exportImport', () => {
       expect(document.createElement).toHaveBeenCalledWith('a');
     });
 
-    it('uses date-based filename', async () => {
+    it('uses date-based filename with timestamp', async () => {
       const mockLink = { href: '', download: '', click: vi.fn() };
       vi.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLAnchorElement);
 
       await downloadMarkdownZip([createMockNote()]);
 
-      // Filename should contain 'zenote-export-' and date format
-      expect(mockLink.download).toMatch(/zenote-export-\d{4}-\d{2}-\d{2}\.md/);
+      // Filename should contain 'zenote-export-' with date and time (HHMMSS) format
+      expect(mockLink.download).toMatch(/zenote-export-\d{4}-\d{2}-\d{2}-\d{6}\.md/);
     });
   });
 

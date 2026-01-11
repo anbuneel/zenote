@@ -541,8 +541,10 @@ export async function downloadMarkdownZip(notes: Note[]): Promise<void> {
   // Each note uses the same format, joined by separator
   const combined = notes.map(note => exportNoteToMarkdown(note)).join('\n\n---\n\n');
 
-  const date = new Date().toISOString().split('T')[0];
-  downloadFile(combined, `zenote-export-${date}.md`, 'text/markdown');
+  const now = new Date();
+  const date = now.toISOString().split('T')[0];
+  const time = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
+  downloadFile(combined, `zenote-export-${date}-${time}.md`, 'text/markdown');
 }
 
 /**

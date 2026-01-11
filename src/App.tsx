@@ -995,8 +995,10 @@ function App() {
   // Export to JSON
   const handleExportJSON = useCallback(() => {
     const json = exportNotesToJSON(notes, tags);
-    const date = new Date().toISOString().split('T')[0];
-    downloadFile(json, `zenote-backup-${date}.json`, 'application/json');
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const time = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
+    downloadFile(json, `zenote-backup-${date}-${time}.json`, 'application/json');
   }, [notes, tags]);
 
   // Export to Markdown

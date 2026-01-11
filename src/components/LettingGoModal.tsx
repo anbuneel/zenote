@@ -50,8 +50,10 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
 
       // Generate full account export
       const jsonData = exportFullAccountData(notes, tags, shareLinks, profile);
-      const date = new Date().toISOString().split('T')[0];
-      downloadFile(jsonData, `zenote-full-backup-${date}.json`, 'application/json');
+      const now = new Date();
+      const date = now.toISOString().split('T')[0];
+      const time = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
+      downloadFile(jsonData, `zenote-full-backup-${date}-${time}.json`, 'application/json');
 
       toast.success('Full backup saved');
     } catch (error) {
