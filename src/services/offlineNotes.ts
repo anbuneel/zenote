@@ -778,6 +778,10 @@ export async function removeSyncQueueEntry(
 
 /**
  * Mark a note as synced after successful server sync
+ *
+ * IMPORTANT: Uses server timestamp for lastSyncedAt to avoid clock skew issues.
+ * Previously used Date.now() which caused false conflicts when client clock
+ * was behind server clock (common with NTP differences between devices).
  */
 export async function markNoteSynced(
   userId: string,
@@ -785,12 +789,13 @@ export async function markNoteSynced(
   serverUpdatedAt: Date
 ): Promise<void> {
   const db = getOfflineDb(userId);
-  const now = Date.now();
+  // Use server timestamp to keep all sync comparisons in same clock domain
+  const serverTime = serverUpdatedAt.getTime();
 
   await db.notes.update(noteId, {
     syncStatus: 'synced',
-    lastSyncedAt: now,
-    serverUpdatedAt: serverUpdatedAt.getTime(),
+    lastSyncedAt: serverTime,
+    serverUpdatedAt: serverTime,
   });
 }
 
@@ -811,29 +816,33 @@ export async function getPendingSyncCount(userId: string): Promise<number> {
 /**
  * Insert or update a note from server (realtime subscription)
  * Does NOT queue sync operation since this is server->local
+ *
+ * Uses server timestamp for lastSyncedAt to maintain consistent clock domain
+ * with conflict detection (avoids false conflicts from client/server clock skew).
  */
 export async function upsertNoteFromServer(
   userId: string,
   note: Note
 ): Promise<void> {
   const db = getOfflineDb(userId);
-  const now = Date.now();
+  // Use server timestamp to keep all sync comparisons in same clock domain
+  const serverTime = note.updatedAt.getTime();
 
   const existing = await db.notes.get(note.id);
 
   if (existing) {
     // Only update if server version is newer (or if local has no pending changes)
     if (existing.syncStatus === 'synced' || !existing.localUpdatedAt ||
-        note.updatedAt.getTime() > existing.localUpdatedAt) {
+        serverTime > existing.localUpdatedAt) {
       await db.notes.update(note.id, {
         title: note.title,
         content: note.content,
         pinned: note.pinned,
         deletedAt: note.deletedAt?.getTime() ?? null,
-        updatedAt: note.updatedAt.getTime(),
-        serverUpdatedAt: note.updatedAt.getTime(),
+        updatedAt: serverTime,
+        serverUpdatedAt: serverTime,
         syncStatus: existing.syncStatus === 'pending' ? 'pending' : 'synced',
-        lastSyncedAt: now,
+        lastSyncedAt: serverTime,
       });
     }
   } else {
@@ -846,11 +855,11 @@ export async function upsertNoteFromServer(
       pinned: note.pinned,
       deletedAt: note.deletedAt?.getTime() ?? null,
       createdAt: note.createdAt.getTime(),
-      updatedAt: note.updatedAt.getTime(),
+      updatedAt: serverTime,
       syncStatus: 'synced',
-      lastSyncedAt: now,
-      serverUpdatedAt: note.updatedAt.getTime(),
-      localUpdatedAt: note.updatedAt.getTime(),
+      lastSyncedAt: serverTime,
+      serverUpdatedAt: serverTime,
+      localUpdatedAt: serverTime,
     };
     await db.notes.add(localNote);
   }

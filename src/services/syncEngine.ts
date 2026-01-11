@@ -204,7 +204,7 @@ async function processNoteOperation(
 
       const { data: serverNote } = await supabase
         .from('notes')
-        .select('updated_at')
+        .select('*')
         .eq('id', noteId)
         .maybeSingle();
 
@@ -212,19 +212,26 @@ async function processNoteOperation(
         const serverUpdatedAt = new Date(serverNote.updated_at).getTime();
         // Conflict: server was updated after our last sync
         if (serverUpdatedAt > localNote.lastSyncedAt) {
-          // Fetch full server version for conflict resolution
-          const { data: fullServerNote } = await supabase
-            .from('notes')
-            .select('*')
-            .eq('id', noteId)
-            .single();
+          // Safety check: compare actual content before triggering conflict
+          // If content is identical, no real conflict - just timestamp drift
+          const contentIdentical =
+            serverNote.title === localNote.title &&
+            serverNote.content === localNote.content;
 
-          if (fullServerNote && onConflictDetected) {
+          if (contentIdentical) {
+            // No actual conflict - update lastSyncedAt to server time and continue
+            await db.notes.update(noteId, {
+              lastSyncedAt: serverUpdatedAt,
+              serverUpdatedAt: serverUpdatedAt,
+            });
+            // Continue with the update (will just bump server timestamp)
+          } else if (onConflictDetected) {
+            // Real conflict: content differs
             onConflictDetected({
               entityType: 'note',
               entityId: noteId,
               localVersion: localNote,
-              serverVersion: fullServerNote,
+              serverVersion: serverNote,
             });
             // Mark as conflict in local DB
             await db.notes.update(noteId, { syncStatus: 'conflict' });
