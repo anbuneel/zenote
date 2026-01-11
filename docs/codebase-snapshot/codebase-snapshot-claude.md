@@ -1,6 +1,228 @@
-# Codebase Snapshot Timeline
+﻿# Codebase Snapshot Timeline
 
 This document tracks the evolution of the Zenote codebase over time.
+
+---
+
+## Snapshot: 2026-01-10 at 18:00 UTC
+
+**Author:** Claude (Opus 4.5)
+**Captured:** 2026-01-10T18:00:00Z
+**Commit:** f1f303d (main branch)
+**Release:** v2.3.1 - PWA Native Feel + Codex Review Fixes
+
+### Architecture Overview
+
+The Zenote application follows a layered architecture pattern with new mobile-native interaction components:
+
+ZENOTE ARCHITECTURE (React SPA with Supabase Backend)
+
+PRESENTATION LAYER
+- Core Views: LandingPage, ChapteredLibrary (with PullToRefresh), Editor, DemoPage, FadedNotesView, ChangelogPage, RoadmapPage
+- Mobile-Native Components (NEW v2.3): SwipeableNoteCard, PullToRefresh, IOSInstallGuide
+- HeaderShell provides consistent header across all views
+- UI Components: NoteCard, TagPill, TagBadge, WhisperBack, SyncIndicator
+- Navigation: ChapterNav (Desktop), TimeRibbon (Mobile), TagFilterBar
+
+MODAL COMPONENTS
+- SettingsModal, TagModal, ShareModal, LettingGoModal
+- ConflictModal (Two Paths sync conflict resolution)
+- InstallPrompt, InvitationModal (demo signup prompt)
+
+STATE MANAGEMENT
+- App.tsx: Notes, Tags, UI State, Real-time Subscriptions
+- AuthContext: User session, OAuth, Password reset, Offboarding
+- useDemoState: Demo mode localStorage state management
+
+SERVICE LAYER
+- notes.ts, tags.ts, demoStorage.ts, demoMigration.ts
+- offlineNotes.ts, offlineTags.ts, syncEngine.ts
+
+HOOKS LAYER (9 total, 5 NEW)
+- useNetworkStatus, useSyncEngine, useSyncStatus, useViewTransition
+- useInstallPrompt [NEW], useShareTarget [NEW], useDemoState [NEW]
+- useSoftPrompt [NEW], useMobileDetect [NEW]
+
+UTILITY LAYER
+- sanitize, exportImport, formatTime, temporalGrouping, withRetry, lazyWithRetry
+
+EXTERNAL SERVICES
+- Supabase (PostgreSQL, Auth, Real-time, RLS)
+- Vercel (Hosting, CDN)
+- Sentry (Error monitoring)
+- Capacitor (Native Android wrapper)
+
+### Tech Stack
+
+| Category | Technology | Version |
+|----------|------------|---------|
+| **Frontend Framework** | React | 19.2.0 |
+| **Language** | TypeScript | 5.9.3 |
+| **Build Tool** | Vite | 7.2.6 |
+| **Styling** | Tailwind CSS | 4.1.17 |
+| **Rich Text Editor** | Tiptap (ProseMirror) | 3.13.0 |
+| **Layout** | react-masonry-css | 1.0.16 |
+| **Backend/Database** | Supabase | 2.86.2 |
+| **Offline Storage** | Dexie (IndexedDB) | 4.2.1 |
+| **Gesture Library** | @use-gesture/react | 10.3.1 |
+| **Animation** | @react-spring/web | 10.0.3 |
+| **Native Wrapper** | Capacitor | 8.0.0 |
+| **Error Monitoring** | Sentry | 10.30.0 |
+| **Notifications** | react-hot-toast | 2.6.0 |
+| **XSS Prevention** | DOMPurify | 3.3.1 |
+| **Unit Testing** | Vitest | 4.0.15 |
+| **E2E Testing** | Playwright | 1.57.0 |
+| **Linting** | ESLint | 9.39.1 |
+
+**New Dependencies in v2.3:**
+- @use-gesture/react - Touch gesture handling (swipe, drag)
+- @react-spring/web - Physics-based spring animations
+
+### Production Deployment
+
+- **Platform:** Vercel (auto-deploys from main branch)
+- **Live URL:** https://zenote.vercel.app
+- **Repository:** https://github.com/anbuneel/zenote
+- **CI/CD:** GitHub Actions (typecheck, lint, test, build)
+- **PWA:** Yes (installable, offline app shell, Share Target, Apple splash screens)
+- **Native:** Android APK via Capacitor (iOS planned)
+
+### Code Metrics
+
+| Metric | Count | Change |
+|--------|-------|--------|
+| **Total Lines of Code** | 28,872 | +2,537 |
+| TypeScript/TSX (src/) | 26,074 | +2,690 |
+| CSS (src/) | 958 | +67 |
+| E2E Tests (e2e/) | 1,473 | - |
+| SQL Migrations | 370 | - |
+| Build Scripts | 375 | +158 |
+| **Source Files** | | |
+| React Components | 42 | +10 |
+| Component Tests | 9 | +1 |
+| Hook Tests | 3 | +2 |
+| E2E Spec Files | 6 | - |
+| **Bundle Size** | | |
+| Initial JS | 557 KB | +224 KB |
+| Editor Chunk | 417 KB | +10 KB |
+| DemoPage Chunk | 14 KB | NEW |
+| Total JS | ~1,261 KB | +267 KB |
+| Total CSS | 53 KB | +8 KB |
+
+### Component Inventory
+
+**Core Views (7):**
+- LandingPage, ChapteredLibrary, DemoPage [NEW], Editor
+- FadedNotesView, ChangelogPage, RoadmapPage
+
+**Mobile-Native Components (3) [NEW in v2.3]:**
+- SwipeableNoteCard - iOS-style swipe gestures (left=delete, right=pin)
+- PullToRefresh - Pull-down refresh with spring physics
+- IOSInstallGuide - Visual PWA install tutorial for Safari
+
+**Demo Components (2) [NEW in v2.2]:**
+- ImpermanenceRibbon, InvitationModal
+
+**Shared Components (30):**
+Auth, ChapterNav, ChapterSection, ConflictModal, EditorToolbar,
+ErrorBoundary, FadedNoteCard, Footer, Header, HeaderShell,
+InstallPrompt [NEW], LettingGoModal, LoadingFallback [NEW], NoteCard,
+RichTextEditor, SettingsModal, ShareModal, SharedNoteView, SlashCommand,
+SyncIndicator, TagBadge, TagFilterBar, TagModal, TagPill, TagSelector,
+TimeRibbon, WelcomeBackPrompt, WhisperBack
+
+### Hooks Inventory (9 total, 5 NEW)
+
+| Hook | Purpose |
+|------|---------|
+| useNetworkStatus | Network monitoring (Capacitor + browser) |
+| useSyncEngine | Sync engine React integration |
+| useSyncStatus | Sync state for UI |
+| useViewTransition | View Transitions API wrapper |
+| useInstallPrompt | PWA install with engagement tracking [NEW] |
+| useShareTarget | Share Target API handler [NEW] |
+| useDemoState | Demo mode state management [NEW] |
+| useSoftPrompt | Soft signup prompt triggers [NEW] |
+| useMobileDetect | Touch/mobile device detection [NEW] |
+
+### Features Implemented (v2.3.1)
+
+**Core:** Wabi-sabi design, rich text editor, tags, real-time sync, search, pin, slash commands
+**Auth:** Email/password, Google/GitHub OAuth, password reset, account offboarding
+**Organization:** Temporal chapters, soft-delete (Faded Notes), collapsible sections
+**Export/Import:** JSON backup, Markdown export, clipboard copy, batch import
+**Sharing:** Share as Letter, configurable expiration
+
+**PWA (Enhanced in v2.3):**
+- Installable, offline app shell, Share Target API
+- iOS Safari install guide [NEW]
+- Apple splash screens [NEW]
+
+**Mobile Native Feel (v2.3):**
+- Swipe left to delete, right to pin/unpin
+- Pull-to-refresh to sync
+- iOS-style spring animations
+- Card entrance animation with stagger
+- Haptic feedback at thresholds
+
+**Practice Space (v2.2):**
+- Full demo at /demo without signup
+- localStorage persistence
+- Soft signup prompts, auto-migration
+
+**Offline Editing (v2.0):**
+- IndexedDB with Dexie.js
+- Sync queue, conflict detection
+- Two Paths conflict modal
+
+### Test Coverage
+
+| Category | Files | Tests |
+|----------|-------|-------|
+| Component Tests | 9 | Auth, Editor, HeaderShell, ChapteredLibrary, ShareModal, TagModal, TagBadge, ErrorBoundary, InstallPrompt |
+| Utility Tests | 5 | formatTime, sanitize, temporalGrouping, exportImport, withRetry |
+| Service Tests | 3 | notes, tags, syncEngine |
+| Hook Tests | 3 | useNetworkStatus, useInstallPrompt, useShareTarget |
+| E2E Tests | 6 | auth, notes, tags, sharing, export-import, settings |
+
+### Notable Changes Since Last Snapshot (2026-01-07)
+
+**v2.3.1 (2026-01-11):** Codex Review Bug Fixes
+- Pull-to-refresh correctly detects scroll position with nested containers
+- Swipe-to-delete gracefully recovers UI if delete fails (shake animation)
+- iOS install guide animation completes smoothly on dismiss
+- Improved compatibility with older iOS Safari versions (iOS < 14)
+- Swipe gesture timing reduced from 200ms to 150ms for snappier feel
+
+**v2.3.0 (2026-01-10):** PWA Native Feel
+- iOS Safari install guide with visual tutorial
+- Apple splash screens for all iOS devices
+- Swipe gestures on mobile (left=delete, right=pin/unpin)
+- Pull-to-refresh on note list
+- iOS-style spring animations
+- Card entrance animation with stagger effect
+- New dependencies: @use-gesture/react, @react-spring/web
+
+**v2.2.0 (2026-01-09):** Practice Space
+- Full demo at /demo without signup
+- localStorage persistence
+- Soft signup prompts after 3+ notes and 5+ minutes
+- Auto-migration of demo notes on account creation
+- New: DemoPage, ImpermanenceRibbon, InvitationModal, useDemoState, useSoftPrompt
+
+**v2.1.x (2026-01-08-09):** Share Target, Install Prompt, Android Fix
+- Share Target API integration
+- Engagement-triggered PWA install prompt
+- Defense-in-depth timeout for Android WebView
+
+**v2.0.0 (2026-01-07):** Offline Editing
+- IndexedDB persistence, conflict resolution
+
+**Code Growth Summary:**
+- +4,520 lines of TypeScript
+- +10 new components, +5 new hooks
+- +2 new dependencies
+- +36 commits
 
 ---
 
@@ -10,261 +232,21 @@ This document tracks the evolution of the Zenote codebase over time.
 **Captured:** 2026-01-07T12:00:00Z
 **Commit:** 0c34982 (main branch)
 
-### Architecture Overview
-
-The Zenote application follows a layered architecture pattern:
-
-**ZENOTE ARCHITECTURE (React SPA with Supabase Backend)**
-
-PRESENTATION LAYER
-- Core Views: LandingPage (Split-view), ChapteredLibrary (Temporal Grid), Editor (Rich Text)
-- HeaderShell provides consistent header across all views
-- UI Components: NoteCard, TagPill, TagBadge, WhisperBack, SyncIndicator
-- Navigation: ChapterNav (Desktop), TimeRibbon (Mobile), TagFilterBar, EditorToolbar
-
-MODAL COMPONENTS
-- SettingsModal (Profile), TagModal (Create/Edit), ShareModal (Share Links)
-- LettingGoModal (Offboarding), ConflictModal (Sync Conflict Resolution)
-
-STATE MANAGEMENT
-- App.tsx: Notes, Tags, UI State, Real-time Subscriptions
-- AuthContext: User session, OAuth, Password reset, Offboarding
-
-SERVICE LAYER
-- notes.ts: CRUD operations, Soft delete (Faded Notes), Share links, Batch operations
-- tags.ts: CRUD operations, Color management
-- offlineNotes.ts: Offline-aware note CRUD with sync queue (WIP)
-- offlineTags.ts: Offline-aware tag operations (WIP)
-- syncEngine.ts: Queue processor, conflict detection, sync (WIP)
-
-LIB LAYER
-- supabase.ts: Supabase client instance
-- offlineDb.ts: Dexie IndexedDB schema for offline storage
-
-HOOKS
-- useNetworkStatus: Network connectivity monitoring (singleton pattern)
-- useSyncEngine: Sync engine React integration, conflict resolution
-- useSyncStatus: Sync state for UI (pending count, online status)
-
-UTILITY LAYER
-- sanitize (XSS), exportImport (Backup), formatTime (Relative)
-- temporalGrouping, withRetry (Network), lazyWithRetry (Smart Chunk Loading)
-
-EXTERNAL SERVICES
-- Supabase: PostgreSQL (Database), Auth (OAuth+PW), Real-time (Sync), RLS (Security)
-- Vercel: Hosting + CDN
-- Sentry: Error Monitoring
-
-### Tech Stack
-
-| Category | Technology | Version |
-|----------|------------|---------|
-| **Frontend Framework** | React | 19.2.0 |
-| **Language** | TypeScript | 5.9.3 |
-| **Build Tool** | Vite | 7.2.4 |
-| **Styling** | Tailwind CSS | 4.1.17 |
-| **Rich Text Editor** | Tiptap (ProseMirror) | 3.13.0 |
-| **Layout** | react-masonry-css | 1.0.16 |
-| **Backend/Database** | Supabase | 2.86.2 |
-| **Offline Storage** | Dexie (IndexedDB) | 4.2.1 |
-| **Error Monitoring** | Sentry | 10.30.0 |
-| **Notifications** | react-hot-toast | 2.6.0 |
-| **XSS Prevention** | DOMPurify | 3.3.1 |
-| **Unit Testing** | Vitest | 4.0.15 |
-| **E2E Testing** | Playwright | 1.57.0 |
-| **Linting** | ESLint | 9.39.1 |
-
-### Production Deployment
-
-- **Platform:** Vercel (auto-deploys from main branch)
-- **Live URL:** https://zenote.vercel.app
-- **Repository:** https://github.com/anbuneel/zenote
-- **CI/CD:** GitHub Actions (typecheck, lint, test, build)
-- **PWA:** Yes (installable, offline app shell, font caching)
-- **CDN:** Vercel Edge Network
-
 ### Code Metrics
 
 | Metric | Count |
 |--------|-------|
-| **Total Lines of Code** | 26,335 |
+| Total Lines of Code | 26,335 |
 | TypeScript/TSX (src/) | 23,384 |
 | CSS (src/) | 891 |
-| E2E Tests (e2e/) | 1,473 |
-| SQL Migrations | 370 |
-| Build Scripts | 217 |
-| **Source Files** | |
 | React Components | 32 |
-| Component Tests | 8 |
-| Utility/Service Tests | 9 |
-| E2E Spec Files | 6 |
-| Theme Configs | 6 |
-| **Build Status** | |
-| Status | ⚠️ TypeScript errors (offline services WIP) |
-
-*Note: Bundle metrics from v1.9.10 (last successful build):*
-| **Bundle Size (Optimized)** | |
-|--------|-------|
 | Initial JS Bundle | 333 KB |
-| Editor Chunk (lazy) | 407 KB |
-| Vendor Supabase (lazy) | 185 KB |
-| Vendor Sentry (lazy) | 18 KB |
-| Vendor React (lazy) | 4 KB |
 | Total JS | 994 KB |
-| Total CSS | 45 KB |
 
-### Component Inventory
+### Notable Changes
 
-**Core Views (6):**
-- LandingPage - Split-screen hero with interactive demo
-- ChapteredLibrary - Temporal note organization (Pinned, This Week, etc.)
-- Editor - Rich text editing with Tiptap
-- FadedNotesView - Soft-deleted notes recovery
-- ChangelogPage - Version history display
-- RoadmapPage - Feature roadmap with status badges
-
-**Shared Components (26):**
-- Auth - Login/signup/OAuth/password reset
-- ChapterNav - Desktop dot navigation sidebar
-- ChapterSection - Collapsible chapter with masonry grid
-- ConflictModal - "Two Paths" sync conflict resolution
-- EditorToolbar - Rich text formatting toolbar
-- ErrorBoundary - Graceful error handling
-- FadedNoteCard - Card for soft-deleted notes
-- Footer - Minimal navigation links
-- Header - Library header with search
-- HeaderShell - Consistent header structure
-- LettingGoModal - Account offboarding
-- NoteCard - Individual note display
-- RichTextEditor - Tiptap wrapper component
-- SettingsModal - Profile and theme settings
-- ShareModal - Share link management
-- SharedNoteView - Public read-only note view
-- SlashCommand - Editor slash command menu
-- SyncIndicator - Offline/sync status indicator
-- TagBadge - Small tag display
-- TagFilterBar - Tag filtering strip
-- TagModal - Tag create/edit dialog
-- TagPill - Tag pill with edit button
-- TagSelector - Tag assignment dropdown
-- TimeRibbon - Mobile chapter navigation
-- WelcomeBackPrompt - Grace period return prompt
-- WhisperBack - Floating back button
-
-### Database Schema
-
-**Tables:**
-
-notes
-- id (uuid, PK)
-- user_id (FK to auth.users)
-- title (text)
-- content (text, HTML from Tiptap)
-- pinned (boolean)
-- deleted_at (timestamptz, nullable - for soft delete)
-- created_at (timestamptz)
-- updated_at (timestamptz)
-
-tags
-- id (uuid, PK)
-- user_id (FK to auth.users)
-- name (text)
-- color (text)
-- created_at (timestamptz)
-
-note_tags (junction table)
-- note_id (FK, PK)
-- tag_id (FK, PK)
-
-note_shares
-- id (uuid, PK)
-- note_id (FK, unique)
-- user_id (FK)
-- share_token (varchar(32), unique)
-- expires_at (timestamptz, nullable)
-- created_at (timestamptz)
-
-**IndexedDB (Offline Storage):**
-
-LocalNote - Mirrors notes table with sync metadata
-LocalTag - Mirrors tags table with sync metadata
-LocalNoteTag - Junction table for offline note-tag relationships
-SyncQueueItem - Pending operations to sync when online
-
-### Features Implemented (v1.9.11)
-
-**Core Functionality:**
-- Wabi-sabi design with light/dark themes (dark default)
-- Rich text editor (bold, italic, underline, headers, lists, quotes, code, task lists)
-- Tag-based organization with color picker (8 colors)
-- Real-time sync across tabs/devices
-- Search with Cmd/Ctrl+K shortcut
-- Pin notes to top of library
-- Slash commands (/h1, /h2, /h3, /bullet, /todo, /date, /time, etc.)
-
-**Authentication:**
-- Email/password authentication
-- Google OAuth
-- GitHub OAuth
-- Password reset flow
-- Account offboarding with 14-day grace period
-
-**Organization:**
-- Temporal chapters (Pinned, This Week, Last Week, This Month, Earlier, Archive)
-- Soft-delete with 30-day recovery (Faded Notes)
-- Collapsible chapter sections
-
-**Export/Import:**
-- JSON backup (full notes + tags)
-- Markdown export (single or bulk)
-- Clipboard copy (plain text or formatted)
-- Batch import with progress indicator
-
-**Sharing:**
-- Share as Letter (temporary read-only links)
-- Configurable expiration (1/7/30 days or never)
-- Beautiful shared note view
-
-**Progressive Web App:**
-- Installable on desktop/mobile
-- Offline app shell
-- Font caching
-
-**Offline Editing (Infrastructure Ready):**
-- IndexedDB schema with Dexie.js
-- Sync queue with conflict detection
-- "Two Paths" conflict modal for resolution
-- SyncIndicator component for status display
-- *Note: Integration with App.tsx pending*
-
-### Test Coverage
-
-| Category | Files | Tests |
-|----------|-------|-------|
-| Component Tests | 8 | Auth, Editor, HeaderShell, ChapteredLibrary, ShareModal, TagModal, TagBadge, ErrorBoundary |
-| Utility Tests | 5 | formatTime, sanitize, temporalGrouping, exportImport, withRetry |
-| Service Tests | 3 | notes, tags, syncEngine |
-| Hook Tests | 1 | useNetworkStatus |
-| E2E Tests | 6 | auth, notes, tags, sharing, export-import, settings |
-
-### Notable Changes Since Last Snapshot
-
-**v1.9.11 (2025-12-29):** Accessibility & styling
-- Dark mode delete button now uses proper red color instead of coral
-- Delete confirmation dialog accessibility improvements
-
-**Documentation (2026-01-07):**
-- Added competitive growth plan for user acquisition
-- Updated documentation for offline editing feature
-- Added documentation index and strategic viability review
-
-**Offline Editing Infrastructure (2025-12):**
-- Added Dexie.js for IndexedDB storage
-- Created offlineDb.ts with schema definitions
-- Implemented offlineNotes.ts, offlineTags.ts, syncEngine.ts services
-- Added useSyncEngine.ts and useSyncStatus.ts hooks
-- Created ConflictModal and SyncIndicator components
-- *Status: TypeScript errors need resolution before production use*
+**v1.9.11:** Accessibility improvements
+**Offline Infrastructure:** Dexie.js, offlineNotes.ts, syncEngine.ts, ConflictModal
 
 ---
 
@@ -274,224 +256,20 @@ SyncQueueItem - Pending operations to sync when online
 **Captured:** 2025-12-28T19:00:00Z
 **Commit:** ad6905b (main branch)
 
-### Architecture Overview
-
-The Zenote application follows a layered architecture pattern:
-
-**ZENOTE ARCHITECTURE (React SPA with Supabase Backend)**
-
-PRESENTATION LAYER
-- Core Views: LandingPage (Split-view), ChapteredLibrary (Temporal Grid), Editor (Rich Text)
-- HeaderShell provides consistent header across all views
-- UI Components: NoteCard, TagPill, TagBadge, WhisperBack
-- Navigation: ChapterNav (Desktop), TimeRibbon (Mobile), TagFilterBar, EditorToolbar
-
-MODAL COMPONENTS
-- SettingsModal (Profile), TagModal (Create/Edit), ShareModal (Share Links), LettingGoModal (Offboarding)
-
-STATE MANAGEMENT
-- App.tsx: Notes, Tags, UI State, Real-time Subscriptions
-- AuthContext: User session, OAuth, Password reset, Offboarding
-
-SERVICE LAYER
-- notes.ts: CRUD operations, Soft delete (Faded Notes), Share links, Batch operations
-- tags.ts: CRUD operations, Color management
-
-UTILITY LAYER
-- sanitize (XSS), exportImport (Backup), formatTime (Relative), temporalGrouping, withRetry (Network), lazyWithRetry (Smart Chunk Loading)
-
-EXTERNAL SERVICES
-- Supabase: PostgreSQL (Database), Auth (OAuth+PW), Real-time (Sync), RLS (Security)
-- Vercel: Hosting + CDN
-- Sentry: Error Monitoring
-
-### Tech Stack
-
-| Category | Technology | Version |
-|----------|------------|---------|
-| **Frontend Framework** | React | 19.2.0 |
-| **Language** | TypeScript | 5.9.3 |
-| **Build Tool** | Vite | 7.2.4 |
-| **Styling** | Tailwind CSS | 4.1.17 |
-| **Rich Text Editor** | Tiptap (ProseMirror) | 3.13.0 |
-| **Layout** | react-masonry-css | 1.0.16 |
-| **Backend/Database** | Supabase | 2.86.2 |
-| **Error Monitoring** | Sentry | 10.30.0 |
-| **Notifications** | react-hot-toast | 2.6.0 |
-| **XSS Prevention** | DOMPurify | 3.3.1 |
-| **Unit Testing** | Vitest | 4.0.15 |
-| **E2E Testing** | Playwright | 1.57.0 |
-| **Linting** | ESLint | 9.39.1 |
-
-### Production Deployment
-
-- **Platform:** Vercel (auto-deploys from main branch)
-- **Live URL:** https://zenote.vercel.app
-- **Repository:** https://github.com/anbuneel/zenote
-- **CI/CD:** GitHub Actions (typecheck, lint, test, build)
-- **PWA:** Yes (installable, offline app shell, font caching)
-- **CDN:** Vercel Edge Network
-
 ### Code Metrics
 
 | Metric | Count |
 |--------|-------|
-| **Total Lines of Code** | 20,178 |
+| Total Lines of Code | 20,178 |
 | TypeScript/TSX (src/) | 17,973 |
-| CSS (src/) | 724 |
-| E2E Tests (e2e/) | 1,054 |
-| SQL Migrations | 288 |
-| Build Scripts | 139 |
-| **Source Files** | |
 | React Components | 34 |
-| Component Tests | 8 |
-| Utility/Service Tests | 8 |
-| E2E Spec Files | 6 |
-| Theme Configs | 4 |
-| **Bundle Size (Optimized)** | |
-| Initial JS Bundle | 333 KB |
-| Editor Chunk (lazy) | 407 KB |
-| Vendor Supabase (lazy) | 185 KB |
-| Vendor Sentry (lazy) | 18 KB |
-| Vendor React (lazy) | 4 KB |
 | Total JS | 994 KB |
-| Total CSS | 45 KB |
 
-### Component Inventory
+### Notable Changes
 
-**Core Views (6):**
-- LandingPage - Split-screen hero with interactive demo
-- ChapteredLibrary - Temporal note organization (Pinned, This Week, etc.)
-- Editor - Rich text editing with Tiptap
-- FadedNotesView - Soft-deleted notes recovery
-- ChangelogPage - Version history display
-- RoadmapPage - Feature roadmap with status badges
-
-**Shared Components (28):**
-- Auth - Login/signup/OAuth/password reset
-- ChapterNav - Desktop dot navigation sidebar
-- ChapterSection - Collapsible chapter with masonry grid
-- EditorToolbar - Rich text formatting toolbar
-- ErrorBoundary - Graceful error handling
-- FadedNoteCard - Card for soft-deleted notes
-- Footer - Minimal navigation links
-- Header - Library header with search
-- HeaderShell - Consistent header structure
-- LettingGoModal - Account offboarding
-- NoteCard - Individual note display
-- RichTextEditor - Tiptap wrapper component
-- SettingsModal - Profile and theme settings
-- ShareModal - Share link management
-- SharedNoteView - Public read-only note view
-- SlashCommand - Editor slash command menu
-- TagBadge - Small tag display
-- TagFilterBar - Tag filtering strip
-- TagModal - Tag create/edit dialog
-- TagPill - Tag pill with edit button
-- TagSelector - Tag assignment dropdown
-- TimeRibbon - Mobile chapter navigation
-- WelcomeBackPrompt - Grace period return prompt
-- WhisperBack - Floating back button
-
-### Database Schema
-
-**Tables:**
-
-notes
-- id (uuid, PK)
-- user_id (FK to auth.users)
-- title (text)
-- content (text, HTML from Tiptap)
-- pinned (boolean)
-- deleted_at (timestamptz, nullable - for soft delete)
-- created_at (timestamptz)
-- updated_at (timestamptz)
-
-tags
-- id (uuid, PK)
-- user_id (FK to auth.users)
-- name (text)
-- color (text)
-- created_at (timestamptz)
-
-note_tags (junction table)
-- note_id (FK, PK)
-- tag_id (FK, PK)
-
-note_shares
-- id (uuid, PK)
-- note_id (FK, unique)
-- user_id (FK)
-- share_token (varchar(32), unique)
-- expires_at (timestamptz, nullable)
-- created_at (timestamptz)
-
-### Features Implemented (v1.9.10)
-
-**Core Functionality:**
-- Wabi-sabi design with light/dark themes (dark default)
-- Rich text editor (bold, italic, underline, headers, lists, quotes, code, task lists)
-- Tag-based organization with color picker (8 colors)
-- Real-time sync across tabs/devices
-- Search with Cmd/Ctrl+K shortcut
-- Pin notes to top of library
-- Slash commands (/h1, /h2, /h3, /bullet, /todo, /date, /time, etc.)
-
-**Authentication:**
-- Email/password authentication
-- Google OAuth
-- GitHub OAuth
-- Password reset flow
-- Account offboarding with 14-day grace period
-
-**Organization:**
-- Temporal chapters (Pinned, This Week, Last Week, This Month, Earlier, Archive)
-- Soft-delete with 30-day recovery (Faded Notes)
-- Collapsible chapter sections
-
-**Export/Import:**
-- JSON backup (full notes + tags)
-- Markdown export (single or bulk)
-- Clipboard copy (plain text or formatted)
-- Batch import with progress indicator
-
-**Sharing:**
-- Share as Letter (temporary read-only links)
-- Configurable expiration (1/7/30 days or never)
-- Beautiful shared note view
-
-**Progressive Web App:**
-- Installable on desktop/mobile
-- Offline app shell
-- Font caching
-
-### Test Coverage
-
-| Category | Files | Tests |
-|----------|-------|-------|
-| Component Tests | 8 | Auth, Editor, HeaderShell, ChapteredLibrary, ShareModal, TagModal, TagBadge, ErrorBoundary |
-| Utility Tests | 5 | formatTime, sanitize, temporalGrouping, exportImport, withRetry |
-| Service Tests | 2 | notes, tags |
-| Hook Tests | 1 | useNetworkStatus |
-| E2E Tests | 6 | auth, notes, tags, sharing, export-import, settings |
-
-### Notable Changes Since Last Snapshot
-
-**v1.9.10 (2025-12-29):** Smart chunk loading
-- Added `lazyWithRetry` utility for graceful version update handling
-- Auto-retries chunk loads and quietly reloads when safe (no unsaved work)
-- Added data-save-status attribute to Editor for detecting in-flight saves
-
-**v1.9.9 (2025-12-29):** Shared notes RLS fix
-- Fixed shared notes not viewable by unauthenticated users
-- Added RLS policies for public access to notes/tags with valid share tokens
-- Updated E2E tests for correct share URL format (/?s=token)
-
-**v1.9.8 (2025-12-29):** Code cleanup - removed 230 lines of dead code
-- Deleted legacy `Library.tsx` component (replaced by ChapteredLibrary)
-- Removed unused `getNoteTags()` function from tags service
-- Removed unused theme utilities and type exports
-- Updated component count: 35 → 34
+**v1.9.10:** Smart chunk loading
+**v1.9.9:** Shared notes RLS fix
+**v1.9.8:** Code cleanup (removed 230 lines)
 
 ---
 
