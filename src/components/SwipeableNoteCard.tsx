@@ -7,7 +7,8 @@ import { NoteCard } from './NoteCard';
 interface SwipeableNoteCardProps {
   note: Note;
   onClick: (id: string) => void;
-  onDelete: (id: string) => void;
+  // onDelete can return boolean (true=success, false=failure) or void for backwards compatibility
+  onDelete: (id: string) => void | boolean | Promise<void | boolean>;
   onTogglePin: (id: string, pinned: boolean) => void;
   disabled?: boolean;
 }
@@ -16,6 +17,7 @@ interface SwipeableNoteCardProps {
 const ACTION_THRESHOLD = 80; // Distance to reveal action
 const TRIGGER_THRESHOLD = 140; // Distance to auto-trigger action
 const VELOCITY_TRIGGER = 1.2; // Velocity to auto-trigger
+const DELETE_ANIMATION_DELAY = 150; // Delay before API call (snappy feel)
 
 /**
  * Swipeable wrapper for NoteCard with iOS-like gesture actions.
@@ -50,18 +52,39 @@ export function SwipeableNoteCard({
   }, []);
 
   // Handle delete action
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     setIsTriggering(true);
     triggerHaptic('heavy');
 
-    // Animate off screen then trigger delete
+    // Animate off screen
     api.start({
       x: -window.innerWidth,
       config: { tension: 200, friction: 25 },
-      onRest: () => {
-        onDelete(note.id);
-      },
     });
+
+    // Brief delay for animation visibility, then delete
+    await new Promise((resolve) => setTimeout(resolve, DELETE_ANIMATION_DELAY));
+
+    // onDelete may return boolean (success/failure) or void
+    // Check result to determine if we need to recover UI
+    const result = await Promise.resolve(onDelete(note.id));
+
+    // If delete explicitly failed (returned false), show failure feedback
+    if (result === false) {
+      // Shake animation to indicate failure
+      api.start({
+        to: [
+          { x: 20, config: { duration: 50 } },
+          { x: -20, config: { duration: 50 } },
+          { x: 10, config: { duration: 50 } },
+          { x: -10, config: { duration: 50 } },
+          { x: 0, config: { tension: 300, friction: 20 } },
+        ],
+      });
+      triggerHaptic('heavy'); // Additional haptic to emphasize failure
+      setIsTriggering(false);
+    }
+    // If result is true or undefined (legacy), delete succeeded or we assume success
   }, [api, note.id, onDelete, triggerHaptic]);
 
   // Handle pin action

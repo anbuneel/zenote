@@ -29,6 +29,8 @@ export function PullToRefresh({
   const containerRef = useRef<HTMLDivElement>(null);
   const isRefreshingRef = useRef(false);
   const canPullRef = useRef(false);
+  // Cache scrollable element to avoid DOM traversal on every touch
+  const scrollableElementRef = useRef<Element | null>(null);
 
   // Spring animation for pull indicator
   const [{ y, opacity, rotate }, api] = useSpring(() => ({
@@ -79,6 +81,56 @@ export function PullToRefresh({
     }
   }, [api, onRefresh, triggerHaptic]);
 
+  // Helper to check if element is truly scrollable (not just overflow-hidden)
+  const isScrollable = useCallback((el: Element): boolean => {
+    // Must have overflow content
+    if (el.scrollHeight <= el.clientHeight) return false;
+
+    // Check computed overflow-y style (must be 'auto' or 'scroll', not 'hidden')
+    const style = window.getComputedStyle(el);
+    const overflowY = style.overflowY;
+    return overflowY === 'auto' || overflowY === 'scroll';
+  }, []);
+
+  // Find the first actually scrollable child (depth-first, limited depth)
+  const findScrollableChild = useCallback((element: Element, depth = 0): Element | null => {
+    if (depth > 5) return null; // Limit recursion depth for performance
+
+    for (const child of Array.from(element.children)) {
+      if (isScrollable(child)) {
+        return child;
+      }
+      const nested = findScrollableChild(child, depth + 1);
+      if (nested) return nested;
+    }
+    return null;
+  }, [isScrollable]);
+
+  // Get scroll position, caching the scrollable element for performance
+  const getScrollTop = useCallback(() => {
+    if (!containerRef.current) return 0;
+
+    // Check if the container itself is scrolling
+    if (containerRef.current.scrollTop > 0) {
+      return containerRef.current.scrollTop;
+    }
+
+    // Use cached scrollable element if available and still valid
+    if (scrollableElementRef.current && containerRef.current.contains(scrollableElementRef.current)) {
+      return scrollableElementRef.current.scrollTop;
+    }
+
+    // Find and cache the scrollable element
+    const scrollableChild = findScrollableChild(containerRef.current);
+    if (scrollableChild) {
+      scrollableElementRef.current = scrollableChild;
+      return scrollableChild.scrollTop;
+    }
+
+    // Fallback to document scroll
+    return document.documentElement.scrollTop || document.body.scrollTop;
+  }, [findScrollableChild]);
+
   // Gesture binding
   const bind = useDrag(
     ({ movement: [, my], down, first, memo = { hapticTriggered: false } }) => {
@@ -86,7 +138,7 @@ export function PullToRefresh({
 
       // Check if at top of scroll on first touch
       if (first) {
-        const scrollTop = containerRef.current?.scrollTop ?? 0;
+        const scrollTop = getScrollTop();
         canPullRef.current = scrollTop <= 0;
       }
 
