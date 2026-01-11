@@ -12,8 +12,8 @@ export interface NetworkStatus {
 
 // Singleton state to prevent duplicate listeners across hook instances
 let isInitialized = false;
-let currentOnlineStatus = true; // Assume online initially
-let wasOffline = false;
+let currentOnlineStatus = typeof navigator !== 'undefined' ? navigator.onLine : true;
+let wasOffline = !currentOnlineStatus;
 const reconnectCallbacks = new Set<() => void>();
 const subscribers = new Set<() => void>();
 
@@ -59,6 +59,7 @@ async function initializeCapacitorNetwork() {
     const status = await Network.getStatus();
     currentOnlineStatus = status.connected;
     wasOffline = !status.connected;
+    notifySubscribers();
 
     // Listen for changes
     await Network.addListener('networkStatusChange', (status) => {
@@ -74,6 +75,7 @@ async function initializeCapacitorNetwork() {
 function initializeBrowserNetwork() {
   currentOnlineStatus = navigator.onLine;
   wasOffline = !navigator.onLine;
+  notifySubscribers();
 
   window.addEventListener('online', () => handleStatusChange(true));
   window.addEventListener('offline', () => handleStatusChange(false));

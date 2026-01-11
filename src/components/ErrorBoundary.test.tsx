@@ -62,13 +62,9 @@ describe('ErrorBoundary', () => {
   it('calls window.location.reload when refresh button is clicked', async () => {
     const user = userEvent.setup();
     const reloadMock = vi.fn();
-    Object.defineProperty(window, 'location', {
-      value: { reload: reloadMock },
-      writable: true,
-    });
 
     render(
-      <ErrorBoundary>
+      <ErrorBoundary onReload={reloadMock}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );

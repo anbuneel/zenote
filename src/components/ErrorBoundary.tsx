@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/react';
 
 interface Props {
   children: ReactNode;
+  onReload?: () => void;
 }
 
 interface State {
@@ -54,6 +55,11 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReload = (): void => {
+    if (this.props.onReload) {
+      this.props.onReload();
+      return;
+    }
+
     window.location.reload();
   };
 
