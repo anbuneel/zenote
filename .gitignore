@@ -35,6 +35,7 @@ nul
 
 # Claude Code local settings
 .claude/
+tmpclaude-*
 
 # Cursor editor
 .cursor/
