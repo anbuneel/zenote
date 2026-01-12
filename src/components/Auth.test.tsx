@@ -87,12 +87,12 @@ describe('Auth', () => {
 
     it('does not show full name field in login mode', () => {
       render(<Auth {...defaultProps} />);
-      expect(screen.queryByPlaceholderText('John Doe')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/full name/i)).not.toBeInTheDocument();
     });
 
     it('shows full name field in signup mode', () => {
       render(<Auth {...defaultProps} initialMode="signup" />);
-      expect(screen.getByPlaceholderText('John Doe')).toBeInTheDocument();
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     });
   });
 
@@ -207,10 +207,8 @@ describe('Auth', () => {
       const user = userEvent.setup();
       render(<Auth {...defaultProps} initialMode="signup" />);
 
-      await user.type(screen.getByPlaceholderText('John Doe'), 'Test User');
-      // Email is the second textbox in signup mode (after name)
-      const textboxes = screen.getAllByRole('textbox');
-      await user.type(textboxes[1], 'test@example.com');
+      await user.type(screen.getByLabelText(/full name/i), 'Test User');
+      await user.type(screen.getByLabelText(/email/i), 'test@example.com');
       await user.type(getPasswordInput(), 'password123');
       await user.click(screen.getByRole('button', { name: 'Sign Up' }));
 
@@ -414,6 +412,24 @@ describe('Auth', () => {
       await user.click(screen.getByText('Google'));
 
       expect(screen.getByText('Redirecting...')).toBeInTheDocument();
+    });
+
+    it('shows OAuth buttons before email form (OAuth-first layout)', () => {
+      const { container } = render(<Auth {...defaultProps} />);
+
+      const googleButton = screen.getByText('Google').closest('button');
+      const form = container.querySelector('form');
+      const dividerText = screen.getByText('or continue with email');
+
+      // All elements should exist
+      expect(googleButton).toBeInTheDocument();
+      expect(form).toBeInTheDocument();
+      expect(dividerText).toBeInTheDocument();
+
+      // OAuth buttons and divider should come before the form in DOM order
+      // compareDocumentPosition returns a bitmask; DOCUMENT_POSITION_FOLLOWING (4) means the argument comes after
+      expect(googleButton!.compareDocumentPosition(form!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(dividerText.compareDocumentPosition(form!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
   });
 
