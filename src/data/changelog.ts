@@ -8,6 +8,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.5.0',
+    date: '2026-01-12',
+    changes: [
+      { type: 'feature', text: 'Landing page redesign - cleaner split layout with sample note cards and trust signals' },
+      { type: 'feature', text: 'OAuth-first auth - Google/GitHub sign-in buttons now appear first for faster onboarding' },
+      { type: 'improvement', text: 'Practice Space access - "Explore" link prominently surfaces the full demo experience' },
+      { type: 'improvement', text: 'Reduced dark mode grain for a calmer visual experience' },
+    ],
+  },
+  {
     version: '2.4.0',
     date: '2026-01-11',
     changes: [

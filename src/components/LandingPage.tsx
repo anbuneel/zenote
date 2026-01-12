@@ -122,13 +122,9 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
                 <a
                   href="/demo"
                   className="landing-secondary-cta text-sm transition-all duration-200 inline-flex items-center gap-1 w-fit"
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    color: 'var(--color-text-secondary)',
-                  }}
                 >
                   or explore without signing up
-                  <span className="landing-secondary-cta-arrow">→</span>
+                  <span className="landing-secondary-cta-arrow" aria-hidden="true">→</span>
                 </a>
               </div>
 
@@ -251,8 +247,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
           {/* Theme Toggle */}
           <button
             onClick={onThemeToggle}
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-tertiary)]"
-            style={{ color: 'var(--color-text-secondary)' }}
+            className="landing-theme-toggle w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300"
             aria-label="Toggle theme"
           >
             {theme === 'light' ? (
@@ -269,13 +264,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
           {/* Sign In - Outlined button for returning users */}
           <button
             onClick={onSignIn}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-[var(--color-accent)] hover:text-white hover:border-[var(--color-accent)]"
-            style={{
-              fontFamily: 'var(--font-body)',
-              color: 'var(--color-text-primary)',
-              border: '1px solid var(--glass-border)',
-              background: 'transparent',
-            }}
+            className="landing-signin-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
           >
             Sign In
           </button>
@@ -426,6 +415,8 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
           box-shadow: 0 8px 30px var(--color-accent-glow);
         }
         .landing-secondary-cta {
+          font-family: var(--font-body);
+          color: var(--color-text-secondary);
           border-bottom: 1px dotted var(--color-text-tertiary);
           text-decoration: none;
         }
@@ -439,6 +430,24 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
         }
         .landing-secondary-cta:hover .landing-secondary-cta-arrow {
           transform: translateX(4px);
+        }
+        .landing-theme-toggle {
+          color: var(--color-text-secondary);
+        }
+        .landing-theme-toggle:hover {
+          color: var(--color-accent);
+          background: var(--color-bg-tertiary);
+        }
+        .landing-signin-btn {
+          font-family: var(--font-body);
+          color: var(--color-text-primary);
+          background: transparent;
+          border: 1px solid var(--glass-border);
+        }
+        .landing-signin-btn:hover {
+          color: #fff;
+          background: var(--color-accent);
+          border-color: var(--color-accent);
         }
         .landing-nav-link {
           color: inherit;

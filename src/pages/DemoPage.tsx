@@ -404,9 +404,22 @@ function DemoHeader({
       onSignIn={onSignIn}
       leftContent={
         <div
-          className="flex items-center gap-2"
+          className="flex items-center gap-3"
           style={{ userSelect: 'none' }}
         >
+          {/* Subtle home link */}
+          <a
+            href="/"
+            className="text-sm transition-colors duration-200 hover:text-[var(--color-accent)]"
+            style={{
+              fontFamily: 'var(--font-body)',
+              color: 'var(--color-text-tertiary)',
+              textDecoration: 'none',
+            }}
+            title="Back to home"
+          >
+            ←
+          </a>
           <span
             className="text-xl sm:text-2xl"
             style={{

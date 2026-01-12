@@ -413,6 +413,24 @@ describe('Auth', () => {
 
       expect(screen.getByText('Redirecting...')).toBeInTheDocument();
     });
+
+    it('shows OAuth buttons before email form (OAuth-first layout)', () => {
+      const { container } = render(<Auth {...defaultProps} />);
+
+      const googleButton = screen.getByText('Google').closest('button');
+      const form = container.querySelector('form');
+      const dividerText = screen.getByText('or continue with email');
+
+      // All elements should exist
+      expect(googleButton).toBeInTheDocument();
+      expect(form).toBeInTheDocument();
+      expect(dividerText).toBeInTheDocument();
+
+      // OAuth buttons and divider should come before the form in DOM order
+      // compareDocumentPosition returns a bitmask; DOCUMENT_POSITION_FOLLOWING (4) means the argument comes after
+      expect(googleButton!.compareDocumentPosition(form!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(dividerText.compareDocumentPosition(form!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
   });
 
   describe('theme toggle', () => {
