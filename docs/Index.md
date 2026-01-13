@@ -38,6 +38,7 @@ Design analysis and feature exploration (Claude-authored).
 | Document | Description | Date |
 |----------|-------------|------|
 | [yidhan-brand-evaluation-claude.md](analysis/yidhan-brand-evaluation-claude.md) | **NEW** Yidhan rebrand evaluation: philosophical alignment, typography, taglines, SEO | 2026-01-12 |
+| [yidhan-logo-design-claude.md](analysis/yidhan-logo-design-claude.md) | **NEW** Yidhan logo design notes: concepts, final design analysis, variations needed | 2026-01-12 |
 | [landing-page-redesign-unified-demo-claude.md](analysis/landing-page-redesign-unified-demo-claude.md) | Landing page redesign: unified demo strategy (remove inline demo, surface Practice Space) | 2026-01-12 |
 | [ios-native-competitive-analysis-claude.md](analysis/ios-native-competitive-analysis-claude.md) | iOS native apps competitive analysis (Bear, Craft, Apple Notes) | 2026-01-10 |
 | [mobile-ios-gap-analysis-claude.md](analysis/mobile-ios-gap-analysis-claude.md) | Comprehensive mobile/iOS gap analysis with priorities | 2026-01-10 |
@@ -221,4 +222,4 @@ See [mobile-ios-overhaul-plan.md](plans/mobile-ios-overhaul-plan.md) for full na
 
 ---
 
-*Last updated: 2026-01-12 (Yidhan brand evaluation added)*
+*Last updated: 2026-01-12 (Yidhan brand evaluation and logo design notes added)*
