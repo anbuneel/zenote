@@ -1,4 +1,4 @@
-package com.zenote.app;
+package com.yidhan.app;
 
 import com.getcapacitor.BridgeActivity;
 
