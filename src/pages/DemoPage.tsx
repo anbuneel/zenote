@@ -20,7 +20,6 @@ import { TagFilterBar } from '../components/TagFilterBar';
 import { Footer } from '../components/Footer';
 import { HeaderShell } from '../components/HeaderShell';
 import { LoadingFallback } from '../components/LoadingFallback';
-import { YidhanLogo } from '../components/YidhanLogo';
 import { lazyWithRetry } from '../utils/lazyWithRetry';
 
 // Lazy load heavy components
@@ -421,7 +420,17 @@ function DemoHeader({
           >
             ←
           </a>
-          <YidhanLogo size="sm" />
+          <span
+            className="text-xl sm:text-2xl"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 500,
+              color: 'var(--color-text-primary)',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Yidhan
+          </span>
           <span
             className="text-xs px-2 py-0.5 rounded-full"
             style={{

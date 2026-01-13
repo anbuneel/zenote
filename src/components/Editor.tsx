@@ -8,7 +8,6 @@ import { ShareModal } from './ShareModal';
 import { formatShortDate, formatRelativeTime } from '../utils/formatTime';
 import { HeaderShell } from './HeaderShell';
 import { WhisperBack } from './WhisperBack';
-import { YidhanLogo } from './YidhanLogo';
 import {
   exportNoteToMarkdown,
   exportNoteToJSON,
@@ -303,8 +302,21 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
   // Left content: Logo + Breadcrumb (integrated for visual continuity)
   const leftContent = (
     <div className="flex items-center min-w-0">
-      {/* Clickable Logo with brand mark */}
-      <YidhanLogo size="md" onClick={handleLogoClick} />
+      {/* Clickable Logo */}
+      <button
+        onClick={handleLogoClick}
+        className="text-[1.4rem] md:text-[1.75rem] font-semibold tracking-tight transition-colors duration-200 hover:text-[var(--color-accent)] shrink-0"
+        style={{
+          fontFamily: 'var(--font-display)',
+          color: 'var(--color-text-primary)',
+          letterSpacing: '-0.5px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        Yidhan
+      </button>
 
       {/* Separator - visible on desktop */}
       <span

@@ -1,6 +1,5 @@
 import { TAG_COLORS, type Theme, type TagColor } from '../types';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { YidhanLogo } from './YidhanLogo';
 
 interface LandingPageProps {
   onStartWriting: () => void;
@@ -56,7 +55,17 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
       <section className="w-full md:w-1/2 flex flex-col" style={{ background: 'var(--color-bg-primary)' }}>
         {/* Left Header */}
         <header className="h-16 px-6 md:px-8 lg:px-12 flex items-center shrink-0">
-          <YidhanLogo size="md" />
+          <span
+            className="text-[1.4rem] md:text-[1.75rem] font-semibold tracking-tight"
+            style={{
+              fontFamily: 'var(--font-display)',
+              color: 'var(--color-text-primary)',
+              letterSpacing: '-0.5px',
+              userSelect: 'none',
+            }}
+          >
+            Yidhan
+          </span>
         </header>
 
         {/* Hero Content */}

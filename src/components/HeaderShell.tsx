@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react';
 import type { Theme } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { YidhanLogo } from './YidhanLogo';
 
 /**
  * Extract initials from a full name or email
@@ -31,6 +30,39 @@ export interface MenuItemConfig {
 
 export interface MenuSectionConfig {
   items: MenuItemConfig[];
+}
+
+// Shared logo styles
+const logoBaseStyles: React.CSSProperties = {
+  fontFamily: 'var(--font-display)',
+  color: 'var(--color-text-primary)',
+  letterSpacing: '-0.5px',
+  userSelect: 'none',
+};
+
+// Logo component - renders as button if onClick provided, span otherwise
+function Logo({ onClick }: { onClick?: () => void }) {
+  const className = `text-[1.4rem] md:text-[1.75rem] font-semibold tracking-tight${
+    onClick ? ' transition-colors duration-200 hover:text-[var(--color-accent)]' : ''
+  }`;
+
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={className}
+        style={{ ...logoBaseStyles, background: 'none', border: 'none', cursor: 'pointer' }}
+      >
+        Yidhan
+      </button>
+    );
+  }
+
+  return (
+    <span className={className} style={logoBaseStyles}>
+      Yidhan
+    </span>
+  );
 }
 
 interface HeaderShellProps {
@@ -102,7 +134,7 @@ export function HeaderShell({
         {/* Left Zone - Custom content or default Logo */}
         <div className="shrink-0 flex items-center min-w-0">
           {leftContent || (
-            <YidhanLogo size="md" onClick={onLogoClick} />
+            <Logo onClick={onLogoClick} />
           )}
         </div>
 
