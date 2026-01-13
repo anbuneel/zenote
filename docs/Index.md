@@ -105,6 +105,7 @@ Currently in-progress implementation plans and follow-ups.
 
 | Document | Description | Date |
 |----------|-------------|------|
+| [yidhan-rebrand-plan.md](plans/yidhan-rebrand-plan.md) | **NEW** Yidhan rebrand implementation plan (128 files, 7 phases) | 2026-01-12 |
 | [mobile-ios-overhaul-plan.md](plans/mobile-ios-overhaul-plan.md) | Full mobile/iOS overhaul (requires macOS, 9-13 weeks) | 2026-01-10 |
 | [competitive-growth-plan-claude.md](active/competitive-growth-plan-claude.md) | Competitive growth strategy and positioning | 2026-01-06 |
 | [zenote-competitive-roadmap-notes-codex.md](active/zenote-competitive-roadmap-notes-codex.md) | Competitive roadmap analysis (Codex) | 2026-01-06 |
@@ -222,4 +223,4 @@ See [mobile-ios-overhaul-plan.md](plans/mobile-ios-overhaul-plan.md) for full na
 
 ---
 
-*Last updated: 2026-01-12 (Yidhan brand evaluation and logo design notes added)*
+*Last updated: 2026-01-12 (Yidhan rebrand plan added)*
