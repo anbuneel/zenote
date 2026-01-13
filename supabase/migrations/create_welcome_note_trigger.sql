@@ -8,9 +8,9 @@ begin
   insert into public.notes (user_id, title, content)
   values (
     new.id,
-    'Welcome to Zenote!',
+    'Welcome to Yidhan!',
     '<h2>Your calm space for thoughts</h2>
-<p>Zenote is a distraction-free note-taking app inspired by Japanese stationery and the wabi-sabi philosophy of finding beauty in simplicity.</p>
+<p>Yidhan is a distraction-free note-taking app — where thoughts bloom with clarity. Inspired by wabi-sabi philosophy, finding beauty in simplicity.</p>
 <h3>Getting started</h3>
 <ul>
   <li><strong>Create a note</strong> — Click the "New Note" button or start typing</li>

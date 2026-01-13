@@ -1,5 +1,5 @@
 -- ============================================================================
--- SECURITY AUDIT CHECKLIST FOR ZENOTE
+-- SECURITY AUDIT CHECKLIST FOR YIDHAN
 -- ============================================================================
 -- This file documents security configurations that should be verified in
 -- the Supabase Dashboard. Run these queries to audit your RLS policies.
