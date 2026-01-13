@@ -64,7 +64,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
               userSelect: 'none',
             }}
           >
-            Zenote
+            Yidhan
           </span>
         </header>
 

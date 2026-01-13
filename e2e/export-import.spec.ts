@@ -19,7 +19,7 @@ test.describe('Export & Import', () => {
       const download = await downloadPromise;
 
       // Verify download
-      expect(download.suggestedFilename()).toMatch(/zenote.*\.json/i);
+      expect(download.suggestedFilename()).toMatch(/yidhan.*\.json/i);
     });
 
     test('exports all notes as Markdown', async ({ authenticatedPage: page }) => {
@@ -38,7 +38,7 @@ test.describe('Export & Import', () => {
       const download = await downloadPromise;
 
       // Verify download
-      expect(download.suggestedFilename()).toMatch(/zenote.*\.md/i);
+      expect(download.suggestedFilename()).toMatch(/yidhan.*\.md/i);
     });
 
     test('exports single note as Markdown from editor', async ({ authenticatedPage: page }) => {

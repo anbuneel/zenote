@@ -18,7 +18,7 @@ const SHORT_LABELS: Record<ChapterKey, string> = {
 };
 
 // localStorage key for tracking first-time users
-const RIBBON_SEEN_KEY = 'zenote-ribbon-seen';
+const RIBBON_SEEN_KEY = 'yidhan-ribbon-seen';
 
 // Timeout durations
 const FIRST_TIME_TIMEOUT = 6000; // 6s for first-time users

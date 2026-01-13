@@ -634,8 +634,8 @@ describe('exportImport', () => {
 
       await downloadMarkdownZip([createMockNote()]);
 
-      // Filename should contain 'zenote-export-' with date and time (HHMMSS) format
-      expect(mockLink.download).toMatch(/zenote-export-\d{4}-\d{2}-\d{2}-\d{6}\.md/);
+      // Filename should contain 'yidhan-export-' with date and time (HHMMSS) format
+      expect(mockLink.download).toMatch(/yidhan-export-\d{4}-\d{2}-\d{2}-\d{6}\.md/);
     });
   });
 

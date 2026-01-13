@@ -25,7 +25,7 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
   const handleExportJSON = () => {
     const jsonData = exportNotesToJSON(notes, tags);
     const date = new Date().toISOString().split('T')[0];
-    downloadFile(jsonData, `zenote-keepsakes-${date}.json`, 'application/json');
+    downloadFile(jsonData, `yidhan-keepsakes-${date}.json`, 'application/json');
     toast.success('Keepsakes saved (JSON)');
   };
 
@@ -53,7 +53,7 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
       const now = new Date();
       const date = now.toISOString().split('T')[0];
       const time = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
-      downloadFile(jsonData, `zenote-full-backup-${date}-${time}.json`, 'application/json');
+      downloadFile(jsonData, `yidhan-full-backup-${date}-${time}.json`, 'application/json');
 
       toast.success('Full backup saved');
     } catch (error) {

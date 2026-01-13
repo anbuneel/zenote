@@ -315,7 +315,7 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
           cursor: 'pointer',
         }}
       >
-        Zenote
+        Yidhan
       </button>
 
       {/* Separator - visible on desktop */}

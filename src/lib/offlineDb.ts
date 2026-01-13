@@ -79,8 +79,10 @@ export interface ConflictRecord {
   detectedAt: number;
 }
 
-// Zenote offline database
-class ZenoteDB extends Dexie {
+// Yidhan offline database
+// NOTE: Database name kept as 'zenote-offline-*' for backwards compatibility
+// Existing users' data would be lost if renamed without migration
+class YidhanDB extends Dexie {
   notes!: Table<LocalNote, string>;
   tags!: Table<LocalTag, string>;
   noteTags!: Table<LocalNoteTag, [string, string]>;
@@ -107,13 +109,13 @@ class ZenoteDB extends Dexie {
 }
 
 // Database instance cache (one per user)
-let dbInstance: ZenoteDB | null = null;
+let dbInstance: YidhanDB | null = null;
 let currentUserId: string | null = null;
 
 /**
  * Get or create the offline database for a user
  */
-export function getOfflineDb(userId: string): ZenoteDB {
+export function getOfflineDb(userId: string): YidhanDB {
   if (dbInstance && currentUserId === userId) {
     return dbInstance;
   }
@@ -123,7 +125,7 @@ export function getOfflineDb(userId: string): ZenoteDB {
     dbInstance.close();
   }
 
-  dbInstance = new ZenoteDB(userId);
+  dbInstance = new YidhanDB(userId);
   currentUserId = userId;
   return dbInstance;
 }
@@ -186,4 +188,4 @@ export function generateMutationId(): string {
   return crypto.randomUUID();
 }
 
-export { ZenoteDB };
+export { YidhanDB };

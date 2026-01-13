@@ -43,7 +43,7 @@ describe('HeaderShell', () => {
   describe('rendering', () => {
     it('renders the logo by default', () => {
       render(<HeaderShell {...defaultProps} />);
-      expect(screen.getByText('Zenote')).toBeInTheDocument();
+      expect(screen.getByText('Yidhan')).toBeInTheDocument();
     });
 
     it('renders clickable logo when onLogoClick is provided', async () => {
@@ -51,7 +51,7 @@ describe('HeaderShell', () => {
       const onLogoClick = vi.fn();
       render(<HeaderShell {...defaultProps} onLogoClick={onLogoClick} />);
 
-      await user.click(screen.getByText('Zenote'));
+      await user.click(screen.getByText('Yidhan'));
       expect(onLogoClick).toHaveBeenCalled();
     });
 
@@ -64,7 +64,7 @@ describe('HeaderShell', () => {
       );
 
       expect(screen.getByTestId('custom-left')).toBeInTheDocument();
-      expect(screen.queryByText('Zenote')).not.toBeInTheDocument();
+      expect(screen.queryByText('Yidhan')).not.toBeInTheDocument();
     });
 
     it('renders center content (in both desktop and mobile slots)', () => {

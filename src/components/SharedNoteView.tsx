@@ -67,7 +67,7 @@ export function SharedNoteView({
             letterSpacing: '-0.5px',
           }}
         >
-          Zenote
+          Yidhan
         </span>
 
         {/* Theme Toggle */}
@@ -202,7 +202,7 @@ export function SharedNoteView({
                 e.currentTarget.style.background = 'var(--color-accent)';
               }}
             >
-              Go to Zenote
+              Go to Yidhan
             </button>
           </div>
         </div>
@@ -279,7 +279,7 @@ export function SharedNoteView({
                 fontFamily: 'var(--font-display)',
               }}
             >
-              Shared quietly via Zenote
+              Shared quietly via Yidhan
             </p>
 
             {/* Create your own CTA */}

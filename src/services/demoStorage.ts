@@ -47,7 +47,7 @@ export interface DemoState {
 // Constants
 // ============================================================================
 
-export const DEMO_STORAGE_KEY = 'zenote-demo-state';
+export const DEMO_STORAGE_KEY = 'yidhan-demo-state';
 export const DEMO_STORAGE_VERSION = 1;
 
 const DEFAULT_WELCOME_NOTE: DemoNote = {

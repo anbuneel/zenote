@@ -90,7 +90,7 @@ export function InstallPrompt({ onInstall, onDismiss }: InstallPromptProps) {
               color: 'var(--color-text-primary)',
             }}
           >
-            Add Zenote to your device
+            Add Yidhan to your device
           </h3>
           <p
             className="text-xs"

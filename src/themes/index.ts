@@ -1,5 +1,5 @@
 /**
- * Zenote Theme System
+ * Yidhan Theme System
  *
  * Centralized theme configuration for easy switching and backup.
  *

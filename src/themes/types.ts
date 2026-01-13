@@ -1,7 +1,7 @@
 /**
  * Theme Configuration Types
  *
- * Defines the structure for Zenote color themes.
+ * Defines the structure for Yidhan color themes.
  * All colors use CSS-compatible values (hex, rgba, etc.)
  */
 

@@ -16,7 +16,7 @@ export interface SharedData {
   url: string | null;
 }
 
-const SHARE_STORAGE_KEY = 'zenote-shared-content';
+const SHARE_STORAGE_KEY = 'yidhan-shared-content';
 
 /**
  * Format shared data into note content

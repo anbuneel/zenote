@@ -88,7 +88,7 @@ describe('useInstallPrompt', () => {
     renderHook(() => useInstallPrompt());
 
     // Check localStorage was written
-    const stored = localStorage.getItem('zenote-engagement');
+    const stored = localStorage.getItem('yidhan-engagement');
     expect(stored).not.toBeNull();
     const data = JSON.parse(stored!);
     expect(data.visits).toBe(1);
@@ -98,7 +98,7 @@ describe('useInstallPrompt', () => {
   it('does not double-count visits on same day', async () => {
     // Set up as if already visited today
     localStorage.setItem(
-      'zenote-engagement',
+      'yidhan-engagement',
       JSON.stringify({
         notesCreated: 0,
         visits: 1,
@@ -109,7 +109,7 @@ describe('useInstallPrompt', () => {
     const { useInstallPrompt } = await import('./useInstallPrompt');
     renderHook(() => useInstallPrompt());
 
-    const stored = JSON.parse(localStorage.getItem('zenote-engagement')!);
+    const stored = JSON.parse(localStorage.getItem('yidhan-engagement')!);
     expect(stored.visits).toBe(1); // Should still be 1, not 2
   });
 
@@ -121,13 +121,13 @@ describe('useInstallPrompt', () => {
       result.current.trackNoteCreated();
     });
 
-    const stored = JSON.parse(localStorage.getItem('zenote-engagement')!);
+    const stored = JSON.parse(localStorage.getItem('yidhan-engagement')!);
     expect(stored.notesCreated).toBe(1);
   });
 
   it('trackNoteCreated stops incrementing after threshold', async () => {
     localStorage.setItem(
-      'zenote-engagement',
+      'yidhan-engagement',
       JSON.stringify({
         notesCreated: 3,
         visits: 1,
@@ -142,7 +142,7 @@ describe('useInstallPrompt', () => {
       result.current.trackNoteCreated();
     });
 
-    const stored = JSON.parse(localStorage.getItem('zenote-engagement')!);
+    const stored = JSON.parse(localStorage.getItem('yidhan-engagement')!);
     expect(stored.notesCreated).toBe(3); // Should not increment past threshold
   });
 
@@ -161,11 +161,11 @@ describe('useInstallPrompt', () => {
       result.current.dismissPrompt();
     });
 
-    expect(localStorage.getItem('zenote-install-dismissed')).toBe('true');
+    expect(localStorage.getItem('yidhan-install-dismissed')).toBe('true');
   });
 
   it('respects previously dismissed state', async () => {
-    localStorage.setItem('zenote-install-dismissed', 'true');
+    localStorage.setItem('yidhan-install-dismissed', 'true');
 
     const { useInstallPrompt } = await import('./useInstallPrompt');
     const { result } = renderHook(() => useInstallPrompt());

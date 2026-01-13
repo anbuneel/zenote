@@ -1,8 +1,8 @@
-# Zenote
+# Yidhan
 
-A calm, distraction-free note-taking app inspired by Japanese stationery and wabi-sabi aesthetics.
+A calm, distraction-free note-taking app — where thoughts bloom with clarity.
 
-**Live Demo:** [https://zenote.vercel.app](https://zenote.vercel.app)
+**Live Demo:** [https://yidhan.vercel.app](https://yidhan.vercel.app)
 
 ![React](https://img.shields.io/badge/React-19-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
@@ -49,7 +49,7 @@ A calm, distraction-free note-taking app inspired by Japanese stationery and wab
 - **Public Roadmap** - See what's coming next and features being explored
 - **Footer Navigation** - Quick links to Changelog, Roadmap, and GitHub
 - **PWA Support** - Install to home screen for app-like experience, offline UI shell loads instantly
-- **Share Target** - Share text from other apps directly to Zenote (Android/Chrome)
+- **Share Target** - Share text from other apps directly to Yidhan (Android/Chrome)
 - **Install Prompt** - Friendly reminder to install after using the app
 - **Offline Editing** - Notes persist locally with IndexedDB, automatic sync when back online
 - **Conflict Resolution** - "Two Paths" modal for resolving concurrent edits across devices
@@ -63,7 +63,7 @@ A calm, distraction-free note-taking app inspired by Japanese stationery and wab
 
 ## Mobile & PWA
 
-Zenote is designed mobile-first with progressive enhancement toward native-like experiences:
+Yidhan is designed mobile-first with progressive enhancement toward native-like experiences:
 
 | Platform | Status | Install Method |
 |----------|--------|----------------|
@@ -263,7 +263,7 @@ src/
 
 ## Design Philosophy
 
-Zenote embraces **wabi-sabi** - finding beauty in imperfection:
+Yidhan embraces **wabi-sabi** - finding beauty in imperfection:
 
 - **Asymmetric corners** on cards (`2px 24px 4px 24px`)
 - **Warm, organic colors** - terracotta and antique gold accents
@@ -303,7 +303,7 @@ This app is deployed on [Vercel](https://vercel.com). To deploy your own instanc
 
 ## Security
 
-Zenote implements several security measures:
+Yidhan implements several security measures:
 
 - **XSS Prevention** - All user content (titles, imported data) is sanitized using DOMPurify
 - **Input Validation** - File size limits, JSON schema validation, tag name length limits

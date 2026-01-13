@@ -1,7 +1,7 @@
 import { test as base, expect, Page } from '@playwright/test';
 
 /**
- * E2E Test Fixtures for Zenote
+ * E2E Test Fixtures for Yidhan
  * Provides reusable test helpers and page objects
  */
 
@@ -107,7 +107,7 @@ export async function createNote(
  */
 export async function goToLibrary(page: Page): Promise<void> {
   // Logo is a button, not a link
-  await page.getByRole('button', { name: /zenote/i }).click();
+  await page.getByRole('button', { name: /yidhan/i }).click();
   await expect(page.getByTestId('library-view')).toBeVisible();
 }
 

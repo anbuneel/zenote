@@ -73,7 +73,7 @@ export function ChangelogPage({ theme, onThemeToggle, onSignIn, onLogoClick, onR
               fontWeight: 300,
             }}
           >
-            All the latest updates and improvements to Zenote.
+            All the latest updates and improvements to Yidhan.
           </p>
 
           {/* Changelog entries */}
