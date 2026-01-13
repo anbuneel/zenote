@@ -53,14 +53,14 @@ function Logo({ onClick }: { onClick?: () => void }) {
         className={className}
         style={{ ...logoBaseStyles, background: 'none', border: 'none', cursor: 'pointer' }}
       >
-        Zenote
+        Yidhan
       </button>
     );
   }
 
   return (
     <span className={className} style={logoBaseStyles}>
-      Zenote
+      Yidhan
     </span>
   );
 }

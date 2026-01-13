@@ -141,7 +141,7 @@ export class ErrorBoundary extends Component<Props, State> {
               }}
             >
               {isChunkError
-                ? 'Zenote has been updated since you last loaded the page. Please refresh to get the latest version.'
+                ? 'Yidhan has been updated since you last loaded the page. Please refresh to get the latest version.'
                 : "We're sorry, but something unexpected happened. Please try refreshing the page."}
             </p>
 

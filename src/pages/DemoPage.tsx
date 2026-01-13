@@ -1,7 +1,7 @@
 /**
  * DemoPage
  *
- * Full-featured demo experience for Zenote.
+ * Full-featured demo experience for Yidhan.
  * Users can create notes, use tags, and experience the full editor
  * without signing up. Notes persist in localStorage.
  *
@@ -429,7 +429,7 @@ function DemoHeader({
               letterSpacing: '-0.02em',
             }}
           >
-            Zenote
+            Yidhan
           </span>
           <span
             className="text-xs px-2 py-0.5 rounded-full"

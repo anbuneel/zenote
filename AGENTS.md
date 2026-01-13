@@ -1,10 +1,10 @@
-# Zenote - Project Context for Claude Code
+# Yidhan - Project Context for Claude Code
 
 ## Overview
-Zenote is a calm, distraction-free note-taking application inspired by Japanese stationery, Muji aesthetics, and architectural journals. It features a "wabi-sabi" design with asymmetric card corners, warm colors, and elegant typography.
+Yidhan is a calm, distraction-free note-taking application — where thoughts bloom with clarity. Named from Tamil origins meaning "Bright Spring," it features a wabi-sabi design with asymmetric card corners, warm colors, and elegant typography.
 
-**Live URL:** https://zenote.vercel.app
-**Repository:** https://github.com/anbuneel/zenote
+**Live URL:** https://yidhan.vercel.app
+**Repository:** https://github.com/anbuneel/yidhan
 
 ## Tech Stack
 - **Frontend:** React 19 + TypeScript + Vite
@@ -429,7 +429,7 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Export notes (JSON backup, Markdown) - bulk and single note
 - [x] Import notes (JSON restore, Markdown files) with progress indicator and batch inserts
 - [x] Rich HTML preview in note cards (preserves formatting)
-- [x] Breadcrumb navigation in editor (Zenote / Note Title)
+- [x] Breadcrumb navigation in editor (Yidhan / Note Title)
 - [x] Password reset flow (forgot password + email recovery)
 - [x] Settings modal (display name, password change, theme toggle)
 - [x] Loading states for tag operations (create/update/delete)
@@ -665,11 +665,11 @@ The Settings modal (`SettingsModal.tsx`) has two tabs:
 - **Password Tab:** New password + confirmation with validation (min 8 chars)
   - Hidden for OAuth users (Google sign-in) since they authenticate via their provider
 
-At the bottom of the modal is the "Let go of Zenote" link that opens the offboarding modal.
+At the bottom of the modal is the "Let go of Yidhan" link that opens the offboarding modal.
 
 ## Notes
 - Content is stored as HTML (from Tiptap's `getHTML()`)
-- Theme preference persists in localStorage (`zenote-theme`)
+- Theme preference persists in localStorage (`yidhan-theme`)
 - Notes sync in real-time via Supabase subscriptions
 - All note/tag operations are scoped to authenticated user via RLS
 - Tags support many-to-many relationship with notes
@@ -699,18 +699,18 @@ At the bottom of the modal is the "Let go of Zenote" link that opens the offboar
 ## Deployment
 
 ### Production (Vercel)
-- **URL:** https://zenote.vercel.app
+- **URL:** https://yidhan.vercel.app
 - **Host:** Vercel (auto-deploys from `main` branch)
 - **Environment Variables:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SENTRY_DSN` (optional)
 
 ### Supabase Auth Configuration (for OAuth)
 When deploying to a new domain, update in Supabase Dashboard → Authentication → URL Configuration:
-1. **Site URL:** Set to your production domain (e.g., `https://zenote.vercel.app`)
+1. **Site URL:** Set to your production domain (e.g., `https://yidhan.vercel.app`)
 2. **Redirect URLs:** Add your production domain (keep localhost for local dev)
 
 ### Native App (Capacitor)
 
-Zenote can be built as a native Android app using Capacitor. The same React codebase is wrapped in a native WebView.
+Yidhan can be built as a native Android app using Capacitor. The same React codebase is wrapped in a native WebView.
 
 **Requirements:**
 - Android Studio (for Android builds)

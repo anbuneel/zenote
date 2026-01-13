@@ -23,14 +23,14 @@ function isChunkLoadError(error: unknown): boolean {
  */
 function canSafelyReload(): boolean {
   // Check if we already tried to reload (prevent infinite loops)
-  const reloadAttempted = sessionStorage.getItem('zenote-chunk-reload-attempted');
+  const reloadAttempted = sessionStorage.getItem('yidhan-chunk-reload-attempted');
   if (reloadAttempted) {
     // Clear the flag after 30 seconds to allow future reloads
     const timestamp = parseInt(reloadAttempted, 10);
     if (Date.now() - timestamp < 30000) {
       return false;
     }
-    sessionStorage.removeItem('zenote-chunk-reload-attempted');
+    sessionStorage.removeItem('yidhan-chunk-reload-attempted');
   }
 
   // Check for open modals/dialogs
@@ -63,7 +63,7 @@ function canSafelyReload(): boolean {
  * Mark that we attempted a reload to prevent infinite loops
  */
 function markReloadAttempted(): void {
-  sessionStorage.setItem('zenote-chunk-reload-attempted', Date.now().toString());
+  sessionStorage.setItem('yidhan-chunk-reload-attempted', Date.now().toString());
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

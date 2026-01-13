@@ -544,7 +544,7 @@ export async function downloadMarkdownZip(notes: Note[]): Promise<void> {
   const now = new Date();
   const date = now.toISOString().split('T')[0];
   const time = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
-  downloadFile(combined, `zenote-export-${date}-${time}.md`, 'text/markdown');
+  downloadFile(combined, `yidhan-export-${date}-${time}.md`, 'text/markdown');
 }
 
 /**

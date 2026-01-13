@@ -19,7 +19,7 @@ describe('InstallPrompt', () => {
   it('renders the install prompt', () => {
     render(<InstallPrompt onInstall={mockOnInstall} onDismiss={mockOnDismiss} />);
 
-    expect(screen.getByText('Add Zenote to your device')).toBeInTheDocument();
+    expect(screen.getByText('Add Yidhan to your device')).toBeInTheDocument();
     expect(screen.getByText('Quick access, works offline')).toBeInTheDocument();
   });
 
@@ -27,7 +27,7 @@ describe('InstallPrompt', () => {
     render(<InstallPrompt onInstall={mockOnInstall} onDismiss={mockOnDismiss} />);
 
     // Initially not visible (opacity-0)
-    const container = screen.getByText('Add Zenote to your device').closest('div[class*="fixed"]');
+    const container = screen.getByText('Add Yidhan to your device').closest('div[class*="fixed"]');
     expect(container).toHaveClass('opacity-0');
 
     // Advance timer to trigger animation (wrapped in act)

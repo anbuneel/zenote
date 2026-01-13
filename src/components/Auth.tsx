@@ -342,7 +342,7 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
             letterSpacing: '-0.02em',
           }}
         >
-          Zenote
+          Yidhan
         </h1>
         <h2
           id="auth-modal-title"

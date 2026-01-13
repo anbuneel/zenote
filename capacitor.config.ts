@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.zenote.app',
-  appName: 'Zenote',
+  appId: 'com.yidhan.app',
+  appName: 'Yidhan',
   webDir: 'dist',
   android: {
     backgroundColor: '#1a1f1a', // Dark theme background (Midnight theme)

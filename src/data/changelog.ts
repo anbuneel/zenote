@@ -47,7 +47,7 @@ export const changelog: ChangelogEntry[] = [
     version: '2.3.0',
     date: '2026-01-10',
     changes: [
-      { type: 'feature', text: 'iOS Safari install guide - visual tutorial for adding Zenote to home screen' },
+      { type: 'feature', text: 'iOS Safari install guide - visual tutorial for adding Yidhan to home screen' },
       { type: 'feature', text: 'Apple splash screens - branded launch images for all iOS devices' },
       { type: 'feature', text: 'Swipe gestures - swipe left to delete, right to pin/unpin notes (mobile)' },
       { type: 'feature', text: 'Pull-to-refresh - pull down on note list to sync (mobile)' },
@@ -78,8 +78,8 @@ export const changelog: ChangelogEntry[] = [
     version: '2.1.0',
     date: '2026-01-08',
     changes: [
-      { type: 'feature', text: 'Share Target - share text from other apps directly to Zenote (Android/Chrome)' },
-      { type: 'feature', text: 'Install prompt - friendly reminder to add Zenote to your home screen after engagement' },
+      { type: 'feature', text: 'Share Target - share text from other apps directly to Yidhan (Android/Chrome)' },
+      { type: 'feature', text: 'Install prompt - friendly reminder to add Yidhan to your home screen after engagement' },
       { type: 'improvement', text: 'Install link added to landing page footer for easy PWA installation' },
     ],
   },
@@ -224,7 +224,7 @@ export const changelog: ChangelogEntry[] = [
     version: '1.7.0',
     date: '2025-12-25',
     changes: [
-      { type: 'feature', text: 'PWA support - install Zenote to your home screen for app-like experience' },
+      { type: 'feature', text: 'PWA support - install Yidhan to your home screen for app-like experience' },
       { type: 'feature', text: 'Offline app shell - UI loads instantly even without connection' },
       { type: 'improvement', text: 'Warm paper texture on light mode for consistent wabi-sabi feel' },
       { type: 'improvement', text: 'Zen-style network messages - calm, non-alarming offline notifications' },

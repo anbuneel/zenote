@@ -54,8 +54,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: 'Zenote',
-        short_name: 'Zenote',
+        name: 'Yidhan',
+        short_name: 'Yidhan',
         description: 'A quiet space for your mind',
         theme_color: '#1a1f1a',
         background_color: '#1a1f1a',

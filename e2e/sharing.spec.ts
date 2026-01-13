@@ -148,8 +148,8 @@ test.describe('Share as Letter', () => {
         await expect(anonymousPage.getByText(noteTitle)).toBeVisible({ timeout: 10000 });
         await expect(anonymousPage.getByText(noteContent)).toBeVisible();
 
-        // Should see "Shared quietly via Zenote" attribution
-        await expect(anonymousPage.getByText(/shared quietly via zenote/i)).toBeVisible();
+        // Should see "Shared quietly via Yidhan" attribution
+        await expect(anonymousPage.getByText(/shared quietly via yidhan/i)).toBeVisible();
 
         // Should NOT see edit controls (delete button, editor)
         await expect(anonymousPage.getByRole('button', { name: /delete/i })).not.toBeVisible();
@@ -170,8 +170,8 @@ test.describe('Share as Letter', () => {
       await expect(page.getByText(/this letter has faded/i)).toBeVisible({ timeout: 10000 });
       await expect(page.getByText(/expired or been removed/i)).toBeVisible();
 
-      // Should have a button to go to Zenote
-      await expect(page.getByRole('button', { name: /go to zenote/i })).toBeVisible();
+      // Should have a button to go to Yidhan
+      await expect(page.getByRole('button', { name: /go to yidhan/i })).toBeVisible();
     });
 
     test('shared note displays tags correctly', async ({ page, authenticatedPage }) => {

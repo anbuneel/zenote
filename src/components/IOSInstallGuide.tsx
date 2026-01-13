@@ -9,7 +9,7 @@ interface IOSInstallGuideProps {
 }
 
 /**
- * Visual tutorial for iOS Safari users to install Zenote as a PWA.
+ * Visual tutorial for iOS Safari users to install Yidhan as a PWA.
  *
  * iOS Safari doesn't support the beforeinstallprompt API, so users must
  * manually "Add to Home Screen" via the share sheet. This component
@@ -51,7 +51,7 @@ export function IOSInstallGuide({ onDismiss }: IOSInstallGuideProps) {
     {
       icon: <ConfirmIcon />,
       title: 'Tap "Add" to confirm',
-      description: 'Zenote will appear on your home screen',
+      description: 'Yidhan will appear on your home screen',
     },
   ];
 
@@ -93,7 +93,7 @@ export function IOSInstallGuide({ onDismiss }: IOSInstallGuideProps) {
                 color: 'var(--color-text-primary)',
               }}
             >
-              Add Zenote to Home Screen
+              Add Yidhan to Home Screen
             </h2>
             <p
               className="text-sm"

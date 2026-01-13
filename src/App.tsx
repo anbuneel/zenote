@@ -85,7 +85,45 @@ import { IOSInstallGuide } from './components/IOSInstallGuide';
 import { SessionTimeoutModal } from './components/SessionTimeoutModal';
 import './App.css';
 
-const DEMO_STORAGE_KEY = 'zenote-demo-content';
+const DEMO_STORAGE_KEY = 'yidhan-demo-content';
+
+/**
+ * Migrate localStorage keys from old 'zenote-' prefix to new 'yidhan-' prefix
+ * This ensures existing users don't lose their preferences during the rebrand
+ */
+function migrateLocalStorageKeys(): void {
+  const keyMappings: [string, string][] = [
+    ['zenote-theme', 'yidhan-theme'],
+    ['zenote-engagement', 'yidhan-engagement'],
+    ['zenote-install-dismissed', 'yidhan-install-dismissed'],
+    ['zenote-install-prompted', 'yidhan-install-prompted'],
+    ['zenote-ios-guide-dismissed', 'yidhan-ios-guide-dismissed'],
+    ['zenote-demo-state', 'yidhan-demo-state'],
+    ['zenote-demo-content', 'yidhan-demo-content'],
+    ['zenote-shared-content', 'yidhan-shared-content'],
+    ['zenote-ribbon-seen', 'yidhan-ribbon-seen'],
+  ];
+
+  keyMappings.forEach(([oldKey, newKey]) => {
+    const oldValue = localStorage.getItem(oldKey);
+    if (oldValue !== null && localStorage.getItem(newKey) === null) {
+      localStorage.setItem(newKey, oldValue);
+      localStorage.removeItem(oldKey);
+    }
+  });
+
+  // Also migrate sessionStorage
+  const sessionKey = 'zenote-chunk-reload-attempted';
+  const newSessionKey = 'yidhan-chunk-reload-attempted';
+  const sessionValue = sessionStorage.getItem(sessionKey);
+  if (sessionValue !== null && sessionStorage.getItem(newSessionKey) === null) {
+    sessionStorage.setItem(newSessionKey, sessionValue);
+    sessionStorage.removeItem(sessionKey);
+  }
+}
+
+// Run migration on module load (before React renders)
+migrateLocalStorageKeys();
 
 function App() {
   const { user, loading: authLoading, isPasswordRecovery, clearPasswordRecovery, isDeparting, daysUntilRelease, isHydrating, signOut } = useAuth();
@@ -158,7 +196,7 @@ function App() {
   const [view, setView] = useState<ViewMode>('library');
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('zenote-theme');
+    const saved = localStorage.getItem('yidhan-theme');
     // Validate that saved theme is a valid Theme value
     if (saved === 'light' || saved === 'dark') {
       return saved;
@@ -232,7 +270,7 @@ function App() {
   // Apply theme to document
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('zenote-theme', theme);
+    localStorage.setItem('yidhan-theme', theme);
   }, [theme]);
 
   // Redirect from /demo to library when user logs in
@@ -998,7 +1036,7 @@ function App() {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
-    downloadFile(json, `zenote-backup-${date}-${time}.json`, 'application/json');
+    downloadFile(json, `yidhan-backup-${date}-${time}.json`, 'application/json');
   }, [notes, tags]);
 
   // Export to Markdown

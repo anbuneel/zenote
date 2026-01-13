@@ -2,7 +2,7 @@
  * useSoftPrompt Hook
  *
  * Determines when to show the soft signup prompt to demo users.
- * Follows a non-aggressive pattern aligned with Zenote's calm philosophy.
+ * Follows a non-aggressive pattern aligned with Yidhan's calm philosophy.
  */
 
 import { useMemo, useEffect, useState } from 'react';

@@ -145,7 +145,7 @@ describe('Editor', () => {
     it('renders the header with title in breadcrumb', () => {
       render(<Editor {...defaultProps} />);
       // The header left content should include the note title
-      expect(screen.getByTestId('header-left')).toHaveTextContent('Zenote');
+      expect(screen.getByTestId('header-left')).toHaveTextContent('Yidhan');
       expect(screen.getByTestId('header-left')).toHaveTextContent('Test Note');
     });
 
@@ -379,8 +379,8 @@ describe('Editor', () => {
       const onBack = vi.fn();
       render(<Editor {...defaultProps} onBack={onBack} />);
 
-      // Find the Zenote button in header
-      const zenoteButtons = screen.getAllByText('Zenote');
+      // Find the Yidhan button in header
+      const zenoteButtons = screen.getAllByText('Yidhan');
       await user.click(zenoteButtons[0]);
 
       expect(onBack).toHaveBeenCalled();

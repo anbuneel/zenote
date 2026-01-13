@@ -64,10 +64,10 @@ function isStandaloneMode(): boolean {
 }
 
 const STORAGE_KEYS = {
-  engagement: 'zenote-engagement',
-  installDismissed: 'zenote-install-dismissed',
-  installPrompted: 'zenote-install-prompted',
-  iosGuideDismissed: 'zenote-ios-guide-dismissed',
+  engagement: 'yidhan-engagement',
+  installDismissed: 'yidhan-install-dismissed',
+  installPrompted: 'yidhan-install-prompted',
+  iosGuideDismissed: 'yidhan-ios-guide-dismissed',
 };
 
 interface EngagementData {

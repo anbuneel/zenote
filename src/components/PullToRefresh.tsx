@@ -17,7 +17,7 @@ const INDICATOR_SIZE = 40;
  * Pull-to-refresh wrapper component with iOS-like behavior.
  *
  * - Pull down from top to trigger refresh
- * - Shows Zenote-branded refresh indicator
+ * - Shows Yidhan-branded refresh indicator
  * - Spring physics for native feel
  * - Haptic feedback at threshold
  */
@@ -220,7 +220,7 @@ export function PullToRefresh({
             border: '2px solid var(--color-accent)',
           }}
         >
-          {/* Zenote refresh icon */}
+          {/* Yidhan refresh icon */}
           <svg
             className="w-5 h-5"
             style={{ color: 'var(--color-accent)' }}

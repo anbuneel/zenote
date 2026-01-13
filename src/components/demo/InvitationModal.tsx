@@ -3,7 +3,7 @@
  *
  * A gentle, non-aggressive signup prompt that appears after users
  * have engaged with the demo (3+ notes, 5+ minutes).
- * Follows Zenote's calm philosophy - invitation, not demand.
+ * Follows Yidhan's calm philosophy - invitation, not demand.
  */
 
 interface InvitationModalProps {

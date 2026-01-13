@@ -2,7 +2,7 @@
  * ImpermanenceRibbon
  *
  * A subtle, non-intrusive banner that reminds demo users their notes are browser-local.
- * Aligns with Zenote's calm, wabi-sabi aesthetic.
+ * Aligns with Yidhan's calm, wabi-sabi aesthetic.
  */
 
 interface ImpermanenceRibbonProps {

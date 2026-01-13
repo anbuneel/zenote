@@ -2,7 +2,7 @@
  * Generate Apple PWA splash screens from SVG source
  *
  * Creates launch images for iOS devices to prevent white flash on PWA launch.
- * Each splash screen shows the Zenote logo centered on the theme background.
+ * Each splash screen shows the Yidhan logo centered on the theme background.
  *
  * Usage: npx tsx scripts/generate-splash-screens.ts
  */
@@ -15,7 +15,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SOURCE_SVG = path.join(__dirname, '../public/icons/icon.svg');
+// Use the 512px icon PNG (already generated from Yidhan logo)
+const SOURCE_ICON = path.join(__dirname, '../public/icons/icon-512.png');
 const OUTPUT_DIR = path.join(__dirname, '../public/splash');
 
 // Midnight theme background color (dark theme default)
@@ -83,7 +84,7 @@ async function generateSplashScreens() {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  const svgBuffer = fs.readFileSync(SOURCE_SVG);
+  const iconBuffer = fs.readFileSync(SOURCE_ICON);
 
   // Track unique sizes to avoid duplicates
   const generated = new Set<string>();
@@ -105,7 +106,7 @@ async function generateSplashScreens() {
     const logoSize = Math.round(Math.min(width, height) * LOGO_SIZE_RATIO);
 
     // Resize logo
-    const logoBuffer = await sharp(svgBuffer)
+    const logoBuffer = await sharp(iconBuffer)
       .resize(logoSize, logoSize)
       .png()
       .toBuffer();

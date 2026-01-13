@@ -528,7 +528,7 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
                 e.currentTarget.style.color = 'var(--color-text-tertiary)';
               }}
             >
-              Let go of Zenote →
+              Let go of Yidhan →
             </button>
           </div>
         </div>
