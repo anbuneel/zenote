@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 /**
@@ -9,22 +10,32 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
  * Aligns with Yidhan's calm, non-disruptive philosophy.
  */
 export function ReloadPrompt() {
+  const [registration, setRegistration] = useState<ServiceWorkerRegistration | undefined>(undefined);
+
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegistered(registration: ServiceWorkerRegistration | undefined) {
-      // Check for updates periodically (every hour)
-      if (registration) {
-        setInterval(() => {
-          registration.update();
-        }, 60 * 60 * 1000);
-      }
+    onRegistered(reg: ServiceWorkerRegistration | undefined) {
+      // Store registration in state to trigger useEffect
+      setRegistration(reg);
     },
     onRegisterError(error: Error) {
       console.error('SW registration error:', error);
     },
   });
+
+  // Check for updates periodically (every 4 hours)
+  // Using useEffect ensures proper cleanup on unmount/remount (StrictMode safe)
+  useEffect(() => {
+    if (!registration) return;
+
+    const intervalId = setInterval(() => {
+      registration.update();
+    }, 4 * 60 * 60 * 1000); // 4 hours
+
+    return () => clearInterval(intervalId);
+  }, [registration]);
 
   const handleUpdate = () => {
     updateServiceWorker(true);

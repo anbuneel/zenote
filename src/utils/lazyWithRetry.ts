@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import type { ComponentType } from 'react';
+import { showUpdateBanner } from './updateBanner';
 
 /**
  * Detect if an error is a chunk/module loading failure
@@ -41,56 +42,6 @@ function markReloadAttempted(): void {
   sessionStorage.setItem('yidhan-chunk-reload-attempted', Date.now().toString());
 }
 
-/**
- * Show a persistent banner prompting user to refresh
- * This replaces the hard auto-reload to give users control.
- */
-function showUpdateBanner(): void {
-  // Don't show multiple banners
-  if (document.getElementById('chunk-update-banner')) return;
-
-  const banner = document.createElement('div');
-  banner.id = 'chunk-update-banner';
-  banner.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 9999;
-    background: var(--color-bg-secondary);
-    border-bottom: 1px solid var(--glass-border);
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    font-family: var(--font-body);
-    font-size: 14px;
-    color: var(--color-text-secondary);
-  `;
-
-  const message = document.createElement('span');
-  message.textContent = 'Yidhan has been updated.';
-
-  const button = document.createElement('button');
-  button.textContent = 'Refresh to continue';
-  button.style.cssText = `
-    background: var(--color-accent);
-    color: #fff;
-    border: none;
-    padding: 6px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-  `;
-  button.onclick = () => window.location.reload();
-
-  banner.appendChild(message);
-  banner.appendChild(button);
-  document.body.prepend(banner);
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyComponent = ComponentType<any>;
 
@@ -130,8 +81,16 @@ export function lazyWithRetry<T extends AnyComponent>(
           throw retryError;
         }
 
-        console.log('[lazyWithRetry] Retry failed, showing update banner...');
+        console.log('[lazyWithRetry] Retry failed, checking network status...');
 
+        // Check if we're offline - if so, this is a transient issue, not an update
+        // Throw to ErrorBoundary so user can retry when online
+        if (!navigator.onLine) {
+          console.log('[lazyWithRetry] Offline - throwing to ErrorBoundary');
+          throw retryError;
+        }
+
+        // Online but chunk still failed = likely an app update
         // Show banner instead of hard reload - let user decide when to refresh
         // Skip if we've recently shown the banner (prevent spamming)
         if (!hasRecentlyAttempted()) {
@@ -139,9 +98,9 @@ export function lazyWithRetry<T extends AnyComponent>(
           showUpdateBanner();
         }
 
-        // Return a never-resolving promise to prevent error boundary
-        // The banner gives user control over when to refresh
-        return new Promise(() => {});
+        // Throw to ErrorBoundary - the banner already tells user to refresh
+        // This is better than a never-resolving promise (infinite Suspense)
+        throw retryError;
       }
     }
   });
