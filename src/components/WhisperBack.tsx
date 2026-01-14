@@ -1,11 +1,10 @@
 import { useState, useEffect, RefObject } from 'react';
 
 interface WhisperBackProps {
-  onClick: () => void;
   scrollContainerRef?: RefObject<HTMLElement | null>;
 }
 
-export function WhisperBack({ onClick, scrollContainerRef }: WhisperBackProps) {
+export function WhisperBack({ scrollContainerRef }: WhisperBackProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -23,12 +22,21 @@ export function WhisperBack({ onClick, scrollContainerRef }: WhisperBackProps) {
     return () => target.removeEventListener('scroll', handleScroll);
   }, [scrollContainerRef]);
 
+  const handleScrollToTop = () => {
+    const scrollContainer = scrollContainerRef?.current;
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleScrollToTop}
       className={`
         fixed z-20
-        transition-all duration-500 ease-out
+        transition-all duration-300 ease-out
         focus:outline-none
         focus:ring-2
         focus:ring-[var(--color-accent)]
@@ -40,36 +48,33 @@ export function WhisperBack({ onClick, scrollContainerRef }: WhisperBackProps) {
         flex items-center justify-center
         rounded-full
 
-        /* Desktop: bottom-left, pill shape with text */
-        sm:left-6 sm:right-auto sm:bottom-6
-        sm:w-auto sm:h-auto
-        sm:px-3 sm:py-2
-        sm:gap-2
+        /* Desktop: bottom-right, same position */
+        sm:right-6 sm:bottom-6
 
         ${isVisible
-          ? 'opacity-70 sm:opacity-60 translate-y-0'
+          ? 'opacity-90 translate-y-0'
           : 'opacity-0 translate-y-4 pointer-events-none'
         }
       `}
       style={{
         fontFamily: 'var(--font-body)',
-        color: 'var(--color-text-tertiary)',
-        background: 'var(--color-bg-primary)',
+        color: 'var(--color-text-primary)',
+        background: 'var(--color-bg-secondary)',
         border: '1px solid var(--glass-border)',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.color = 'var(--color-accent)';
-        e.currentTarget.style.background = 'var(--color-bg-secondary)';
+        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.color = 'var(--color-text-tertiary)';
-        e.currentTarget.style.background = 'var(--color-bg-primary)';
+        e.currentTarget.style.color = 'var(--color-text-primary)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
       }}
-      aria-label="Return to notes"
+      aria-label="Scroll to top"
     >
       <svg
-        className="w-4 h-4 sm:w-3.5 sm:h-3.5"
+        className="w-5 h-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -77,12 +82,10 @@ export function WhisperBack({ onClick, scrollContainerRef }: WhisperBackProps) {
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          strokeWidth={2}
+          d="M5 15l7-7 7 7"
         />
       </svg>
-      {/* Text hidden on mobile */}
-      <span className="hidden sm:inline text-xs">Back</span>
     </button>
   );
 }

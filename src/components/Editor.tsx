@@ -234,6 +234,11 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
     onBack();
   };
 
+  // Scroll to top of note (like Twitter header behavior)
+  const handleScrollToTop = () => {
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Export handlers
   const handleExportMarkdown = () => {
     const currentNote = { ...note, title, content };
@@ -327,25 +332,34 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
         /
       </span>
 
-      {/* Note Title - visible on desktop */}
-      <span
-        className="hidden sm:inline truncate text-xl max-w-[200px] md:max-w-[300px]"
+      {/* Note Title - visible on desktop, clicks to scroll to top */}
+      <button
+        onClick={handleScrollToTop}
+        className="hidden sm:inline truncate text-xl max-w-[200px] md:max-w-[300px] hover:text-[var(--color-accent)] transition-colors duration-200"
         style={{
           fontFamily: 'var(--font-display)',
           fontWeight: 400,
           fontStyle: 'italic',
           color: 'var(--color-text-primary)',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
         }}
-        title={title || 'Untitled'}
+        title="Scroll to top"
       >
         {title || 'Untitled'}
-      </span>
+      </button>
     </div>
   );
 
-  // Center content: Mobile note title only
+  // Center content: Mobile note title only (clicks to scroll to top)
   const centerContent = (
-    <div className="sm:hidden flex items-center min-w-0">
+    <button
+      onClick={handleScrollToTop}
+      className="sm:hidden flex items-center min-w-0"
+      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+    >
       <span
         className="truncate text-sm font-medium"
         style={{
@@ -355,7 +369,7 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
       >
         {title || 'Untitled'}
       </span>
-    </div>
+    </button>
   );
 
   // Right actions: Save status + Export button + Delete button
@@ -762,8 +776,8 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
         </div>
       </main>
 
-      {/* Whisper Float - fixed position back button */}
-      <WhisperBack onClick={handleLogoClick} scrollContainerRef={scrollContainerRef} />
+      {/* Floating scroll-to-top button */}
+      <WhisperBack scrollContainerRef={scrollContainerRef} />
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
