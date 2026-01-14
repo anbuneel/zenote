@@ -18,52 +18,77 @@ function isChunkLoadError(error: unknown): boolean {
 }
 
 /**
- * Check if it's safe to auto-reload the page
- * Returns false if there's unsaved work or user is in the middle of something
+ * Check if we've already attempted showing the update banner recently
+ * Returns true if we should skip (prevent spamming)
  */
-function canSafelyReload(): boolean {
-  // Check if we already tried to reload (prevent infinite loops)
+function hasRecentlyAttempted(): boolean {
   const reloadAttempted = sessionStorage.getItem('yidhan-chunk-reload-attempted');
   if (reloadAttempted) {
-    // Clear the flag after 30 seconds to allow future reloads
     const timestamp = parseInt(reloadAttempted, 10);
+    // Clear the flag after 30 seconds to allow future attempts
     if (Date.now() - timestamp < 30000) {
-      return false;
+      return true;
     }
     sessionStorage.removeItem('yidhan-chunk-reload-attempted');
   }
-
-  // Check for open modals/dialogs
-  const hasOpenModal = document.querySelector('[role="dialog"]') !== null;
-  if (hasOpenModal) {
-    return false;
-  }
-
-  // Check for elements indicating active editing
-  // Look for saving indicator or focused editor
-  const savingIndicator = document.querySelector('[data-save-status="saving"]');
-  if (savingIndicator) {
-    return false;
-  }
-
-  // Check if user is actively typing (focused on an input/editor)
-  const activeElement = document.activeElement;
-  if (activeElement) {
-    const tagName = activeElement.tagName.toLowerCase();
-    const isEditable = activeElement.getAttribute('contenteditable') === 'true';
-    if (tagName === 'input' || tagName === 'textarea' || isEditable) {
-      return false;
-    }
-  }
-
-  return true;
+  return false;
 }
 
 /**
- * Mark that we attempted a reload to prevent infinite loops
+ * Mark that we attempted to show the update banner
  */
 function markReloadAttempted(): void {
   sessionStorage.setItem('yidhan-chunk-reload-attempted', Date.now().toString());
+}
+
+/**
+ * Show a persistent banner prompting user to refresh
+ * This replaces the hard auto-reload to give users control.
+ */
+function showUpdateBanner(): void {
+  // Don't show multiple banners
+  if (document.getElementById('chunk-update-banner')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'chunk-update-banner';
+  banner.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  `;
+
+  const message = document.createElement('span');
+  message.textContent = 'Yidhan has been updated.';
+
+  const button = document.createElement('button');
+  button.textContent = 'Refresh to continue';
+  button.style.cssText = `
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  `;
+  button.onclick = () => window.location.reload();
+
+  banner.appendChild(message);
+  banner.appendChild(button);
+  document.body.prepend(banner);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -105,20 +130,18 @@ export function lazyWithRetry<T extends AnyComponent>(
           throw retryError;
         }
 
-        console.log('[lazyWithRetry] Retry failed, checking if safe to reload...');
+        console.log('[lazyWithRetry] Retry failed, showing update banner...');
 
-        // Check if we can safely reload
-        if (canSafelyReload()) {
-          console.log('[lazyWithRetry] Safe to reload, refreshing page...');
+        // Show banner instead of hard reload - let user decide when to refresh
+        // Skip if we've recently shown the banner (prevent spamming)
+        if (!hasRecentlyAttempted()) {
           markReloadAttempted();
-          window.location.reload();
-          // Return a never-resolving promise while page reloads
-          return new Promise(() => {});
+          showUpdateBanner();
         }
 
-        console.log('[lazyWithRetry] Not safe to reload, showing error boundary');
-        // Not safe to reload - let ErrorBoundary handle it
-        throw retryError;
+        // Return a never-resolving promise to prevent error boundary
+        // The banner gives user control over when to refresh
+        return new Promise(() => {});
       }
     }
   });
