@@ -6,6 +6,8 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './contexts/AuthContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { ReloadPrompt } from './components/ReloadPrompt'
+import { showUpdateBanner } from './utils/updateBanner'
 
 // Handle chunk loading errors (happens when app is open during deployment)
 // These errors occur outside React's error boundary, so we catch them globally
@@ -20,8 +22,8 @@ window.addEventListener('unhandledrejection', (event) => {
   if (isChunkError) {
     // Prevent the error from being logged to console (it's expected)
     event.preventDefault()
-    // Reload to get the new version
-    window.location.reload()
+    // Show banner instead of hard reload - let user decide when to refresh
+    showUpdateBanner()
   }
 })
 
@@ -54,6 +56,7 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <AuthProvider>
         <App />
+        <ReloadPrompt />
         <Toaster
           position="bottom-center"
           toastOptions={{

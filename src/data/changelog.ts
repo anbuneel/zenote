@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.5.2',
+    date: '2026-01-13',
+    changes: [
+      { type: 'fix', text: 'App no longer auto-refreshes when switching browser tabs - update prompt shown instead' },
+      { type: 'improvement', text: 'Offline chunk errors now properly fall back to ErrorBoundary for retry' },
+      { type: 'improvement', text: 'Reduced service worker update frequency from hourly to every 4 hours' },
+    ],
+  },
+  {
     version: '2.5.1',
     date: '2026-01-12',
     changes: [
