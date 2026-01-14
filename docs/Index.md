@@ -37,6 +37,7 @@ Design analysis and feature exploration (Claude-authored).
 
 | Document | Description | Date |
 |----------|-------------|------|
+| [quiet-intelligence-features-claude.md](analysis/quiet-intelligence-features-claude.md) | **NEW** "Quiet Intelligence" AI features: 12 unique scenarios for reflective AI | 2026-01-13 |
 | [yidhan-brand-evaluation-claude.md](analysis/yidhan-brand-evaluation-claude.md) | Yidhan rebrand evaluation: philosophical alignment, typography, taglines, SEO | 2026-01-12 |
 | [yidhan-logo-design-claude.md](analysis/yidhan-logo-design-claude.md) | Yidhan logo design notes: concepts, final design analysis, variations needed | 2026-01-12 |
 | [branding-modularity-assessment-claude.md](analysis/branding-modularity-assessment-claude.md) | **NEW** Branding architecture assessment: what's plug-and-play vs hardcoded | 2026-01-12 |
@@ -225,4 +226,4 @@ See [mobile-ios-overhaul-plan.md](plans/mobile-ios-overhaul-plan.md) for full na
 
 ---
 
-*Last updated: 2026-01-13 (Auth comparison analysis added)*
+*Last updated: 2026-01-13 (Quiet Intelligence AI features analysis added)*
