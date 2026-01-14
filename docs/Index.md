@@ -55,6 +55,7 @@ Design analysis and feature exploration (Claude-authored).
 | [copy-note-feature-claude.md](analysis/copy-note-feature-claude.md) | Copy to clipboard feature design | 2025-12-25 |
 | [color-theme-final-specification-claude.md](analysis/color-theme-final-specification-claude.md) | Theme system CSS specification | 2025-12-24 |
 | [oauth-providers-analysis-claude.md](analysis/oauth-providers-analysis-claude.md) | OAuth provider options analysis | 2025-12-26 |
+| [auth-comparison-supabase-vs-custom-claude.md](analysis/auth-comparison-supabase-vs-custom-claude.md) | **NEW** Why Supabase auth vs custom JWT (comparison with Quinthesis) | 2026-01-13 |
 | [zenote-ui-ux-review-response-claude.md](analysis/zenote-ui-ux-review-response-claude.md) | Response to Gemini UI/UX review | 2025-12-23 |
 
 ---
@@ -224,4 +225,4 @@ See [mobile-ios-overhaul-plan.md](plans/mobile-ios-overhaul-plan.md) for full na
 
 ---
 
-*Last updated: 2026-01-12 (Yidhan rebrand plan added)*
+*Last updated: 2026-01-13 (Auth comparison analysis added)*
