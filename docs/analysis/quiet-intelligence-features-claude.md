@@ -1,8 +1,8 @@
 # Quiet Intelligence: AI Feature Analysis for Yidhan
 
-**Version:** 1.1
-**Last Updated:** 2026-01-13
-**Status:** Living Document (with detailed implementation appendices)
+**Version:** 1.2
+**Last Updated:** 2026-01-14
+**Status:** Living Document (with finalized implementation decisions)
 **Author:** Claude (Opus 4.5)
 
 ---
@@ -72,16 +72,16 @@ All Quiet Intelligence features must follow these principles:
 |---|---------|----------|--------|--------|--------|------|
 | 1 | Daily Whisper | Engagement | Existing | Low | High | Free |
 | 2 | Weekly Digest Email | Engagement | Existing | Low | High | Free |
-| 3 | Resonance Threads | Connection | New | Medium | Very High | Zen+ |
-| 4 | The Quiet Reminder | Intention | New | Medium | High | Zen+ |
-| 5 | Seasonal Echo | Reflection | New | Medium | High | Zen+ |
+| 3 | Resonance Threads | Connection | New | Medium | Very High | Bloom |
+| 4 | The Quiet Reminder | Intention | New | Medium | High | Bloom |
+| 5 | Seasonal Echo | Reflection | New | Medium | High | Bloom |
 | 6 | The Fading Whisper | Declutter | New | Low | Medium | Free |
-| 7 | The Unsaid | Awareness | New | High | Medium | Zen+ |
-| 8 | Quiet Questions | Reflection | New | Medium | High | Zen+ |
-| 9 | The Convergence | Insight | New | Medium | Very High | Zen+ |
-| 10 | Gentle Grounding | Emotional | New | High | Medium | Zen+ |
+| 7 | The Unsaid | Awareness | New | High | Medium | Bloom |
+| 8 | Quiet Questions | Reflection | New | Medium | High | Bloom |
+| 9 | The Convergence | Insight | New | Medium | Very High | Bloom |
+| 10 | Gentle Grounding | Emotional | New | High | Medium | Bloom |
 | 11 | Letter to Future Self | Time Capsule | New | Low | Medium | Free |
-| 12 | Whispered Summary | Re-engagement | New | Medium | High | Zen+ |
+| 12 | Whispered Summary | Re-engagement | New | Medium | High | Bloom |
 
 ---
 
@@ -178,7 +178,7 @@ All Quiet Intelligence features must follow these principles:
 - Surface when cluster reaches significance threshold
 - Show in dedicated "Threads" section or on relevant note view
 
-**Effort:** Medium | **Impact:** Very High | **Tier:** Zen+
+**Effort:** Medium | **Impact:** Very High | **Tier:** Bloom
 
 ---
 
@@ -209,7 +209,7 @@ All Quiet Intelligence features must follow these principles:
 - User can snooze, dismiss, or mark complete
 - Never nags — one gentle prompt per intention
 
-**Effort:** Medium | **Impact:** High | **Tier:** Zen+
+**Effort:** Medium | **Impact:** High | **Tier:** Bloom
 
 ---
 
@@ -238,7 +238,7 @@ All Quiet Intelligence features must follow these principles:
 - Significance score based on length, emotional content, uniqueness
 - Show on app open or in weekly digest
 
-**Effort:** Medium | **Impact:** High | **Tier:** Zen+
+**Effort:** Medium | **Impact:** High | **Tier:** Bloom
 
 ---
 
@@ -300,7 +300,7 @@ All Quiet Intelligence features must follow these principles:
 - Minimum frequency threshold (must have been mentioned 5+ times)
 - Gentle, non-judgmental language always
 
-**Effort:** High | **Impact:** Medium | **Tier:** Zen+
+**Effort:** High | **Impact:** Medium | **Tier:** Bloom
 
 ---
 
@@ -332,7 +332,7 @@ All Quiet Intelligence features must follow these principles:
 - Curated question templates by theme category
 - Optional — can enable "reflection mode" in settings
 
-**Effort:** Medium | **Impact:** High | **Tier:** Zen+
+**Effort:** Medium | **Impact:** High | **Tier:** Bloom
 
 ---
 
@@ -365,7 +365,7 @@ All Quiet Intelligence features must follow these principles:
 - Minimum 3 notes touching related themes
 - Human-readable synthesis with quotes
 
-**Effort:** Medium | **Impact:** Very High | **Tier:** Zen+
+**Effort:** Medium | **Impact:** Very High | **Tier:** Bloom
 
 ---
 
@@ -399,7 +399,7 @@ If they choose "Take a breath" → Simple 60-second breathing exercise or nature
 - Comparison to user's baseline over time
 - Very careful, gentle language — never clinical
 
-**Effort:** High | **Impact:** Medium | **Tier:** Zen+
+**Effort:** High | **Impact:** Medium | **Tier:** Bloom
 
 ---
 
@@ -468,7 +468,7 @@ If they choose "Take a breath" → Simple 60-second breathing exercise or nature
 - Context-aware display on return (not shown if recent user)
 - Graceful fallback if no recent activity to summarize
 
-**Effort:** Medium | **Impact:** High | **Tier:** Zen+
+**Effort:** Medium | **Impact:** High | **Tier:** Bloom
 
 ---
 
@@ -598,7 +598,7 @@ Features that drive adoption and daily engagement:
 - Letter to Future Self
 - The Fading Whisper
 
-### Zen+ Tier (Premium Value)
+### Bloom Tier (Premium Value)
 
 Features that provide deeper intelligence:
 
@@ -1229,33 +1229,95 @@ Changelog · Roadmap · Tasks · Shortcuts · GitHub
 
 ---
 
-## Appendix C: Open Questions for Implementation
+## Appendix C: Implementation Decisions (Finalized)
 
-Before building Quiet Tasks, these decisions should be made:
+These decisions were finalized on 2026-01-14 for the Quiet Reminder MVP.
 
-### Technical Questions
+### Technical Decisions
 
-| Question | Options | Recommendation |
-|----------|---------|----------------|
-| **Processing location** | Client-side vs server-side | Client for explicit, server for intentions |
-| **Sync frequency** | Real-time vs batch | Batch (on note save + daily) |
-| **LLM usage** | Which model for extraction | Start with regex, graduate to LLM |
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Processing location** | Client-side (regex) | Privacy-first; no note content sent to server. Can add LLM later for edge cases. |
+| **When to extract** | Batch (background) | Avoid adding latency to note saves. Run periodically (e.g., on app load, daily). |
+| **Storage** | Supabase `note_tasks` table | Enables cross-device sync and future email digest feature. |
+| **LLM usage** | Start with regex only | Regex handles 80% of patterns. Graduate to LLM for ambiguous cases later. |
 
-### UX Questions
+### UX Decisions
 
-| Question | Options | Recommendation |
-|----------|---------|----------------|
-| **Opt-in vs opt-out** | Default on or off | Opt-in initially (new feature) |
-| **Surfacing frequency** | How many per week | Max 3 surfaced per week |
-| **Snooze limit** | How many times before auto-fade | 2 snoozes, then auto-fades after 30 days |
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Default behavior** | Opt-in | New feature, safer to let users discover and enable. Can flip to opt-out once validated. |
+| **Opt-in storage** | `user_metadata.quiet_tasks_enabled` | Reuses existing Supabase auth pattern (like `full_name`). |
+| **Initial surfacing** | Dedicated "Quiet Tasks" view | Self-contained, testable. Add in-app banner and email later. |
+| **Surfacing frequency** | Max 3 per week | Avoid feeling naggy. Quality over quantity. |
+| **Surface timing** | After 2 weeks (no deadline) | Gives user time to naturally complete before surfacing. |
+| **Deadline hints** | Surface at ~50% of time until deadline | "before April" written in Jan → surface mid-Feb. |
 
-### Philosophy Questions
+### Behavior Decisions
 
-| Question | Consideration |
-|----------|---------------|
-| **What's "too old"?** | Should tasks older than 90 days auto-fade? |
-| **Privacy in email** | Should intentions appear in email at all? |
-| **Completed visibility** | How long to show "Completed Recently"? |
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Snooze duration** | 1 week | Long enough to be useful, short enough to resurface. |
+| **Max snoozes** | 2 times | After 2 snoozes, suggest "let it fade" more prominently. |
+| **Auto-fade threshold** | 90 days untouched | Very old intentions auto-fade with notification. |
+| **Completed visibility** | 7 days | Show "Completed Recently" for 1 week, then archive. |
+
+### Privacy Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Sensitive topics in email** | Never | Health, medical, relationships, finances, legal — in-app only. |
+| **User control** | Full visibility + delete | User can view ALL extracted intentions and delete any. |
+| **Transparency** | Show trigger phrase | Display "Extracted from: I should..." so user understands why. |
+
+### Settings UI Location
+
+The opt-in toggle will be added to the Settings modal as a new "Intelligence" tab:
+
+```
+Settings Modal
+├── Profile (existing)
+├── Password (existing)
+└── Intelligence (new)
+    └── Quiet Tasks toggle
+        └── "Surface intentions from your writing"
+        └── [Off] [On]
+```
+
+### Scope Decision
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Include explicit checkboxes?** | Yes — include in MVP | Unified view is more useful. Users get one place to see ALL tasks. |
+
+The Quiet Tasks view will show **both**:
+1. **Explicit tasks** — Tiptap checkboxes (`- [ ] Call dentist`) aggregated from all notes
+2. **Implicit intentions** — AI-extracted from prose (`"I should call Mom"`)
+
+Each task type will be visually distinguished:
+- Explicit: No indicator needed (user wrote it as a task)
+- Implicit: Shows `💭 Extracted from: "I should..."` for transparency
+
+### Monetization Decision
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **MVP pricing** | Free for all users | Experimenting — validate feature value before gating |
+| **Future pricing** | Bloom tier ($4/mo) | Gate behind premium once validated |
+| **Gating approach** | Soft prompts, not hard walls | Aligns with "calm monetization" philosophy |
+
+See [subscription-architecture-claude.md](subscription-architecture-claude.md) for detailed payment/gating architecture (to be implemented post-MVP).
+
+### Open Questions (Deferred)
+
+These questions are deferred to future iterations:
+
+| Question | Status |
+|----------|--------|
+| **Weekly email digest** | Deferred — requires email infrastructure |
+| **In-app banner surfacing** | Deferred — start with dedicated view only |
+| **Two-way checkbox sync** | Deferred — checking off in Quiet Tasks updates original note |
+| **Premium feature gating** | Deferred — MVP is free; add gating after validation |
 
 ---
 

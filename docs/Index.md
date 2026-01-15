@@ -37,7 +37,8 @@ Design analysis and feature exploration (Claude-authored).
 
 | Document | Description | Date |
 |----------|-------------|------|
-| [quiet-intelligence-features-claude.md](analysis/quiet-intelligence-features-claude.md) | **NEW** "Quiet Intelligence" AI features: 12 unique scenarios for reflective AI | 2026-01-13 |
+| [quiet-intelligence-features-claude.md](analysis/quiet-intelligence-features-claude.md) | "Quiet Intelligence" AI features: 12 unique scenarios for reflective AI | 2026-01-14 |
+| [subscription-architecture-claude.md](analysis/subscription-architecture-claude.md) | **NEW** Subscription & feature gating architecture (Bloom tier, payments, webhooks) | 2026-01-14 |
 | [yidhan-brand-evaluation-claude.md](analysis/yidhan-brand-evaluation-claude.md) | Yidhan rebrand evaluation: philosophical alignment, typography, taglines, SEO | 2026-01-12 |
 | [yidhan-logo-design-claude.md](analysis/yidhan-logo-design-claude.md) | Yidhan logo design notes: concepts, final design analysis, variations needed | 2026-01-12 |
 | [branding-modularity-assessment-claude.md](analysis/branding-modularity-assessment-claude.md) | **NEW** Branding architecture assessment: what's plug-and-play vs hardcoded | 2026-01-12 |
@@ -109,6 +110,7 @@ Currently in-progress implementation plans and follow-ups.
 | Document | Description | Date |
 |----------|-------------|------|
 | [yidhan-rebrand-plan.md](plans/yidhan-rebrand-plan.md) | **NEW** Yidhan rebrand implementation plan (128 files, 7 phases) | 2026-01-12 |
+| [quiet-tasks-implementation-plan.md](plans/quiet-tasks-implementation-plan.md) | **NEW** Quiet Tasks feature (surface buried tasks/intentions, 6 phases) | 2026-01-14 |
 | [mobile-ios-overhaul-plan.md](plans/mobile-ios-overhaul-plan.md) | Full mobile/iOS overhaul (requires macOS, 9-13 weeks) | 2026-01-10 |
 | [competitive-growth-plan-claude.md](active/competitive-growth-plan-claude.md) | Competitive growth strategy and positioning | 2026-01-06 |
 | [zenote-competitive-roadmap-notes-codex.md](active/zenote-competitive-roadmap-notes-codex.md) | Competitive roadmap analysis (Codex) | 2026-01-06 |
@@ -226,4 +228,4 @@ See [mobile-ios-overhaul-plan.md](plans/mobile-ios-overhaul-plan.md) for full na
 
 ---
 
-*Last updated: 2026-01-13 (Quiet Intelligence AI features analysis added)*
+*Last updated: 2026-01-14 (Quiet Tasks implementation plan added)*
