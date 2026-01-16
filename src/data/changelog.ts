@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.6.1',
+    date: '2026-01-15',
+    changes: [
+      { type: 'improvement', text: 'Mobile landing page: Sign In link now visible without scrolling' },
+      { type: 'improvement', text: 'Reordered CTAs: "explore first" before "sign in" follows natural user journey' },
+    ],
+  },
+  {
     version: '2.6.0',
     date: '2026-01-15',
     changes: [

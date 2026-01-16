@@ -118,14 +118,26 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
                   </span>
                 </div>
 
-                {/* Secondary CTA - Link to Practice Space */}
-                <a
-                  href="/demo"
-                  className="landing-secondary-cta text-sm transition-all duration-200 inline-flex items-center gap-1 w-fit"
-                >
-                  or explore without signing up
-                  <span className="landing-secondary-cta-arrow" aria-hidden="true">→</span>
-                </a>
+                {/* Secondary CTAs */}
+                <div className="flex flex-col gap-2">
+                  {/* Explore without signing up - low commitment, shown first */}
+                  <a
+                    href="/demo"
+                    className="landing-secondary-cta text-sm transition-all duration-200 inline-flex items-center gap-1 w-fit"
+                  >
+                    or explore first
+                    <span className="landing-secondary-cta-arrow" aria-hidden="true">→</span>
+                  </a>
+
+                  {/* Returning user - Sign In (mobile only, desktop has header button) */}
+                  <button
+                    onClick={onSignIn}
+                    className="md:hidden landing-secondary-cta text-sm transition-all duration-200 inline-flex items-center gap-1 w-fit"
+                  >
+                    Already have an account?
+                    <span className="font-medium" style={{ color: 'var(--color-accent)' }}>Sign in</span>
+                  </button>
+                </div>
               </div>
 
               {/* Trust Signals */}
