@@ -36,8 +36,8 @@ const SAMPLE_NOTES: Array<{
     time: '1 week ago',
   },
   {
-    title: 'Recipe: Miso soup',
-    content: '<p>Dashi stock, white miso paste, silken tofu, wakame seaweed, green onions.</p>',
+    title: 'Weeknight rescue plan',
+    content: '<ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox" disabled></label><div><p>Prep grains Sunday (rice, pasta, whatever)</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox" disabled></label><div><p>Always keep eggs on hand</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox" disabled></label><div><p>Frozen veggies are not cheating</p></div></li><li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked disabled></label><div><p>One fancy meal (Friday?)</p></div></li></ul>',
     tag: { name: 'Cooking', color: 'gold' },
     time: '5 days ago',
   },
