@@ -9,11 +9,10 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     version: '2.6.0',
-    date: '2026-01-14',
+    date: '2026-01-15',
     changes: [
-      { type: 'feature', text: 'Condensed card view - toggle between full and compact note cards in the header' },
-      { type: 'feature', text: 'Smart view defaults - mobile starts in condensed mode, desktop in full mode' },
-      { type: 'improvement', text: 'View preference persists across sessions via localStorage' },
+      { type: 'feature', text: 'Automatic condensed cards on mobile - compact view shows more notes on small screens' },
+      { type: 'improvement', text: 'Responsive card sizing - full cards on desktop, compact on mobile (<700px)' },
     ],
   },
   {

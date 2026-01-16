@@ -11,6 +11,9 @@ import {
   type ChapterKey,
 } from '../utils/temporalGrouping';
 
+// Mobile breakpoint matching masonry grid (700px)
+const MOBILE_BREAKPOINT = 700;
+
 interface ChapteredLibraryProps {
   notes: Note[];
   onNoteClick: (id: string) => void;
@@ -19,7 +22,6 @@ interface ChapteredLibraryProps {
   onNewNote?: () => void;
   onRefresh?: () => Promise<void>;
   searchQuery?: string;
-  isCompact?: boolean;
 }
 
 export function ChapteredLibrary({
@@ -30,8 +32,23 @@ export function ChapteredLibrary({
   onNewNote,
   onRefresh,
   searchQuery,
-  isCompact = false,
 }: ChapteredLibraryProps) {
+  // Auto-detect compact mode based on viewport width (mobile = compact)
+  const [isCompact, setIsCompact] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < MOBILE_BREAKPOINT;
+  });
+
+  // Update compact mode on viewport resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsCompact(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Detect touch capability for pull-to-refresh
   const isTouchDevice = useTouchCapable();
 

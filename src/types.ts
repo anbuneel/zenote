@@ -18,9 +18,6 @@ export interface Note {
 
 export type ViewMode = 'library' | 'editor' | 'changelog' | 'roadmap' | 'faded';
 
-// Card display mode for library view (full cards vs condensed)
-export type CardDisplayMode = 'full' | 'condensed';
-
 export interface NoteShare {
   id: string;
   noteId: string;
