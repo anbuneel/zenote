@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Note } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { TagBadgeList } from './TagBadge';
-import { sanitizeHtml, sanitizeText } from '../utils/sanitize';
+import { sanitizeHtml, sanitizeText, htmlToPlainText } from '../utils/sanitize';
 
 interface NoteCardProps {
   note: Note;
@@ -15,10 +15,10 @@ interface NoteCardProps {
 export function NoteCard({ note, onClick, onDelete, onTogglePin, isCompact = false }: NoteCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Extract plain text preview for compact mode
+  // Extract plain text preview for compact mode (no HTML escaping - React handles it)
   const compactPreview = (() => {
     if (!isCompact) return '';
-    const text = sanitizeText(note.content);
+    const text = htmlToPlainText(note.content);
     return text.slice(0, 80) + (text.length > 80 ? '...' : '');
   })();
 
@@ -155,8 +155,7 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin, isCompact = fal
           className={`
             font-semibold
             leading-tight
-            truncate
-            ${isCompact ? 'text-base' : 'text-xl line-clamp-2'}
+            ${isCompact ? 'text-base truncate' : 'text-xl line-clamp-2'}
           `}
           style={{
             fontFamily: 'var(--font-display)',
