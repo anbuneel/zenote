@@ -195,6 +195,7 @@ export function Header({
         focus:ring-offset-2
         hover:-translate-y-0.5
         shrink-0
+        touch-press
       "
       style={{
         background: 'var(--color-accent)',

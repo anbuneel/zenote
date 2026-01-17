@@ -57,6 +57,8 @@ src/
 │   ├── IOSInstallGuide.tsx # Visual 3-step tutorial for iOS Safari PWA installation
 │   ├── SwipeableNoteCard.tsx # Note card wrapper with swipe gestures (delete/pin)
 │   ├── PullToRefresh.tsx  # Pull-to-refresh wrapper with spring physics
+│   ├── GestureHint.tsx    # One-time swipe gesture tutorial overlay (mobile)
+│   ├── BottomSheet.tsx    # iOS-style bottom sheet modal component
 │   └── demo/              # Demo mode components (Practice Space)
 │       ├── ImpermanenceRibbon.tsx # Subtle banner reminding notes aren't saved to cloud
 │       └── InvitationModal.tsx    # Soft signup prompt ("A Gentle Invitation")
@@ -90,7 +92,8 @@ src/
 │   ├── useDemoState.ts      # React state management for demo mode (localStorage)
 │   ├── useSoftPrompt.ts     # Soft prompt trigger logic (note count + time thresholds)
 │   ├── useMobileDetect.ts   # Touch device detection (useMobileDetect, useTouchCapable)
-│   └── useSessionTimeout.ts # Session inactivity monitor (30min timeout, 5min warning)
+│   ├── useSessionTimeout.ts # Session inactivity monitor (30min timeout, 5min warning)
+│   └── useKeyboardHeight.ts # Visual Viewport API for keyboard height tracking
 ├── utils/
 │   ├── exportImport.ts    # Export/import utilities (JSON, Markdown) with validation
 │   ├── formatTime.ts      # Relative time formatting
@@ -519,6 +522,11 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Trust signals on landing page (Open source, Works offline, Your data stays yours)
 - [x] OAuth-first auth modal layout (OAuth buttons first, then email form)
 - [x] Automatic condensed cards on mobile (compact view for screens <700px, full cards on desktop)
+- [x] Button press states (touch-press CSS class for tactile feedback on mobile)
+- [x] Visual Viewport API hook (useKeyboardHeight) for proper keyboard handling
+- [x] Gesture hint overlay - one-time swipe gesture tutorial on mobile
+- [x] iOS-style bottom sheet modals (SettingsModal slides up from bottom on mobile)
+- [x] iOS install guide non-Safari detection (shows "Open in Safari" for Chrome/Firefox/Edge)
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (Apple, etc.)

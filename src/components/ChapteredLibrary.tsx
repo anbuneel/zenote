@@ -4,7 +4,8 @@ import { ChapterSection } from './ChapterSection';
 import { ChapterNav } from './ChapterNav';
 import { TimeRibbon } from './TimeRibbon';
 import { PullToRefresh } from './PullToRefresh';
-import { useTouchCapable } from '../hooks/useMobileDetect';
+import { GestureHint } from './GestureHint';
+import { useTouchCapable, useMobileDetect } from '../hooks/useMobileDetect';
 import {
   groupNotesByChapter,
   getDefaultExpansionState,
@@ -51,6 +52,9 @@ export function ChapteredLibrary({
 
   // Detect touch capability for pull-to-refresh
   const isTouchDevice = useTouchCapable();
+
+  // Detect mobile for gesture hint
+  const isMobile = useMobileDetect();
 
   // Sort notes by most recent (pinned handling is done in groupNotesByChapter)
   const sortedNotes = useMemo(() => {
@@ -193,7 +197,7 @@ export function ChapteredLibrary({
               {onNewNote && (
                 <button
                   onClick={onNewNote}
-                  className="px-6 py-3 rounded-lg font-medium transition-all duration-300 mb-4"
+                  className="px-6 py-3 rounded-lg font-medium transition-all duration-300 mb-4 touch-press"
                   style={{
                     fontFamily: 'var(--font-body)',
                     background: 'var(--color-accent)',
@@ -296,6 +300,9 @@ export function ChapteredLibrary({
         currentChapter={currentChapter}
         onChapterClick={scrollToChapter}
       />
+
+      {/* Gesture Hint - Mobile only, shows once when notes exist */}
+      <GestureHint enabled={isMobile && notes.length > 0} />
     </>
   );
 }
