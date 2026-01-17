@@ -160,6 +160,72 @@ nav,
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ============================================
+   MOBILE MICRO-INTERACTIONS
+   Tactile feedback for touch devices
+   ============================================ */
+
+/* Touch press state - scale down on active for tactile feedback */
+.touch-press {
+  transition: transform 0.1s var(--spring-snappy);
+}
+
+.touch-press:active {
+  transform: scale(0.96);
+}
+
+/* Lighter press for smaller elements */
+.touch-press-light:active {
+  transform: scale(0.98);
+}
+
+/* Apply to common interactive elements on touch devices */
+@media (pointer: coarse) {
+  /* Buttons with explicit touch-press class get the effect */
+  .touch-press:active,
+  button.touch-press:active,
+  [role="button"].touch-press:active {
+    transform: scale(0.96);
+  }
+
+  /* Tag pills get lighter press */
+  .tag-pill:active,
+  .tag-badge:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ============================================
+   VISUAL VIEWPORT (Keyboard Height)
+   CSS variable set by useKeyboardHeight hook
+   ============================================ */
+:root {
+  --keyboard-height: 0px;
+  --keyboard-visible: 0; /* 0 or 1, for conditional styling */
+}
+
+/* ============================================
+   GESTURE HINT ANIMATIONS
+   Swipe indicator animations for onboarding overlay
+   ============================================ */
+@keyframes swipe-left {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-8px); }
+}
+
+@keyframes swipe-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
+}
+
+.animate-swipe-left {
+  animation: swipe-left 1.5s ease-in-out infinite;
+}
+
+.animate-swipe-right {
+  animation: swipe-right 1.5s ease-in-out infinite;
+}
+
 /* Paper texture overlay */
 body::before {
   content: "";

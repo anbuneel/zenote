@@ -8,6 +8,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.7.0',
+    date: '2026-01-16',
+    changes: [
+      { type: 'feature', text: 'Button press states - tactile scale feedback on tap for native feel' },
+      { type: 'feature', text: 'Visual Viewport API - proper keyboard handling with CSS variables' },
+      { type: 'feature', text: 'Gesture hint overlay - one-time tutorial for swipe gestures on mobile' },
+      { type: 'feature', text: 'iOS-style bottom sheet - Settings modal slides up on mobile' },
+      { type: 'improvement', text: 'iOS install guide detects non-Safari browsers with "Open in Safari" prompt' },
+    ],
+  },
+  {
     version: '2.6.1',
     date: '2026-01-15',
     changes: [

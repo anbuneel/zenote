@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { BottomSheet } from './BottomSheet';
 import type { Theme } from '../types';
 
 interface SettingsModalProps {
@@ -89,105 +90,50 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: 'rgba(0, 0, 0, 0.5)' }}
-      onClick={onClose}
-    >
-      <div
-        className="
-          w-[480px]
-          max-h-[90vh]
-          overflow-y-auto
-          shadow-2xl
-          animate-[modal-enter_300ms_ease-out]
-        "
-        style={{
-          background: 'var(--color-bg-primary)',
-          borderRadius: 'var(--radius-card)',
-          border: '1px solid var(--glass-border)',
-          scrollbarWidth: 'none',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
+    <BottomSheet isOpen={isOpen} onClose={onClose} title="Settings" maxHeightPercent={85}>
+      {/* Tabs - only show Password tab for non-OAuth users */}
+      {!isOAuthUser && (
         <div
-          className="px-8 py-6 border-b"
+          className="flex gap-1 px-6 py-3 border-b"
           style={{ borderColor: 'var(--glass-border)' }}
         >
-          <div className="flex items-center justify-between">
-            <h2
-              className="text-2xl font-semibold"
-              style={{
-                fontFamily: 'var(--font-display)',
-                color: 'var(--color-text-primary)',
-              }}
-            >
-              Settings
-            </h2>
-            <button
-              onClick={onClose}
-              className="
-                w-8 h-8
-                flex items-center justify-center
-                rounded-full
-                transition-colors duration-200
-              "
-              style={{ color: 'var(--color-text-tertiary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-bg-secondary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-              }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Tabs - only show Password tab for non-OAuth users */}
-          {!isOAuthUser && (
-            <div className="flex gap-1 mt-4">
-              <button
-                onClick={() => setActiveTab('profile')}
-                className="
-                  px-4 py-2
-                  text-sm font-medium
-                  rounded-lg
-                  transition-colors duration-200
-                "
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  color: activeTab === 'profile' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                  background: activeTab === 'profile' ? 'var(--color-accent-glow)' : 'transparent',
-                }}
-              >
-                Profile
-              </button>
-              <button
-                onClick={() => setActiveTab('password')}
-                className="
-                  px-4 py-2
-                  text-sm font-medium
-                  rounded-lg
-                  transition-colors duration-200
-                "
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  color: activeTab === 'password' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                  background: activeTab === 'password' ? 'var(--color-accent-glow)' : 'transparent',
-                }}
-              >
-                Password
-              </button>
-            </div>
-          )}
+          <button
+            onClick={() => setActiveTab('profile')}
+            className="
+              px-4 py-2
+              text-sm font-medium
+              rounded-lg
+              transition-colors duration-200
+              touch-press-light
+            "
+            style={{
+              fontFamily: 'var(--font-body)',
+              color: activeTab === 'profile' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              background: activeTab === 'profile' ? 'var(--color-accent-glow)' : 'transparent',
+            }}
+          >
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveTab('password')}
+            className="
+              px-4 py-2
+              text-sm font-medium
+              rounded-lg
+              transition-colors duration-200
+              touch-press-light
+            "
+            style={{
+              fontFamily: 'var(--font-body)',
+              color: activeTab === 'password' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              background: activeTab === 'password' ? 'var(--color-accent-glow)' : 'transparent',
+            }}
+          >
+            Password
+          </button>
         </div>
+      )}
 
         {/* Content */}
         <div className="px-8 py-6">
@@ -532,7 +478,6 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

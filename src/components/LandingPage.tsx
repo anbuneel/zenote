@@ -100,7 +100,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
                 <div className="flex items-center gap-4">
                   <button
                     onClick={onStartWriting}
-                    className="landing-cta-button px-8 py-3.5 rounded-lg text-base font-medium transition-all duration-300"
+                    className="landing-cta-button px-8 py-3.5 rounded-lg text-base font-medium transition-all duration-300 touch-press"
                     style={{
                       fontFamily: 'var(--font-body)',
                     }}
@@ -255,7 +255,7 @@ export function LandingPage({ onStartWriting, onSignIn, theme, onThemeToggle, on
           {/* Sign In - Outlined button for returning users */}
           <button
             onClick={onSignIn}
-            className="landing-signin-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+            className="landing-signin-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-press-light"
           >
             Sign In
           </button>
