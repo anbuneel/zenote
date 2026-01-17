@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 
 const STORAGE_KEY = 'yidhan-gesture-hint-seen';
-const ENTRANCE_DELAY = 1000; // Show after 1 second of viewing library
+// Delay before showing hint - allows user to see the library first
+// 1 second is long enough to perceive the screen but short enough to catch attention
+const ENTRANCE_DELAY = 1000;
 
 interface GestureHintProps {
   /** Whether the hint is allowed to show (e.g., only when notes exist) */
@@ -47,12 +49,26 @@ export function GestureHint({ enabled = true }: GestureHintProps) {
 
   const handleDismiss = () => {
     setHasAnimatedIn(false);
-    // Wait for exit animation
+    // Wait for exit animation (300ms matches transition duration)
     setTimeout(() => {
       setIsVisible(false);
       localStorage.setItem(STORAGE_KEY, 'true');
     }, 300);
   };
+
+  // Handle ESC key to dismiss (accessibility)
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleDismiss();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isVisible]);
 
   if (!isVisible) return null;
 
@@ -225,24 +241,6 @@ export function GestureHint({ enabled = true }: GestureHintProps) {
           Pull down to refresh your notes
         </p>
       </div>
-
-      {/* Keyframe animations */}
-      <style>{`
-        @keyframes swipe-left {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(-8px); }
-        }
-        @keyframes swipe-right {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(8px); }
-        }
-        .animate-swipe-left {
-          animation: swipe-left 1.5s ease-in-out infinite;
-        }
-        .animate-swipe-right {
-          animation: swipe-right 1.5s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }

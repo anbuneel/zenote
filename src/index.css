@@ -204,6 +204,28 @@ nav,
   --keyboard-visible: 0; /* 0 or 1, for conditional styling */
 }
 
+/* ============================================
+   GESTURE HINT ANIMATIONS
+   Swipe indicator animations for onboarding overlay
+   ============================================ */
+@keyframes swipe-left {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-8px); }
+}
+
+@keyframes swipe-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
+}
+
+.animate-swipe-left {
+  animation: swipe-left 1.5s ease-in-out infinite;
+}
+
+.animate-swipe-right {
+  animation: swipe-right 1.5s ease-in-out infinite;
+}
+
 /* Paper texture overlay */
 body::before {
   content: "";

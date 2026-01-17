@@ -2,6 +2,7 @@ import { useRef, useEffect, type ReactNode } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { useSpring, animated, config } from '@react-spring/web';
 import { useMobileDetect } from '../hooks/useMobileDetect';
+import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -17,14 +18,17 @@ interface BottomSheetProps {
   className?: string;
 }
 
-// Drag thresholds
-const DISMISS_THRESHOLD = 100; // px to drag down to dismiss
-const VELOCITY_THRESHOLD = 0.5; // velocity to dismiss regardless of distance
+// Drag thresholds for dismiss gesture
+// 100px is roughly the height of a navigation bar - feels natural as "intentional drag"
+const DISMISS_THRESHOLD = 100;
+// 0.5 velocity = fast swipe that should dismiss even with little distance
+// This matches iOS behavior where a quick flick dismisses regardless of drag distance
+const VELOCITY_THRESHOLD = 0.5;
 
 /**
  * iOS-style bottom sheet modal.
  *
- * On mobile: Slides up from bottom, drag down to dismiss
+ * On mobile: Slides up from bottom, drag handle to dismiss
  * On desktop: Falls back to centered modal behavior
  *
  * Uses react-spring for physics-based animations matching
@@ -41,8 +45,10 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const isMobile = useMobileDetect();
   const sheetRef = useRef<HTMLDivElement>(null);
+  const keyboardHeight = useKeyboardHeight();
 
   // Spring for sheet position (0 = fully open, positive = dragging down)
+  // We use the spring's idle state to determine if animation is complete
   const [{ y }, api] = useSpring(() => ({
     y: window.innerHeight, // Start off-screen
     config: config.stiff,
@@ -79,7 +85,7 @@ export function BottomSheet({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Drag to dismiss gesture (mobile only)
+  // Drag to dismiss gesture - bound to handle area only
   const bind = useDrag(
     ({ movement: [, my], velocity: [, vy], down, cancel }) => {
       // Only allow dragging down
@@ -97,7 +103,7 @@ export function BottomSheet({
           my > DISMISS_THRESHOLD || (vy > VELOCITY_THRESHOLD && my > 30);
 
         if (shouldDismiss) {
-          // Dismiss
+          // Dismiss with velocity
           api.start({
             y: window.innerHeight,
             config: { ...config.stiff, velocity: vy },
@@ -121,12 +127,18 @@ export function BottomSheet({
     }
   );
 
-  if (!isOpen && y.get() >= window.innerHeight) {
+  // Don't render if closed and animation complete (y is at window height)
+  // Use a threshold to handle slight animation variations
+  const isFullyClosed = !isOpen && y.get() >= window.innerHeight - 10;
+  if (isFullyClosed) {
     return null;
   }
 
   // Desktop fallback: centered modal
   if (!isMobile) {
+    // Gate desktop render on isOpen directly (no animation needed)
+    if (!isOpen) return null;
+
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center"
@@ -186,11 +198,9 @@ export function BottomSheet({
       {/* Sheet */}
       <animated.div
         ref={sheetRef}
-        {...bind()}
         className={`
           fixed left-0 right-0 bottom-0 z-50
           rounded-t-3xl shadow-2xl overflow-hidden
-          touch-none
           ${className}
         `}
         style={{
@@ -198,13 +208,16 @@ export function BottomSheet({
           maxHeight: `${maxHeightPercent}vh`,
           background: 'var(--color-bg-primary)',
           // Safe area padding for iPhone home indicator
-          paddingBottom: 'env(safe-area-inset-bottom)',
+          paddingBottom: `calc(env(safe-area-inset-bottom) + ${keyboardHeight}px)`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle */}
+        {/* Drag handle - ONLY this area captures drag gestures */}
         {showHandle && (
-          <div className="flex justify-center pt-3 pb-2">
+          <div
+            {...bind()}
+            className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none"
+          >
             <div
               className="w-10 h-1 rounded-full"
               style={{ background: 'var(--color-bg-tertiary)' }}
@@ -212,10 +225,11 @@ export function BottomSheet({
           </div>
         )}
 
-        {/* Title */}
+        {/* Title - also draggable for larger touch target */}
         {title && (
           <div
-            className="px-6 pb-3 border-b"
+            {...bind()}
+            className="px-6 pb-3 border-b cursor-grab active:cursor-grabbing touch-none"
             style={{ borderColor: 'var(--glass-border)' }}
           >
             <h2
@@ -230,11 +244,11 @@ export function BottomSheet({
           </div>
         )}
 
-        {/* Content */}
+        {/* Content - scrollable, NOT draggable */}
         <div
-          className="overflow-y-auto"
+          className="overflow-y-auto touch-pan-y"
           style={{
-            maxHeight: `calc(${maxHeightPercent}vh - ${title ? '80px' : '40px'} - env(safe-area-inset-bottom))`,
+            maxHeight: `calc(${maxHeightPercent}vh - ${title ? '80px' : '40px'} - env(safe-area-inset-bottom) - ${keyboardHeight}px)`,
           }}
         >
           {children}

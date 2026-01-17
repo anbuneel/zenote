@@ -27,7 +27,8 @@ export function useKeyboardHeight(): number {
     // On iOS, window.innerHeight stays constant while visualViewport.height shrinks
     const height = Math.max(0, window.innerHeight - viewport.height);
 
-    // Only update if significantly changed (avoid micro-fluctuations)
+    // Only update if significantly changed (>10px avoids micro-fluctuations
+    // from address bar hide/show which can cause jitter)
     setKeyboardHeight((prev) => {
       if (Math.abs(prev - height) > 10) {
         // Update CSS variables for stylesheet access
@@ -35,6 +36,7 @@ export function useKeyboardHeight(): number {
           '--keyboard-height',
           `${height}px`
         );
+        // 50px threshold: address bar changes are ~40-50px, keyboards are 250-350px
         document.documentElement.style.setProperty(
           '--keyboard-visible',
           height > 50 ? '1' : '0'
