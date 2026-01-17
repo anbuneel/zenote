@@ -1,4 +1,4 @@
-import { useRef, useEffect, type ReactNode } from 'react';
+import { useRef, useEffect, useState, type ReactNode } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { useSpring, animated, config } from '@react-spring/web';
 import { useMobileDetect } from '../hooks/useMobileDetect';
@@ -47,8 +47,10 @@ export function BottomSheet({
   const sheetRef = useRef<HTMLDivElement>(null);
   const keyboardHeight = useKeyboardHeight();
 
+  // Track whether component should render (allows animation to complete before unmount)
+  const [shouldRender, setShouldRender] = useState(isOpen);
+
   // Spring for sheet position (0 = fully open, positive = dragging down)
-  // We use the spring's idle state to determine if animation is complete
   const [{ y }, api] = useSpring(() => ({
     y: window.innerHeight, // Start off-screen
     config: config.stiff,
@@ -60,13 +62,19 @@ export function BottomSheet({
     config: config.default,
   }));
 
-  // Open/close animation
+  // Handle open/close animations
+  // Using queueMicrotask to defer setState and avoid synchronous render cascade
   useEffect(() => {
     if (isOpen) {
+      // Defer to next microtask to avoid synchronous setState in effect
+      queueMicrotask(() => setShouldRender(true));
       api.start({ y: 0 });
       backdropApi.start({ backdropOpacity: 1 });
     } else {
-      api.start({ y: window.innerHeight });
+      api.start({
+        y: window.innerHeight,
+        onRest: () => setShouldRender(false), // Unmount after close animation
+      });
       backdropApi.start({ backdropOpacity: 0 });
     }
   }, [isOpen, api, backdropApi]);
@@ -127,10 +135,8 @@ export function BottomSheet({
     }
   );
 
-  // Don't render if closed and animation complete (y is at window height)
-  // Use a threshold to handle slight animation variations
-  const isFullyClosed = !isOpen && y.get() >= window.innerHeight - 10;
-  if (isFullyClosed) {
+  // Don't render if closed and animation complete
+  if (!shouldRender) {
     return null;
   }
 

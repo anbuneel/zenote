@@ -31,9 +31,13 @@ export function GestureHint({ enabled = true }: GestureHintProps) {
     // Don't show if disabled or already seen
     if (!enabled) return;
 
-    // Check if already seen
-    const hasSeen = localStorage.getItem(STORAGE_KEY);
-    if (hasSeen) return;
+    // Check if already seen (guard against private mode exceptions)
+    try {
+      const hasSeen = localStorage.getItem(STORAGE_KEY);
+      if (hasSeen) return;
+    } catch {
+      // Storage unavailable - show hint (will dismiss but won't persist)
+    }
 
     // Show after delay
     const timer = setTimeout(() => {
@@ -52,7 +56,12 @@ export function GestureHint({ enabled = true }: GestureHintProps) {
     // Wait for exit animation (300ms matches transition duration)
     setTimeout(() => {
       setIsVisible(false);
-      localStorage.setItem(STORAGE_KEY, 'true');
+      // Guard against Safari private mode / quota exceptions
+      try {
+        localStorage.setItem(STORAGE_KEY, 'true');
+      } catch {
+        // Storage unavailable (private mode, quota exceeded) - hint will show again next visit
+      }
     }, 300);
   }, []);
 
