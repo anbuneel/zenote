@@ -23,6 +23,11 @@ import {
   type ThrottledSave,
 } from '../utils/editorPosition';
 
+// Position restoration constants
+const RESUME_SCROLL_THRESHOLD_PX = 400; // Show resume chip if scrolled > 400px
+const RESUME_CHIP_MIN_VISIBLE_MS = 2000; // Keep chip visible for at least 2 seconds
+const SCROLL_SAVE_THROTTLE_MS = 1000; // Save scroll position at most every 1 second
+
 interface EditorProps {
   note: Note;
   tags: Tag[];
@@ -60,7 +65,6 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
   const pendingScrollSaveRef = useRef<{ noteId: string; scroll: number } | null>(null);
   // Track when resume chip was shown to prevent immediate hiding
   const resumeChipShownAtRef = useRef<number>(0);
-  const RESUME_CHIP_MIN_VISIBLE_MS = 2000; // Keep chip visible for at least 2 seconds
   // Track the active note ID synchronously (updated during render, not in effects)
   // This allows scroll handlers to detect stale closures during DOM reflow
   const activeNoteIdRef = useRef(note.id);
@@ -94,9 +98,8 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
   // Load saved scroll position and show Resume chip if far from top
   useEffect(() => {
     const stored = getEditorPosition(note.id);
-    const RESUME_THRESHOLD = 400; // Show chip if scroll > 400px
 
-    if (stored && stored.scroll > RESUME_THRESHOLD) {
+    if (stored && stored.scroll > RESUME_SCROLL_THRESHOLD_PX) {
       setSavedScrollPosition(stored.scroll);
       setShowResumeChip(true);
       resumeChipShownAtRef.current = Date.now(); // Track when chip was shown
@@ -133,7 +136,7 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
           if (pending) {
             saveScrollPosition(pending.noteId, pending.scroll);
           }
-        }, 1000); // Save at most every 1 second
+        }, SCROLL_SAVE_THROTTLE_MS);
       }
       throttledScrollSaveRef.current.save();
 
@@ -763,6 +766,7 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
         <div className="flex justify-center py-2">
           <button
             onClick={handleResumeScroll}
+            aria-label="Resume editing at your last position"
             className="
               flex items-center gap-2
               px-4 py-2

@@ -16,6 +16,9 @@ import {
   type ThrottledSave,
 } from '../utils/editorPosition';
 
+// Cursor position persistence constant
+const CURSOR_SAVE_THROTTLE_MS = 2000; // Save cursor position at most every 2 seconds
+
 // Module-level cache to store cursor positions by noteId
 // This persists across component remounts (including React StrictMode double-mount)
 // and allows restoring cursor position when switching browser tabs
@@ -58,6 +61,13 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
   const selectionListenerSetupRef = useRef(false);
   // Throttled localStorage save (created once per noteId)
   const throttledPersistRef = useRef<ThrottledSave | null>(null);
+  // Store pending cursor save data (captured at selection time, not timer execution time)
+  // This prevents saving wrong data if note switches before timer fires
+  const pendingCursorSaveRef = useRef<{ noteId: string; cursor: CursorPosition } | null>(null);
+  // Track the active note ID synchronously (updated during render, not in effects)
+  // This allows selection handlers to detect stale closures during DOM reflow
+  const activeNoteIdRef = useRef(noteId);
+  activeNoteIdRef.current = noteId; // Update synchronously on every render
 
   // Memoize extensions to prevent recreation on every render
   const extensions = useMemo(() => [
@@ -103,20 +113,32 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
   // This allows restoring position when editor remounts (e.g., after tab switch)
   // Also persists to localStorage (throttled) for cross-session restoration
   const saveCursorPosition = useCallback(() => {
+    // Ignore selection events from stale handlers during DOM reflow
+    // The activeNoteIdRef is updated synchronously during render, before effects cleanup
+    if (noteId !== activeNoteIdRef.current) return;
+
     if (editor && noteId && !editor.isDestroyed) {
       try {
         const { from, to } = editor.state.selection;
         // Always update in-memory cache (fast)
         cursorPositionCache.set(noteId, { from, to });
 
+        // Capture noteId and cursor NOW at selection time
+        // This prevents saving wrong data if note switches before timer fires
+        pendingCursorSaveRef.current = {
+          noteId,
+          cursor: { from, to },
+        };
+
         // Throttled persist to localStorage (slower but cross-session)
         if (!throttledPersistRef.current) {
           throttledPersistRef.current = createThrottledSave(() => {
-            const cached = cursorPositionCache.get(noteId);
-            if (cached) {
-              persistCursorPosition(noteId, cached);
+            // Read from ref (captured at selection time) instead of closure
+            const pending = pendingCursorSaveRef.current;
+            if (pending) {
+              persistCursorPosition(pending.noteId, pending.cursor);
             }
-          }, 2000); // Save at most every 2 seconds
+          }, CURSOR_SAVE_THROTTLE_MS);
         }
         throttledPersistRef.current.save();
       } catch {
@@ -158,8 +180,9 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
         initialFocusApplied.delete(prevNoteIdRef.current);
         // Don't clear cursor position cache - keep it for when user returns
       }
-      // Reset throttled persist for new note
+      // Reset throttled persist and pending data for new note
       throttledPersistRef.current = null;
+      pendingCursorSaveRef.current = null;
     }
     prevNoteIdRef.current = noteId;
     // eslint-disable-next-line react-hooks/exhaustive-deps

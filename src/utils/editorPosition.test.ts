@@ -258,4 +258,143 @@ describe('editorPosition', () => {
       expect(noteCount).toBeLessThanOrEqual(100);
     });
   });
+
+  describe('rapid note switching', () => {
+    it('does not mix scroll data when switching notes rapidly', () => {
+      saveScrollPosition('note-1', 100);
+      saveScrollPosition('note-2', 200);
+      saveScrollPosition('note-1', 150); // Update note-1 again
+
+      const pos1 = getEditorPosition('note-1');
+      const pos2 = getEditorPosition('note-2');
+
+      expect(pos1?.scroll).toBe(150);
+      expect(pos2?.scroll).toBe(200);
+    });
+
+    it('does not mix cursor data when switching notes rapidly', () => {
+      saveCursorPosition('note-1', { from: 10, to: 20 });
+      saveCursorPosition('note-2', { from: 30, to: 40 });
+      saveCursorPosition('note-1', { from: 15, to: 25 }); // Update note-1 again
+
+      const pos1 = getEditorPosition('note-1');
+      const pos2 = getEditorPosition('note-2');
+
+      expect(pos1?.cursor).toEqual({ from: 15, to: 25 });
+      expect(pos2?.cursor).toEqual({ from: 30, to: 40 });
+    });
+
+    it('maintains data integrity across interleaved saves', () => {
+      // Simulate rapid interleaved saves for multiple notes
+      for (let i = 0; i < 10; i++) {
+        saveCursorPosition('note-a', { from: i, to: i + 1 });
+        saveScrollPosition('note-b', i * 100);
+        saveCursorPosition('note-b', { from: i * 2, to: i * 2 + 1 });
+        saveScrollPosition('note-a', i * 50);
+      }
+
+      const posA = getEditorPosition('note-a');
+      const posB = getEditorPosition('note-b');
+
+      // Should have the final values for each note
+      expect(posA?.cursor).toEqual({ from: 9, to: 10 });
+      expect(posA?.scroll).toBe(450);
+      expect(posB?.cursor).toEqual({ from: 18, to: 19 });
+      expect(posB?.scroll).toBe(900);
+    });
+  });
+
+  describe('runtime validation', () => {
+    it('handles corrupted localStorage data gracefully', () => {
+      // Simulate corrupted data
+      mockStorage['yidhan-editor-positions'] = 'not valid json {{{';
+
+      const result = getEditorPosition('any-note');
+      expect(result).toBeNull();
+    });
+
+    it('filters out invalid entries while keeping valid ones', () => {
+      // Mix of valid and invalid entries
+      mockStorage['yidhan-editor-positions'] = JSON.stringify({
+        'valid-note': {
+          cursor: { from: 10, to: 20 },
+          scroll: 100,
+          updatedAt: Date.now(),
+        },
+        'invalid-note-1': {
+          cursor: 'not an object', // Invalid cursor
+          scroll: 100,
+          updatedAt: Date.now(),
+        },
+        'invalid-note-2': {
+          cursor: { from: 10, to: 20 },
+          scroll: 'not a number', // Invalid scroll
+          updatedAt: Date.now(),
+        },
+        'invalid-note-3': null, // Null entry
+        'invalid-note-4': {
+          cursor: { from: 10 }, // Missing 'to'
+          scroll: 100,
+          updatedAt: Date.now(),
+        },
+      });
+
+      // Valid note should still be retrievable
+      const validResult = getEditorPosition('valid-note');
+      expect(validResult).not.toBeNull();
+      expect(validResult?.cursor).toEqual({ from: 10, to: 20 });
+
+      // Invalid notes should return null
+      expect(getEditorPosition('invalid-note-1')).toBeNull();
+      expect(getEditorPosition('invalid-note-2')).toBeNull();
+      expect(getEditorPosition('invalid-note-3')).toBeNull();
+      expect(getEditorPosition('invalid-note-4')).toBeNull();
+    });
+
+    it('handles non-object localStorage data', () => {
+      mockStorage['yidhan-editor-positions'] = JSON.stringify('just a string');
+      expect(getEditorPosition('any-note')).toBeNull();
+
+      mockStorage['yidhan-editor-positions'] = JSON.stringify(null);
+      expect(getEditorPosition('any-note')).toBeNull();
+
+      mockStorage['yidhan-editor-positions'] = JSON.stringify([1, 2, 3]);
+      expect(getEditorPosition('any-note')).toBeNull();
+    });
+  });
+
+  describe('createThrottledSave edge cases', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('handles zero delay gracefully', () => {
+      const saveFn = vi.fn();
+      const throttled = createThrottledSave(saveFn, 0);
+
+      throttled.save();
+      throttled.save();
+      throttled.save();
+
+      // With zero delay, should execute immediately each time
+      expect(saveFn).toHaveBeenCalledTimes(3);
+    });
+
+    it('cancel clears pending flag so flush does nothing', () => {
+      const saveFn = vi.fn();
+      const throttled = createThrottledSave(saveFn, 1000);
+
+      throttled.save(); // Immediate
+      throttled.save(); // Pending
+      throttled.cancel();
+      throttled.flush();
+
+      // Only the first immediate call should have executed
+      expect(saveFn).toHaveBeenCalledTimes(1);
+    });
+  });
 });

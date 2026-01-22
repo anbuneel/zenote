@@ -26,13 +26,47 @@ export interface EditorPosition {
 type PositionStore = Record<string, EditorPosition>;
 
 /**
- * Get all stored positions from localStorage
+ * Validate that a value is a valid EditorPosition
+ */
+function isValidPosition(value: unknown): value is EditorPosition {
+  if (typeof value !== 'object' || value === null) return false;
+  const pos = value as Record<string, unknown>;
+
+  // Validate cursor
+  if (typeof pos.cursor !== 'object' || pos.cursor === null) return false;
+  const cursor = pos.cursor as Record<string, unknown>;
+  if (typeof cursor.from !== 'number' || typeof cursor.to !== 'number') return false;
+
+  // Validate scroll and updatedAt
+  if (typeof pos.scroll !== 'number') return false;
+  if (typeof pos.updatedAt !== 'number') return false;
+
+  return true;
+}
+
+/**
+ * Get all stored positions from localStorage with runtime validation
+ * to prevent corrupted data from causing runtime errors
  */
 function getStore(): PositionStore {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) return {};
-    return JSON.parse(data) as PositionStore;
+
+    const parsed = JSON.parse(data);
+
+    // Validate top-level structure
+    if (typeof parsed !== 'object' || parsed === null) return {};
+
+    // Validate each entry and only keep valid ones
+    const validated: PositionStore = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      if (isValidPosition(value)) {
+        validated[key] = value;
+      }
+    }
+
+    return validated;
   } catch {
     return {};
   }
@@ -186,12 +220,14 @@ export function createThrottledSave(
       clearTimeout(timeoutId);
     }
 
+    // Use Math.max to handle edge case where system clock changes could make this negative
+    const remaining = Math.max(0, delay - (now - lastSaved));
     timeoutId = setTimeout(() => {
       lastSaved = Date.now();
       hasPending = false;
       saveFn();
       timeoutId = null;
-    }, delay - (now - lastSaved));
+    }, remaining);
   };
 
   const flush = () => {
