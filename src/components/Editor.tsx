@@ -55,6 +55,9 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const throttledScrollSaveRef = useRef<ThrottledSave | null>(null);
+  // Store pending scroll save data (captured at scroll time, not timer execution time)
+  // This prevents saving wrong scroll position if note switches before timer fires
+  const pendingScrollSaveRef = useRef<{ noteId: string; scroll: number } | null>(null);
   // Track when resume chip was shown to prevent immediate hiding
   const resumeChipShownAtRef = useRef<number>(0);
   const RESUME_CHIP_MIN_VISIBLE_MS = 2000; // Keep chip visible for at least 2 seconds
@@ -79,6 +82,7 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
       setSavedScrollPosition(null);
       resumeChipShownAtRef.current = 0;
       throttledScrollSaveRef.current = null;
+      pendingScrollSaveRef.current = null; // Clear pending data for old note
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note.id]);
@@ -105,11 +109,20 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
     if (!container) return;
 
     const handleScroll = () => {
+      // Capture both noteId and scrollTop NOW at scroll time
+      // This prevents saving wrong data if note switches before timer fires
+      pendingScrollSaveRef.current = {
+        noteId: note.id,
+        scroll: container.scrollTop,
+      };
+
       // Create throttled save if not exists
       if (!throttledScrollSaveRef.current) {
         throttledScrollSaveRef.current = createThrottledSave(() => {
-          if (scrollContainerRef.current) {
-            saveScrollPosition(note.id, scrollContainerRef.current.scrollTop);
+          // Read from ref (captured at scroll time) instead of closure/DOM
+          const pending = pendingScrollSaveRef.current;
+          if (pending) {
+            saveScrollPosition(pending.noteId, pending.scroll);
           }
         }, 1000); // Save at most every 1 second
       }
