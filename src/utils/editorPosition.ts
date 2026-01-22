@@ -99,17 +99,19 @@ function setStore(store: PositionStore): void {
   }
 }
 
+const DEFAULT_POSITION: EditorPosition = {
+  cursor: { from: 0, to: 0 },
+  scroll: 0,
+  updatedAt: 0,
+};
+
 /**
  * Save cursor position for a note
  */
 export function saveCursorPosition(noteId: string, cursor: CursorPosition): void {
   const store = getStore();
-  const existing = store[noteId] || { cursor: { from: 0, to: 0 }, scroll: 0, updatedAt: 0 };
-  store[noteId] = {
-    ...existing,
-    cursor,
-    updatedAt: Date.now(),
-  };
+  const existing = store[noteId] || DEFAULT_POSITION;
+  store[noteId] = { ...existing, cursor, updatedAt: Date.now() };
   setStore(store);
 }
 
@@ -118,12 +120,8 @@ export function saveCursorPosition(noteId: string, cursor: CursorPosition): void
  */
 export function saveScrollPosition(noteId: string, scroll: number): void {
   const store = getStore();
-  const existing = store[noteId] || { cursor: { from: 0, to: 0 }, scroll: 0, updatedAt: 0 };
-  store[noteId] = {
-    ...existing,
-    scroll,
-    updatedAt: Date.now(),
-  };
+  const existing = store[noteId] || DEFAULT_POSITION;
+  store[noteId] = { ...existing, scroll, updatedAt: Date.now() };
   setStore(store);
 }
 

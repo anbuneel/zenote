@@ -157,7 +157,7 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
       container.removeEventListener('scroll', handleScroll);
       throttledScrollSaveRef.current?.flush();
     };
-  }, [note.id, showResumeChip, RESUME_CHIP_MIN_VISIBLE_MS]);
+  }, [note.id, showResumeChip]);
 
   // Handle resume button click
   const handleResumeScroll = useCallback(() => {
@@ -379,6 +379,18 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
     showCopiedIndicator();
   };
 
+  // Get save status styling based on current status
+  function getSaveStatusStyle(status: SaveStatus): { color: string; background: string } {
+    switch (status) {
+      case 'saving':
+        return { color: 'var(--color-accent)', background: 'var(--color-accent-glow)' };
+      case 'error':
+        return { color: 'var(--color-error)', background: 'var(--color-error-light)' };
+      default:
+        return { color: 'var(--color-success)', background: 'var(--color-success-glow)' };
+    }
+  }
+
   const showCopiedIndicator = () => {
     // Clear any existing indicator timeouts
     if (savePhaseTimeoutRef.current) {
@@ -494,19 +506,10 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
           `}
           style={{
             fontFamily: 'var(--font-body)',
-            color: saveStatus === 'saving'
-              ? 'var(--color-accent)'
-              : saveStatus === 'error'
-                ? 'var(--color-error)'
-                : 'var(--color-success)',
-            background: saveStatus === 'saving'
-              ? 'var(--color-accent-glow)'
-              : saveStatus === 'error'
-                ? 'var(--color-error-light)'
-                : 'var(--color-success-glow)',
+            ...getSaveStatusStyle(saveStatus),
           }}
         >
-          {saveStatus === 'saving' ? (
+          {saveStatus === 'saving' && (
             <>
               <span
                 className="w-2 h-2 rounded-full animate-pulse"
@@ -514,21 +517,24 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
               />
               Saving...
             </>
-          ) : saveStatus === 'error' ? (
+          )}
+          {saveStatus === 'error' && (
             <>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
               </svg>
               Save failed
             </>
-          ) : saveStatus === 'copied' ? (
+          )}
+          {saveStatus === 'copied' && (
             <>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
               Copied
             </>
-          ) : (
+          )}
+          {saveStatus === 'saved' && (
             <>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
