@@ -20,6 +20,7 @@ import {
   saveScrollPosition,
   getEditorPosition,
   createThrottledSave,
+  type ThrottledSave,
 } from '../utils/editorPosition';
 
 interface EditorProps {
@@ -53,7 +54,10 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const throttledScrollSaveRef = useRef<(() => void) | null>(null);
+  const throttledScrollSaveRef = useRef<ThrottledSave | null>(null);
+  // Track when resume chip was shown to prevent immediate hiding
+  const resumeChipShownAtRef = useRef<number>(0);
+  const RESUME_CHIP_MIN_VISIBLE_MS = 2000; // Keep chip visible for at least 2 seconds
   // Separate refs for save indicator phases to avoid nested timeout issues
   const savePhaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -64,12 +68,16 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
   // Reset local state when switching to a different note
   useEffect(() => {
     if (currentNoteId !== note.id) {
+      // Flush any pending scroll save for the previous note before switching
+      throttledScrollSaveRef.current?.flush();
+
       setCurrentNoteId(note.id);
       setTitle(note.title);
       setContent(note.content);
       // Reset resume chip and scroll save for new note
       setShowResumeChip(false);
       setSavedScrollPosition(null);
+      resumeChipShownAtRef.current = 0;
       throttledScrollSaveRef.current = null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,9 +91,11 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
     if (stored && stored.scroll > RESUME_THRESHOLD) {
       setSavedScrollPosition(stored.scroll);
       setShowResumeChip(true);
+      resumeChipShownAtRef.current = Date.now(); // Track when chip was shown
     } else {
       setSavedScrollPosition(null);
       setShowResumeChip(false);
+      resumeChipShownAtRef.current = 0;
     }
   }, [note.id]);
 
@@ -103,17 +113,26 @@ export function Editor({ note, tags, userId, onBack, onUpdate, onDelete, onToggl
           }
         }, 1000); // Save at most every 1 second
       }
-      throttledScrollSaveRef.current();
+      throttledScrollSaveRef.current.save();
 
-      // Hide resume chip once user starts scrolling
+      // Hide resume chip after minimum visible time has passed
+      // This prevents programmatic scrolls (focus, keyboard resize) from hiding it immediately
       if (showResumeChip) {
-        setShowResumeChip(false);
+        const elapsed = Date.now() - resumeChipShownAtRef.current;
+        if (elapsed >= RESUME_CHIP_MIN_VISIBLE_MS) {
+          setShowResumeChip(false);
+        }
       }
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [note.id, showResumeChip]);
+
+    // Flush any pending scroll save on cleanup (component unmount or note switch)
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      throttledScrollSaveRef.current?.flush();
+    };
+  }, [note.id, showResumeChip, RESUME_CHIP_MIN_VISIBLE_MS]);
 
   // Handle resume button click
   const handleResumeScroll = useCallback(() => {

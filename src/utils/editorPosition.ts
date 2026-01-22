@@ -148,22 +148,35 @@ export function isScrollPositionFar(noteId: string, threshold = 500): boolean {
   return position !== null && position.scroll > threshold;
 }
 
+export interface ThrottledSave {
+  /** Call this to trigger a throttled save */
+  save: () => void;
+  /** Call this on unmount to flush any pending save immediately */
+  flush: () => void;
+  /** Call this to cancel any pending save without executing it */
+  cancel: () => void;
+}
+
 /**
  * Throttle utility for saving positions during typing/scrolling
+ * Returns an object with save(), flush(), and cancel() methods
  */
 export function createThrottledSave(
   saveFn: () => void,
   delay = 1000
-): () => void {
+): ThrottledSave {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastSaved = 0;
+  let hasPending = false;
 
-  return () => {
+  const save = () => {
     const now = Date.now();
+    hasPending = true;
 
     // If enough time has passed, save immediately
     if (now - lastSaved >= delay) {
       lastSaved = now;
+      hasPending = false;
       saveFn();
       return;
     }
@@ -175,8 +188,30 @@ export function createThrottledSave(
 
     timeoutId = setTimeout(() => {
       lastSaved = Date.now();
+      hasPending = false;
       saveFn();
       timeoutId = null;
     }, delay - (now - lastSaved));
   };
+
+  const flush = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+    if (hasPending) {
+      hasPending = false;
+      saveFn();
+    }
+  };
+
+  const cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+    hasPending = false;
+  };
+
+  return { save, flush, cancel };
 }

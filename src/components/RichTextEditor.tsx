@@ -13,6 +13,7 @@ import {
   getEditorPosition,
   createThrottledSave,
   type CursorPosition,
+  type ThrottledSave,
 } from '../utils/editorPosition';
 
 // Module-level cache to store cursor positions by noteId
@@ -56,7 +57,7 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
   // Track if we've set up selection listener for this editor instance
   const selectionListenerSetupRef = useRef(false);
   // Throttled localStorage save (created once per noteId)
-  const throttledPersistRef = useRef<(() => void) | null>(null);
+  const throttledPersistRef = useRef<ThrottledSave | null>(null);
 
   // Memoize extensions to prevent recreation on every render
   const extensions = useMemo(() => [
@@ -117,7 +118,7 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
             }
           }, 2000); // Save at most every 2 seconds
         }
-        throttledPersistRef.current();
+        throttledPersistRef.current.save();
       } catch {
         // Ignore errors if editor state is not accessible
       }
@@ -148,6 +149,9 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
   // Compare with previous noteId to avoid resetting on re-renders or real-time updates
   useEffect(() => {
     if (editor && noteId && prevNoteIdRef.current !== noteId) {
+      // Flush any pending cursor save for the previous note
+      throttledPersistRef.current?.flush();
+
       editor.commands.setContent(content);
       // Clear initial focus flag for previous note so it will focus at end when reopened
       if (prevNoteIdRef.current) {
@@ -160,6 +164,13 @@ export function RichTextEditor({ content, onChange, onBlur, noteId, autoFocus, o
     prevNoteIdRef.current = noteId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId, editor]);
+
+  // Flush any pending cursor save on unmount
+  useEffect(() => {
+    return () => {
+      throttledPersistRef.current?.flush();
+    };
+  }, []);
 
   // Restore cursor position or focus at end for new notes
   useEffect(() => {
