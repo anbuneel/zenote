@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.8.2',
+    date: '2026-01-25',
+    changes: [
+      { type: 'improvement', text: 'Reduced dark mode background grain for a calmer visual experience' },
+    ],
+  },
+  {
     version: '2.8.1',
     date: '2026-01-22',
     changes: [
