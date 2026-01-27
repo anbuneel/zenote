@@ -12,8 +12,8 @@ export function sanitizeHtml(html: string): string {
       'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
       // Headings
       'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      // Lists
-      'ul', 'ol', 'li',
+      // Lists (including task list elements)
+      'ul', 'ol', 'li', 'label', 'input',
       // Quotes and blocks
       'blockquote', 'hr',
       // Links (href will be sanitized)
@@ -23,10 +23,12 @@ export function sanitizeHtml(html: string): string {
     ],
     ALLOWED_ATTR: [
       'href', 'target', 'rel', 'class', 'style',
+      // Task list attributes (Tiptap)
+      'data-type', 'data-checked', 'type', 'checked', 'disabled',
     ],
     // Force links to open safely
     ADD_ATTR: ['target'],
-    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input'],
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
   });
 }
