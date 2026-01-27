@@ -533,6 +533,7 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] Gold caret color (cursor matches brand accent for distinctive feel)
 - [x] Refined editor typography (font-weight 400, line-height 1.75, 1em paragraph spacing)
 - [x] Animated placeholder (rotates hints every 30s when editor is empty)
+- [x] Mobile toolbar overflow menu (compact toolbar with essential tools + "⋯" overflow for remaining)
 
 ## Features Not Yet Implemented
 - [ ] Additional OAuth providers (Apple, etc.)

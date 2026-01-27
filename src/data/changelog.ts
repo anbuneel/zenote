@@ -15,6 +15,7 @@ export const changelog: ChangelogEntry[] = [
       { type: 'improvement', text: 'Refined typography: bolder text (400 weight) and tighter line-height (1.75) for better readability' },
       { type: 'feature', text: 'Slash command icons - visual icons for all 13 commands in the / menu' },
       { type: 'feature', text: 'Animated placeholder - rotating hints when editor is empty (every 30s)' },
+      { type: 'feature', text: 'Mobile toolbar overflow menu - compact toolbar with essential tools and "more" menu' },
     ],
   },
   {

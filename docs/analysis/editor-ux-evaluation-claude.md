@@ -266,20 +266,18 @@ A gold cursor that subtly pulses, leaves a faint trail, or responds to typing rh
 
 ## Implementation Progress
 
-### Quick Wins (Completed)
+### Quick Wins (All Complete! ✓)
 - [x] Gold caret color (`caret-color: var(--color-accent)`)
 - [x] Typography refinements (font-weight 400, line-height 1.75, paragraph spacing 1em)
 - [x] Slash command icons (13 SVG icons with accent color)
 - [x] Animated placeholder text (rotates every 30s: "Start writing..." → "What's on your mind?" → "Type / for commands")
-
-### Quick Wins (Remaining)
-- [ ] Mobile toolbar overflow menu (~4 hrs)
+- [x] Mobile toolbar overflow menu (compact 7-button toolbar + overflow "⋯" menu with remaining 10 tools)
 
 ### Categories
 - [x] 1. Typography refinements *(partial - quick wins done)*
-- [ ] 2. Toolbar redesign
+- [x] 2. Toolbar redesign *(partial - mobile overflow menu done)*
 - [ ] 3. Writing canvas enhancements
 - [ ] 4. Focus & flow states
-- [ ] 5. Mobile experience
+- [x] 5. Mobile experience *(partial - toolbar overflow menu done)*
 - [x] 6. Micro-interactions & polish *(partial - animated placeholder done)*
 - [x] 7. Slash command enhancements *(icons added)*
