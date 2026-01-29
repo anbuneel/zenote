@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { searchNotes } from './notes';
+import { searchNotes, createNote } from './notes';
 import { createMockQueryBuilder, type MockQueryBuilder } from '../test/factories';
 import { supabase } from '../lib/supabase';
 
@@ -86,5 +86,37 @@ describe('searchNotes security', () => {
     expect(mockBuilder.or).toHaveBeenCalledWith(
       'title.ilike."%foobar%",content.ilike."%foobar%"'
     );
+  });
+});
+
+describe('createNote security', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('sanitizes HTML content before insertion', async () => {
+    const mockBuilder = createMockQueryBuilder();
+    // mock insert to return a success response
+    mockBuilder.insert.mockReturnThis();
+    mockBuilder.select.mockReturnThis();
+    mockBuilder.single.mockResolvedValue({
+      data: {
+        id: '123',
+        title: 'Test',
+        content: '<p>Safe</p>',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      error: null
+    });
+    mockSupabaseFrom(mockBuilder);
+
+    const maliciousContent = '<script>alert("XSS")</script><p>Safe</p>';
+    await createNote('user1', 'Test', maliciousContent);
+
+    // Expect script tag to be removed
+    expect(mockBuilder.insert).toHaveBeenCalledWith(expect.objectContaining({
+      content: '<p>Safe</p>'
+    }));
   });
 });
