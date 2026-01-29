@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { searchNotes } from './notes';
-import { createMockQueryBuilder } from '../test/factories';
+import { createMockQueryBuilder, type MockQueryBuilder } from '../test/factories';
 import { supabase } from '../lib/supabase';
 
 // Mock supabase
@@ -13,20 +13,28 @@ vi.mock('../lib/supabase', () => {
 });
 
 // Helper for mocking
-function mockSupabaseFrom(builder: any): void {
+function mockSupabaseFrom(builder: MockQueryBuilder): void {
   vi.mocked(supabase.from).mockReturnValue(builder);
 }
 
 // Helper to create a chainable mock builder for searchNotes
 // searchNotes calls .order() twice
-function createSearchMockBuilder(data: unknown[] = [], error: Error | null = null) {
+function createSearchMockBuilder(data: unknown[] = [], error: Error | null = null): MockQueryBuilder {
   let orderCallCount = 0;
-  const mockBuilder = {
+  const mockBuilder: MockQueryBuilder = {
     select: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
     is: vi.fn().mockReturnThis(),
+    not: vi.fn().mockReturnThis(),
+    lt: vi.fn().mockReturnThis(),
     or: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data, error }),
+    maybeSingle: vi.fn().mockResolvedValue({ data, error }),
     // Mock chaining of order:
-    order: vi.fn().mockImplementation(function(this: any) {
+    order: vi.fn().mockImplementation(function (this: MockQueryBuilder) {
       orderCallCount++;
       if (orderCallCount < 2) {
         return this; // Chainable for first call
