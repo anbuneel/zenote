@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { Note } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { TagBadgeList } from './TagBadge';
@@ -12,7 +12,7 @@ interface NoteCardProps {
   isCompact?: boolean;
 }
 
-export function NoteCard({ note, onClick, onDelete, onTogglePin, isCompact = false }: NoteCardProps) {
+export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogglePin, isCompact = false }: NoteCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Extract plain text preview for compact mode (no HTML escaping - React handles it)
@@ -256,4 +256,6 @@ export function NoteCard({ note, onClick, onDelete, onTogglePin, isCompact = fal
 
     </article>
   );
-}
+}, (prev, next) => {
+  return prev.note === next.note && prev.isCompact === next.isCompact;
+});
