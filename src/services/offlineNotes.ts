@@ -7,6 +7,7 @@
  */
 
 import { supabase } from '../lib/supabase';
+import { sanitizeHtml } from '../utils/sanitize';
 import {
   getOfflineDb,
   clearOfflineDb,
@@ -427,7 +428,7 @@ export async function createNoteOffline(
     id: noteId,
     userId,
     title,
-    content,
+    content: sanitizeHtml(content),
     pinned: false,
     deletedAt: null,
     createdAt: now,
@@ -444,7 +445,7 @@ export async function createNoteOffline(
   // Queue for sync
   await queueSyncOperation(userId, 'create', 'note', noteId, {
     title,
-    content,
+    content: sanitizeHtml(content),
     pinned: false,
   });
 
@@ -485,7 +486,7 @@ export async function createNotesBatchOffline(
         id: noteId,
         userId,
         title: noteData.title,
-        content: noteData.content,
+        content: sanitizeHtml(noteData.content),
         pinned: false,
         deletedAt: null,
         createdAt,
@@ -504,7 +505,7 @@ export async function createNotesBatchOffline(
     for (const localNote of localNotes) {
       await queueSyncOperation(userId, 'create', 'note', localNote.id, {
         title: localNote.title,
-        content: localNote.content,
+        content: localNote.content, // Already sanitized in localNote creation above
         pinned: false,
         createdAt: new Date(localNote.createdAt).toISOString(),
         updatedAt: new Date(localNote.updatedAt).toISOString(),
@@ -542,7 +543,7 @@ export async function updateNoteOffline(
   const localNote: LocalNote = {
     ...existing,
     title: note.title,
-    content: note.content,
+    content: sanitizeHtml(note.content),
     updatedAt: now,
     localUpdatedAt: now,
     syncStatus: existing.syncStatus === 'synced' ? 'pending' : existing.syncStatus,
@@ -554,7 +555,7 @@ export async function updateNoteOffline(
   // Queue for sync (compaction will remove previous updates)
   await queueSyncOperation(userId, 'update', 'note', note.id, {
     title: note.title,
-    content: note.content,
+    content: sanitizeHtml(note.content),
   });
 
   return localNoteToNote(localNote, note.tags);
