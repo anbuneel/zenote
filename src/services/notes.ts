@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react';
 import { supabase } from '../lib/supabase';
+import { validateNoteTitle, validateNoteContent } from '../utils/validation';
 import type { Note, Tag, TagColor, NoteShare } from '../types';
 import type { DbNote, DbTag, DbNoteShare } from '../types/database';
 
@@ -84,8 +85,8 @@ export async function createNote(
     updated_at?: string;
   } = {
     user_id: userId,
-    title,
-    content,
+    title: validateNoteTitle(title),
+    content: validateNoteContent(content),
   };
 
   // Preserve original timestamps if provided (e.g., during import)
@@ -142,8 +143,8 @@ export async function createNotesBatch(
         updated_at?: string;
       } = {
         user_id: userId,
-        title: note.title,
-        content: note.content,
+        title: validateNoteTitle(note.title),
+        content: validateNoteContent(note.content),
       };
 
       if (note.createdAt) {
@@ -183,8 +184,8 @@ export async function updateNote(note: Note): Promise<Note> {
   const { data, error } = await supabase
     .from('notes')
     .update({
-      title: note.title,
-      content: note.content,
+      title: validateNoteTitle(note.title),
+      content: validateNoteContent(note.content),
       updated_at: new Date().toISOString(),
     })
     .eq('id', note.id)

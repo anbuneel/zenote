@@ -7,6 +7,7 @@
  */
 
 import { supabase } from '../lib/supabase';
+import { validateNoteTitle, validateNoteContent } from '../utils/validation';
 import {
   getOfflineDb,
   clearOfflineDb,
@@ -423,11 +424,14 @@ export async function createNoteOffline(
   const now = Date.now();
   const noteId = crypto.randomUUID();
 
+  const validatedTitle = validateNoteTitle(title);
+  const validatedContent = validateNoteContent(content);
+
   const localNote: LocalNote = {
     id: noteId,
     userId,
-    title,
-    content,
+    title: validatedTitle,
+    content: validatedContent,
     pinned: false,
     deletedAt: null,
     createdAt: now,
@@ -443,8 +447,8 @@ export async function createNoteOffline(
 
   // Queue for sync
   await queueSyncOperation(userId, 'create', 'note', noteId, {
-    title,
-    content,
+    title: validatedTitle,
+    content: validatedContent,
     pinned: false,
   });
 
@@ -484,8 +488,8 @@ export async function createNotesBatchOffline(
       return {
         id: noteId,
         userId,
-        title: noteData.title,
-        content: noteData.content,
+        title: validateNoteTitle(noteData.title),
+        content: validateNoteContent(noteData.content),
         pinned: false,
         deletedAt: null,
         createdAt,
@@ -539,10 +543,13 @@ export async function updateNoteOffline(
     throw new Error(`Note ${note.id} not found in offline database`);
   }
 
+  const validatedTitle = validateNoteTitle(note.title);
+  const validatedContent = validateNoteContent(note.content);
+
   const localNote: LocalNote = {
     ...existing,
-    title: note.title,
-    content: note.content,
+    title: validatedTitle,
+    content: validatedContent,
     updatedAt: now,
     localUpdatedAt: now,
     syncStatus: existing.syncStatus === 'synced' ? 'pending' : existing.syncStatus,
@@ -553,8 +560,8 @@ export async function updateNoteOffline(
 
   // Queue for sync (compaction will remove previous updates)
   await queueSyncOperation(userId, 'update', 'note', note.id, {
-    title: note.title,
-    content: note.content,
+    title: validatedTitle,
+    content: validatedContent,
   });
 
   return localNoteToNote(localNote, note.tags);
