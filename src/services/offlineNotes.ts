@@ -20,6 +20,8 @@ import {
 } from '../lib/offlineDb';
 import type { Note, Tag, TagColor } from '../types';
 import type { DbNote, DbTag } from '../types/database';
+import { sanitizeHtml } from '../utils/sanitize';
+import { validateNoteTitle, validateNoteContentLength } from '../utils/validation';
 
 // Convert LocalNote to App Note
 function localNoteToNote(localNote: LocalNote, tags: Tag[] = []): Note {
@@ -419,15 +421,21 @@ export async function createNoteOffline(
   title: string = '',
   content: string = ''
 ): Promise<Note> {
+  // Validate inputs
+  const validatedTitle = validateNoteTitle(title);
+  validateNoteContentLength(content);
+
   const db = getOfflineDb(userId);
   const now = Date.now();
   const noteId = crypto.randomUUID();
 
+  const sanitizedContent = sanitizeHtml(content);
+
   const localNote: LocalNote = {
     id: noteId,
     userId,
-    title,
-    content,
+    title: validatedTitle,
+    content: sanitizedContent,
     pinned: false,
     deletedAt: null,
     createdAt: now,
@@ -443,8 +451,8 @@ export async function createNoteOffline(
 
   // Queue for sync
   await queueSyncOperation(userId, 'create', 'note', noteId, {
-    title,
-    content,
+    title: validatedTitle,
+    content: sanitizedContent,
     pinned: false,
   });
 
@@ -477,6 +485,10 @@ export async function createNotesBatchOffline(
 
     // Create local notes for this batch
     const localNotes: LocalNote[] = batch.map((noteData) => {
+      // Validate inputs
+      const validatedTitle = validateNoteTitle(noteData.title);
+      validateNoteContentLength(noteData.content);
+
       const noteId = crypto.randomUUID();
       const createdAt = noteData.createdAt?.getTime() ?? now;
       const updatedAt = noteData.updatedAt?.getTime() ?? now;
@@ -484,8 +496,8 @@ export async function createNotesBatchOffline(
       return {
         id: noteId,
         userId,
-        title: noteData.title,
-        content: noteData.content,
+        title: validatedTitle,
+        content: sanitizeHtml(noteData.content),
         pinned: false,
         deletedAt: null,
         createdAt,
@@ -530,6 +542,10 @@ export async function updateNoteOffline(
   userId: string,
   note: Note
 ): Promise<Note> {
+  // Validate inputs
+  const validatedTitle = validateNoteTitle(note.title);
+  validateNoteContentLength(note.content);
+
   const db = getOfflineDb(userId);
   const now = Date.now();
 
@@ -539,10 +555,12 @@ export async function updateNoteOffline(
     throw new Error(`Note ${note.id} not found in offline database`);
   }
 
+  const sanitizedContent = sanitizeHtml(note.content);
+
   const localNote: LocalNote = {
     ...existing,
-    title: note.title,
-    content: note.content,
+    title: validatedTitle,
+    content: sanitizedContent,
     updatedAt: now,
     localUpdatedAt: now,
     syncStatus: existing.syncStatus === 'synced' ? 'pending' : existing.syncStatus,
@@ -553,8 +571,8 @@ export async function updateNoteOffline(
 
   // Queue for sync (compaction will remove previous updates)
   await queueSyncOperation(userId, 'update', 'note', note.id, {
-    title: note.title,
-    content: note.content,
+    title: validatedTitle,
+    content: sanitizedContent,
   });
 
   return localNoteToNote(localNote, note.tags);

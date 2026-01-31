@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import type { Note, Tag, ViewMode, Theme } from './types';
 import { Header } from './components/Header';
@@ -644,14 +644,28 @@ function App() {
       .catch(console.error);
   }, [userId, isHydrating]);
 
-  // Sort notes: pinned first, then by most recent
-  const sortedNotes = [...notes].sort((a, b) => {
-    // Pinned notes come first
-    if (a.pinned && !b.pinned) return -1;
-    if (!a.pinned && b.pinned) return 1;
-    // Within same pin status, sort by updated time
-    return b.updatedAt.getTime() - a.updatedAt.getTime();
-  });
+  // Sort notes: pinned first, then by most recent (memoized to avoid O(n log n) on every render)
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort((a, b) => {
+      // Pinned notes come first
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      // Within same pin status, sort by updated time
+      return b.updatedAt.getTime() - a.updatedAt.getTime();
+    });
+  }, [notes]);
+
+  // Determine which notes to display (memoized to avoid recalculation on every render)
+  const displayNotes = useMemo(() => {
+    const notesToUse = searchResults !== null ? searchResults : sortedNotes;
+
+    if (selectedTagIds.length === 0) return notesToUse;
+
+    return notesToUse.filter((note) => {
+      const noteTagIds = note.tags.map((t) => t.id);
+      return selectedTagIds.every((tagId) => noteTagIds.includes(tagId));
+    });
+  }, [searchResults, sortedNotes, selectedTagIds]);
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
 
@@ -1498,21 +1512,6 @@ function App() {
       </>
     );
   }
-
-  // Apply tag filtering to notes
-  const applyTagFilter = (notesToFilter: Note[]) => {
-    if (selectedTagIds.length === 0) return notesToFilter;
-    return notesToFilter.filter((note) => {
-      const noteTagIds = note.tags.map((t) => t.id);
-      return selectedTagIds.every((tagId) => noteTagIds.includes(tagId));
-    });
-  };
-
-  // Determine which notes to display (search results also respect tag filters)
-  const filteredNotes = applyTagFilter(sortedNotes);
-  const displayNotes = searchResults !== null
-    ? applyTagFilter(searchResults)
-    : filteredNotes;
 
   // Faded Notes View
   if (view === 'faded') {

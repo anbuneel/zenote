@@ -2,6 +2,8 @@ import * as Sentry from '@sentry/react';
 import { supabase } from '../lib/supabase';
 import type { Note, Tag, TagColor, NoteShare } from '../types';
 import type { DbNote, DbTag, DbNoteShare } from '../types/database';
+import { sanitizeHtml } from '../utils/sanitize';
+import { validateNoteTitle, validateNoteContentLength } from '../utils/validation';
 
 // Convert database tag to app tag
 function toTag(dbTag: DbTag): Tag {
@@ -76,6 +78,10 @@ export async function createNote(
   content: string = '',
   options?: { createdAt?: Date; updatedAt?: Date }
 ): Promise<Note> {
+  // Validate inputs
+  const validatedTitle = validateNoteTitle(title);
+  validateNoteContentLength(content);
+
   const insertData: {
     user_id: string;
     title: string;
@@ -84,8 +90,8 @@ export async function createNote(
     updated_at?: string;
   } = {
     user_id: userId,
-    title,
-    content,
+    title: validatedTitle,
+    content: sanitizeHtml(content),
   };
 
   // Preserve original timestamps if provided (e.g., during import)
@@ -134,6 +140,10 @@ export async function createNotesBatch(
     const batch = notes.slice(i, i + BATCH_SIZE);
 
     const insertData = batch.map(note => {
+      // Validate inputs
+      const validatedTitle = validateNoteTitle(note.title);
+      validateNoteContentLength(note.content);
+
       const data: {
         user_id: string;
         title: string;
@@ -142,8 +152,8 @@ export async function createNotesBatch(
         updated_at?: string;
       } = {
         user_id: userId,
-        title: note.title,
-        content: note.content,
+        title: validatedTitle,
+        content: sanitizeHtml(note.content),
       };
 
       if (note.createdAt) {
@@ -180,11 +190,15 @@ export async function createNotesBatch(
 
 // Update an existing note
 export async function updateNote(note: Note): Promise<Note> {
+  // Validate inputs
+  const validatedTitle = validateNoteTitle(note.title);
+  validateNoteContentLength(note.content);
+
   const { data, error } = await supabase
     .from('notes')
     .update({
-      title: note.title,
-      content: note.content,
+      title: validatedTitle,
+      content: sanitizeHtml(note.content),
       updated_at: new Date().toISOString(),
     })
     .eq('id', note.id)
