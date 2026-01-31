@@ -1,8 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 
 export interface UseSessionTimeoutOptions {
-  /** Minutes before session times out (default: 30) */
-  timeoutMinutes?: number;
+  /** Minutes before session times out (null = never timeout, default: 30) */
+  timeoutMinutes?: number | null;
   /** Minutes before timeout to show warning (default: 5) */
   warningMinutes?: number;
   /** Callback when warning period begins */
@@ -96,7 +96,8 @@ export function useSessionTimeout({
     setIsWarning(false);
     lastActivityRef.current = Date.now();
 
-    if (!enabled) return;
+    // Skip timer setup if disabled or timeout is null ("never")
+    if (!enabled || timeoutMinutes === null) return;
 
     const warningMs = (timeoutMinutes - warningMinutes) * 60 * 1000;
     const timeoutMs = timeoutMinutes * 60 * 1000;

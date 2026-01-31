@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BottomSheet } from './BottomSheet';
+import type { UseSessionSettingsResult } from '../hooks/useSessionSettings';
 import type { Theme } from '../types';
 
 interface SettingsModalProps {
@@ -9,12 +10,13 @@ interface SettingsModalProps {
   theme: Theme;
   onThemeToggle: () => void;
   onLetGoClick: () => void;
+  sessionSettings: UseSessionSettingsResult;
 }
 
-type SettingsTab = 'profile' | 'password';
+type SettingsTab = 'profile' | 'password' | 'security';
 
-export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoClick }: SettingsModalProps) {
-  const { user, updateProfile, updatePassword } = useAuth();
+export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoClick, sessionSettings }: SettingsModalProps) {
+  const { user, updateProfile, updatePassword, verifyPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
   // Check if user signed up with OAuth (Google, etc.)
@@ -27,6 +29,7 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
   const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Password state
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -38,6 +41,7 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
       setFullName(user.user_metadata?.full_name || '');
       setProfileMessage(null);
       setPasswordMessage(null);
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     }
@@ -64,8 +68,14 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
     e.preventDefault();
     setPasswordMessage(null);
 
+    // Validate current password is provided
+    if (!currentPassword) {
+      setPasswordMessage({ type: 'error', text: 'Please enter your current password' });
+      return;
+    }
+
     if (newPassword.length < 8) {
-      setPasswordMessage({ type: 'error', text: 'Password must be at least 8 characters' });
+      setPasswordMessage({ type: 'error', text: 'New password must be at least 8 characters' });
       return;
     }
 
@@ -77,11 +87,20 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
     setPasswordLoading(true);
 
     try {
+      // Step 1: Verify current password
+      const verifyResult = await verifyPassword(currentPassword);
+      if (!verifyResult.success) {
+        setPasswordMessage({ type: 'error', text: 'Current password is incorrect' });
+        return;
+      }
+
+      // Step 2: Update to new password
       const { error } = await updatePassword(newPassword);
       if (error) {
         setPasswordMessage({ type: 'error', text: error.message });
       } else {
         setPasswordMessage({ type: 'success', text: 'Password updated successfully!' });
+        setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
       }
@@ -92,29 +111,29 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Settings" maxHeightPercent={85}>
-      {/* Tabs - only show Password tab for non-OAuth users */}
-      {!isOAuthUser && (
-        <div
-          className="flex gap-1 px-6 py-3 border-b"
-          style={{ borderColor: 'var(--glass-border)' }}
+      {/* Tabs - always show Profile & Security, Password only for non-OAuth */}
+      <div
+        className="flex gap-1 px-6 py-3 border-b"
+        style={{ borderColor: 'var(--glass-border)' }}
+      >
+        <button
+          onClick={() => setActiveTab('profile')}
+          className="
+            px-4 py-2
+            text-sm font-medium
+            rounded-lg
+            transition-colors duration-200
+            touch-press-light
+          "
+          style={{
+            fontFamily: 'var(--font-body)',
+            color: activeTab === 'profile' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+            background: activeTab === 'profile' ? 'var(--color-accent-glow)' : 'transparent',
+          }}
         >
-          <button
-            onClick={() => setActiveTab('profile')}
-            className="
-              px-4 py-2
-              text-sm font-medium
-              rounded-lg
-              transition-colors duration-200
-              touch-press-light
-            "
-            style={{
-              fontFamily: 'var(--font-body)',
-              color: activeTab === 'profile' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-              background: activeTab === 'profile' ? 'var(--color-accent-glow)' : 'transparent',
-            }}
-          >
-            Profile
-          </button>
+          Profile
+        </button>
+        {!isOAuthUser && (
           <button
             onClick={() => setActiveTab('password')}
             className="
@@ -132,8 +151,25 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
           >
             Password
           </button>
-        </div>
-      )}
+        )}
+        <button
+          onClick={() => setActiveTab('security')}
+          className="
+            px-4 py-2
+            text-sm font-medium
+            rounded-lg
+            transition-colors duration-200
+            touch-press-light
+          "
+          style={{
+            fontFamily: 'var(--font-body)',
+            color: activeTab === 'security' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+            background: activeTab === 'security' ? 'var(--color-accent-glow)' : 'transparent',
+          }}
+        >
+          Security
+        </button>
+      </div>
 
         {/* Content */}
         <div className="px-8 py-6">
@@ -317,8 +353,47 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
                   color: 'var(--color-text-secondary)',
                 }}
               >
-                Enter a new password to update your account security.
+                Verify your current password, then enter a new one.
               </p>
+
+              {/* Current Password */}
+              <div className="mb-5">
+                <label
+                  className="block text-sm mb-2"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  autoComplete="current-password"
+                  required
+                  className="
+                    w-full px-4 py-3
+                    rounded-lg
+                    outline-none
+                    transition-all duration-200
+                  "
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    background: 'var(--color-bg-secondary)',
+                    border: '1px solid var(--glass-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--color-accent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--glass-border)';
+                  }}
+                />
+              </div>
 
               {/* New Password */}
               <div className="mb-5">
@@ -438,6 +513,135 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
                 {passwordLoading ? 'Updating...' : 'Update Password'}
               </button>
             </form>
+          )}
+
+          {/* Security Tab */}
+          {activeTab === 'security' && (
+            <div>
+              <p
+                className="text-sm mb-5"
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
+                Manage your session and device trust settings.
+              </p>
+
+              {/* Session Timeout */}
+              <div className="mb-5">
+                <label
+                  className="block text-sm mb-2"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  Auto-lock after inactivity
+                </label>
+                <select
+                  value={sessionSettings.settings.timeoutMinutes === null ? 'null' : String(sessionSettings.settings.timeoutMinutes)}
+                  onChange={(e) => {
+                    const value = e.target.value === 'null' ? null : parseInt(e.target.value, 10);
+                    sessionSettings.setTimeoutMinutes(value);
+                  }}
+                  className="
+                    w-full px-4 py-3
+                    rounded-lg
+                    outline-none
+                    transition-all duration-200
+                    cursor-pointer
+                  "
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    background: 'var(--color-bg-secondary)',
+                    border: '1px solid var(--glass-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--color-accent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--glass-border)';
+                  }}
+                >
+                  {sessionSettings.availableTimeoutOptions.map((option) => (
+                    <option key={option.value === null ? 'null' : option.value} value={option.value === null ? 'null' : option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p
+                  className="text-xs mt-1.5"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    color: 'var(--color-text-tertiary)',
+                  }}
+                >
+                  How long before you're signed out when inactive
+                </p>
+              </div>
+
+              {/* Trusted Device Toggle */}
+              <div className="mb-5">
+                <label
+                  className="flex items-center justify-between cursor-pointer"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <div>
+                    <span className="block text-sm">This is a trusted device</span>
+                    <span
+                      className="block text-xs mt-1"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      Extends session to 14 days. Only use on personal devices.
+                    </span>
+                  </div>
+                  <div
+                    className="relative w-12 h-6 rounded-full transition-colors duration-200 cursor-pointer"
+                    style={{
+                      background: sessionSettings.settings.isTrustedDevice
+                        ? 'var(--color-accent)'
+                        : 'var(--color-bg-tertiary)',
+                    }}
+                    onClick={sessionSettings.toggleTrustedDevice}
+                    role="switch"
+                    aria-checked={sessionSettings.settings.isTrustedDevice}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        sessionSettings.toggleTrustedDevice();
+                      }
+                    }}
+                  >
+                    <div
+                      className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200"
+                      style={{
+                        transform: sessionSettings.settings.isTrustedDevice
+                          ? 'translateX(26px)'
+                          : 'translateX(2px)',
+                      }}
+                    />
+                  </div>
+                </label>
+                {sessionSettings.settings.isTrustedDevice && sessionSettings.settings.trustedAt && (
+                  <p
+                    className="text-xs mt-2"
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      color: 'var(--color-text-tertiary)',
+                    }}
+                  >
+                    Trusted since {new Date(sessionSettings.settings.trustedAt).toLocaleDateString()}
+                    {' '}(expires after 90 days)
+                  </p>
+                )}
+              </div>
+            </div>
           )}
 
           {/* Let go section - offboarding link */}

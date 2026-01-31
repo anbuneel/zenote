@@ -27,6 +27,8 @@ export default defineConfig({
       includeAssets: ['favicon.png', 'robots.txt'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Exclude large files from precache (yidhan-logo.svg is 3.65MB, exceeds 2MB limit)
+        globIgnores: ['**/yidhan-logo.svg'],
         // Serve index.html for all navigation requests (full offline-first)
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/share\//],
