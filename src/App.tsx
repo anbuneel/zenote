@@ -79,6 +79,7 @@ import { useViewTransition } from './hooks/useViewTransition';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { useShareTarget, formatSharedContent } from './hooks/useShareTarget';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
+import { useSessionSettings } from './hooks/useSessionSettings';
 import { ConflictModal } from './components/ConflictModal';
 import { InstallPrompt } from './components/InstallPrompt';
 import { IOSInstallGuide } from './components/IOSInstallGuide';
@@ -152,10 +153,14 @@ function App() {
   // Share Target handling
   const { sharedData, clearSharedData, hasStoredShare } = useShareTarget();
 
-  // Session timeout monitoring (30 min timeout, 5 min warning)
+  // Session settings (timeout + trusted device, per-user)
+  const sessionSettings = useSessionSettings(user?.id ?? null);
+  const effectiveTimeout = sessionSettings.getEffectiveTimeout();
+
+  // Session timeout monitoring (configurable timeout, 5 min warning)
   const { resetTimeout: resetSessionTimeout, minutesRemaining: sessionMinutesRemaining } = useSessionTimeout({
-    timeoutMinutes: 30,
-    warningMinutes: 5,
+    timeoutMinutes: effectiveTimeout,
+    warningMinutes: effectiveTimeout === null ? 0 : Math.min(5, Math.floor(effectiveTimeout / 6)),
     onWarning: () => setShowSessionTimeoutModal(true),
     onTimeout: async () => {
       setShowSessionTimeoutModal(false);
@@ -1351,17 +1356,17 @@ function App() {
       <ErrorBoundary>
         <Suspense fallback={<LoadingFallback message="Loading shared note..." />}>
           <SharedNoteView
-          token={shareToken}
-          theme={theme}
-          onThemeToggle={handleThemeToggle}
-          onInvalidToken={() => {
-            // Clear URL and show landing/library
-            window.history.replaceState({}, '', window.location.pathname);
-            setShareToken(null);
-          }}
-          onChangelogClick={() => startTransition(() => setView('changelog'))}
-          onRoadmapClick={() => startTransition(() => setView('roadmap'))}
-        />
+            token={shareToken}
+            theme={theme}
+            onThemeToggle={handleThemeToggle}
+            onInvalidToken={() => {
+              // Clear URL and show landing/library
+              window.history.replaceState({}, '', window.location.pathname);
+              setShareToken(null);
+            }}
+            onChangelogClick={() => startTransition(() => setView('changelog'))}
+            onRoadmapClick={() => startTransition(() => setView('roadmap'))}
+          />
         </Suspense>
       </ErrorBoundary>
     );
@@ -1597,6 +1602,7 @@ function App() {
                 theme={theme}
                 onThemeToggle={handleThemeToggle}
                 onLetGoClick={() => setShowLettingGoModal(true)}
+                sessionSettings={sessionSettings}
               />
             </Suspense>
           </ErrorBoundary>
@@ -1735,19 +1741,19 @@ function App() {
       <>
         <ErrorBoundary>
           <Suspense fallback={<LoadingFallback message="Loading editor..." />}>
-          <Editor
-            note={selectedNote}
-            tags={tags}
-            userId={user.id}
-            onBack={handleBack}
-            onUpdate={handleNoteUpdate}
-            onDelete={handleNoteDelete}
-            onToggleTag={handleNoteTagToggle}
-            onCreateTag={handleAddTag}
-            theme={theme}
-            onThemeToggle={handleThemeToggle}
-            onSettingsClick={() => setShowSettingsModal(true)}
-          />
+            <Editor
+              note={selectedNote}
+              tags={tags}
+              userId={user.id}
+              onBack={handleBack}
+              onUpdate={handleNoteUpdate}
+              onDelete={handleNoteDelete}
+              onToggleTag={handleNoteTagToggle}
+              onCreateTag={handleAddTag}
+              theme={theme}
+              onThemeToggle={handleThemeToggle}
+              onSettingsClick={() => setShowSettingsModal(true)}
+            />
           </Suspense>
         </ErrorBoundary>
         {/* Tag Modal */}

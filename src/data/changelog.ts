@@ -8,6 +8,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.10.0',
+    date: '2026-01-31',
+    changes: [
+      { type: 'feature', text: 'Configurable session timeout (30min, 1hr, 24hr, 1 week, or never)' },
+      { type: 'feature', text: '"Keep me signed in" / trusted device option extends timeout to 14 days' },
+      { type: 'feature', text: 'Re-authentication required for sensitive actions (full backup, account deletion)' },
+      { type: 'feature', text: 'New Security tab in Settings with timeout dropdown and trusted device toggle' },
+      { type: 'improvement', text: 'Default session timeout increased from 30 minutes to 1 week' },
+      { type: 'improvement', text: 'Per-user session settings stored securely in localStorage' },
+    ],
+  },
+  {
     version: '2.9.0',
     date: '2026-01-26',
     changes: [

@@ -10,7 +10,7 @@ interface AuthContextType {
   loading: boolean;
   isPasswordRecovery: boolean;
   clearPasswordRecovery: () => void;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ data: { user: User | null; session: Session | null } | null; error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithGitHub: () => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
@@ -26,9 +26,20 @@ interface AuthContextType {
   // Offline support
   isHydrating: boolean;
   hydrateOfflineDb: () => Promise<void>;
+  // Re-authentication for sensitive actions
+  verifyPassword: (password: string) => Promise<{ success: boolean; error?: string }>;
+  /** Mark re-auth timestamp (for OAuth users who verify via email) */
+  markReauth: () => void;
+  lastReauthAt: number | null;
+  /** Check if user recently re-authenticated (within grace window) */
+  isRecentlyReauthed: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Grace window: 10 minutes after re-auth, skip re-auth prompts
+// Defined at module level to avoid recreating on each render
+const REAUTH_GRACE_WINDOW_MS = 10 * 60 * 1000;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -38,11 +49,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Start as true to prevent race condition: App.tsx should wait for hydration check
   // before fetching notes from potentially empty IndexedDB
   const [isHydrating, setIsHydrating] = useState(true);
+  // Track last re-authentication time for "recently reauthed" grace window
+  const [lastReauthAt, setLastReauthAt] = useState<number | null>(null);
 
   const userId = user?.id ?? null;
 
   // Track the current user ID to prevent race conditions during hydration
   const hydrationUserIdRef = useRef<string | null>(null);
+
+  // Track previous user ID to clear re-auth grace window on user change
+  const prevUserIdRef = useRef<string | null>(null);
+
+  // Clear re-auth grace window when user changes (security: prevent carryover)
+  useEffect(() => {
+    if (prevUserIdRef.current !== null && prevUserIdRef.current !== userId) {
+      // User changed without explicit signOut - clear grace window
+      setLastReauthAt(null);
+    }
+    prevUserIdRef.current = userId;
+  }, [userId]);
 
   // Hydrate offline database from server
   const hydrateOfflineDb = useCallback(async () => {
@@ -147,11 +172,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    return { error };
+    return { data, error };
   };
 
   const signInWithGoogle = async () => {
@@ -188,6 +213,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     // Clear hydration state to prevent race conditions
     hydrationUserIdRef.current = null;
+    // Clear re-auth grace window (security: prevent new user from inheriting)
+    setLastReauthAt(null);
     // Clear sync state to prevent memory leaks
     clearSyncState();
     // Clear offline database on logout (security: prevent data leakage)
@@ -218,6 +245,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     return { error };
   };
+
+  // Verify current password for step-up authentication (sensitive actions)
+  // NOTE: signInWithPassword may fire onAuthStateChange and refresh tokens.
+  // This is acceptable - it validates credentials without creating a new session.
+  const verifyPassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user?.email) {
+      return { success: false, error: 'No user logged in' };
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password,
+    });
+
+    if (error) {
+      return { success: false, error: 'Incorrect password' };
+    }
+
+    // Track successful re-auth for grace window
+    setLastReauthAt(Date.now());
+    return { success: true };
+  };
+
+  // Mark re-auth timestamp (for OAuth users who verify via email confirmation)
+  const markReauth = useCallback(() => {
+    setLastReauthAt(Date.now());
+  }, []);
+
+  // Check if user recently re-authenticated (within grace window)
+  const isRecentlyReauthed = useCallback(() => {
+    if (!lastReauthAt) return false;
+    return Date.now() - lastReauthAt < REAUTH_GRACE_WINDOW_MS;
+  }, [lastReauthAt]);
 
   // Offboarding ("Letting Go") - initiate account departure with 14-day grace period
   const initiateOffboarding = async () => {
@@ -257,7 +317,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })();
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signInWithGitHub, signUp, signOut, resetPassword, updatePassword, updateProfile, initiateOffboarding, cancelOffboarding, isDeparting, daysUntilRelease, isHydrating, hydrateOfflineDb }}>
+    <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signInWithGitHub, signUp, signOut, resetPassword, updatePassword, updateProfile, initiateOffboarding, cancelOffboarding, isDeparting, daysUntilRelease, isHydrating, hydrateOfflineDb, verifyPassword, markReauth, lastReauthAt, isRecentlyReauthed }}>
       {children}
     </AuthContext.Provider>
   );

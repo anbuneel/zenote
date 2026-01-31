@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { ReAuthModal } from './ReAuthModal';
 import {
   exportNotesToJSON,
   downloadMarkdownZip,
@@ -10,6 +11,8 @@ import {
 import { fetchAllNoteShares } from '../services/notes';
 import type { Note, Tag } from '../types';
 
+type PendingAction = 'fullBackup' | 'letGo' | null;
+
 interface LettingGoModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,9 +21,13 @@ interface LettingGoModalProps {
 }
 
 export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalProps) {
-  const { initiateOffboarding, signOut, user } = useAuth();
+  const { initiateOffboarding, signOut, user, isRecentlyReauthed } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isExportingFull, setIsExportingFull] = useState(false);
+
+  // Re-auth state
+  const [showReAuthModal, setShowReAuthModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
   const handleExportJSON = () => {
     const jsonData = exportNotesToJSON(notes, tags);
@@ -34,7 +41,22 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
     toast.success('Keepsakes saved (Markdown)');
   };
 
-  const handleExportFullBackup = async () => {
+  // Initiate full backup - may require re-auth
+  const handleExportFullBackup = () => {
+    if (!user) return;
+
+    // Check if recently re-authenticated (grace window)
+    if (isRecentlyReauthed()) {
+      performFullBackup();
+    } else {
+      // Require re-auth first
+      setPendingAction('fullBackup');
+      setShowReAuthModal(true);
+    }
+  };
+
+  // Actually perform the full backup export
+  const performFullBackup = async () => {
     if (!user) return;
 
     setIsExportingFull(true);
@@ -64,7 +86,20 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
     }
   };
 
-  const handleLetGo = async () => {
+  // Initiate account departure - requires re-auth
+  const handleLetGo = () => {
+    // Check if recently re-authenticated (grace window)
+    if (isRecentlyReauthed()) {
+      performLetGo();
+    } else {
+      // Require re-auth first
+      setPendingAction('letGo');
+      setShowReAuthModal(true);
+    }
+  };
+
+  // Actually perform the account departure
+  const performLetGo = async () => {
     setIsLoading(true);
     try {
       const { error } = await initiateOffboarding();
@@ -91,10 +126,47 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
     }
   };
 
+  // Handle successful re-authentication
+  const handleReAuthSuccess = () => {
+    setShowReAuthModal(false);
+
+    // Execute the pending action
+    if (pendingAction === 'fullBackup') {
+      performFullBackup();
+    } else if (pendingAction === 'letGo') {
+      performLetGo();
+    }
+
+    setPendingAction(null);
+  };
+
+  // Handle re-auth cancellation
+  const handleReAuthCancel = () => {
+    setShowReAuthModal(false);
+    setPendingAction(null);
+  };
+
   if (!isOpen) return null;
 
+  // Determine action description for ReAuthModal
+  const actionDescription =
+    pendingAction === 'fullBackup'
+      ? 'download your full backup'
+      : pendingAction === 'letGo'
+        ? 'begin your departure'
+        : 'continue';
+
   return (
-    <div
+    <>
+      {/* Re-authentication Modal */}
+      <ReAuthModal
+        isOpen={showReAuthModal}
+        onSuccess={handleReAuthSuccess}
+        onCancel={handleReAuthCancel}
+        actionDescription={actionDescription}
+      />
+
+      <div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ background: 'rgba(0, 0, 0, 0.5)' }}
       onClick={onClose}
@@ -335,5 +407,6 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
         </div>
       </div>
     </div>
+    </>
   );
 }
