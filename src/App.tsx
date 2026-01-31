@@ -15,7 +15,6 @@ const RoadmapPage = lazyWithRetry(() => import('./components/RoadmapPage').then(
 const FadedNotesView = lazyWithRetry(() => import('./components/FadedNotesView').then(module => ({ default: module.FadedNotesView })));
 const SharedNoteView = lazyWithRetry(() => import('./components/SharedNoteView').then(module => ({ default: module.SharedNoteView })));
 const DemoPage = lazyWithRetry(() => import('./pages/DemoPage').then(module => ({ default: module.DemoPage })));
-const LogoTestPage = lazyWithRetry(() => import('./pages/LogoTestPage').then(module => ({ default: module.LogoTestPage })));
 
 import { TagFilterBar } from './components/TagFilterBar';
 import { WelcomeBackPrompt } from './components/WelcomeBackPrompt';
@@ -316,9 +315,6 @@ function App() {
   // Demo page state (for /demo route)
   const [isDemo, setIsDemo] = useState<boolean>(() => {
     return window.location.pathname === '/demo';
-  });
-  const [isLogoTest] = useState<boolean>(() => {
-    return window.location.pathname === '/logo-test';
   });
 
   // Debounce timer refs
@@ -1405,17 +1401,6 @@ function App() {
             onClose={() => setShowAuthModal(false)}
           />
         )}
-      </ErrorBoundary>
-    );
-  }
-
-  // Logo Test Page
-  if (isLogoTest) {
-    return (
-      <ErrorBoundary>
-        <Suspense fallback={<LoadingFallback />}>
-          <LogoTestPage theme={theme} onThemeToggle={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')} />
-        </Suspense>
       </ErrorBoundary>
     );
   }

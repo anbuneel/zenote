@@ -28,6 +28,8 @@ interface AuthContextType {
   hydrateOfflineDb: () => Promise<void>;
   // Re-authentication for sensitive actions
   verifyPassword: (password: string) => Promise<{ success: boolean; error?: string }>;
+  /** Mark re-auth timestamp (for OAuth users who verify via email) */
+  markReauth: () => void;
   lastReauthAt: number | null;
   /** Check if user recently re-authenticated (within grace window) */
   isRecentlyReauthed: () => boolean;
@@ -199,6 +201,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     // Clear hydration state to prevent race conditions
     hydrationUserIdRef.current = null;
+    // Clear re-auth grace window (security: prevent new user from inheriting)
+    setLastReauthAt(null);
     // Clear sync state to prevent memory leaks
     clearSyncState();
     // Clear offline database on logout (security: prevent data leakage)
@@ -252,6 +256,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: true };
   };
 
+  // Mark re-auth timestamp (for OAuth users who verify via email confirmation)
+  const markReauth = useCallback(() => {
+    setLastReauthAt(Date.now());
+  }, []);
+
   // Check if user recently re-authenticated (within grace window)
   const isRecentlyReauthed = useCallback(() => {
     if (!lastReauthAt) return false;
@@ -296,7 +305,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })();
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signInWithGitHub, signUp, signOut, resetPassword, updatePassword, updateProfile, initiateOffboarding, cancelOffboarding, isDeparting, daysUntilRelease, isHydrating, hydrateOfflineDb, verifyPassword, lastReauthAt, isRecentlyReauthed }}>
+    <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signInWithGitHub, signUp, signOut, resetPassword, updatePassword, updateProfile, initiateOffboarding, cancelOffboarding, isDeparting, daysUntilRelease, isHydrating, hydrateOfflineDb, verifyPassword, markReauth, lastReauthAt, isRecentlyReauthed }}>
       {children}
     </AuthContext.Provider>
   );

@@ -23,7 +23,7 @@ export function ReAuthModal({
   onCancel,
   actionDescription = 'continue',
 }: ReAuthModalProps) {
-  const { user, verifyPassword } = useAuth();
+  const { user, verifyPassword, markReauth } = useAuth();
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,6 +80,8 @@ export function ReAuthModal({
           setError("That doesn't match your account email");
           return;
         }
+        // Track re-auth for grace window (OAuth users too)
+        markReauth();
         onSuccess();
       } else {
         // Email/password users: verify password
@@ -99,7 +101,7 @@ export function ReAuthModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center px-4"
       style={{ background: 'rgba(0, 0, 0, 0.5)' }}
       onClick={onCancel}
     >
