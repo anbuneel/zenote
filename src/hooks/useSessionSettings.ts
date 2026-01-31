@@ -215,21 +215,17 @@ export function useSessionSettings(userId: string | null): UseSessionSettingsRes
     localStorage.removeItem(getStorageKey(userId, STORAGE_KEYS.trustedAt));
 
     // If timeout was "never", revert to default
-    if (settings.timeoutMinutes === null) {
+    const revertTimeout = settings.timeoutMinutes === null;
+    if (revertTimeout) {
       localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.timeout), String(DEFAULT_TIMEOUT_MINUTES));
-      setSettings((prev) => ({
-        ...prev,
-        isTrustedDevice: false,
-        trustedAt: null,
-        timeoutMinutes: DEFAULT_TIMEOUT_MINUTES,
-      }));
-    } else {
-      setSettings((prev) => ({
-        ...prev,
-        isTrustedDevice: false,
-        trustedAt: null,
-      }));
     }
+
+    setSettings((prev) => ({
+      ...prev,
+      isTrustedDevice: false,
+      trustedAt: null,
+      timeoutMinutes: revertTimeout ? DEFAULT_TIMEOUT_MINUTES : prev.timeoutMinutes,
+    }));
   }, [userId, settings.timeoutMinutes]);
 
   const toggleTrustedDevice = useCallback(() => {

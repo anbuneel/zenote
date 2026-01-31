@@ -30,9 +30,10 @@ export function ReAuthModal({
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Check if user signed up with OAuth (Google, GitHub, etc.)
+  const provider = user?.app_metadata?.provider;
   const isOAuthUser =
-    user?.app_metadata?.provider === 'google' ||
-    user?.app_metadata?.provider === 'github' ||
+    provider === 'google' ||
+    provider === 'github' ||
     user?.identities?.some((identity) => identity.provider !== 'email');
 
   // Reset state when modal opens
@@ -229,7 +230,7 @@ export function ReAuthModal({
                 color: 'var(--color-text-tertiary)',
               }}
             >
-              You signed in with {user?.app_metadata?.provider === 'google' ? 'Google' : 'GitHub'}.
+              You signed in with {provider === 'google' ? 'Google' : 'GitHub'}.
               Type your email to confirm.
             </p>
           )}

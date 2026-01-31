@@ -149,12 +149,16 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
   if (!isOpen) return null;
 
   // Determine action description for ReAuthModal
-  const actionDescription =
-    pendingAction === 'fullBackup'
-      ? 'download your full backup'
-      : pendingAction === 'letGo'
-        ? 'begin your departure'
-        : 'continue';
+  function getActionDescription(): string {
+    switch (pendingAction) {
+      case 'fullBackup':
+        return 'download your full backup';
+      case 'letGo':
+        return 'begin your departure';
+      default:
+        return 'continue';
+    }
+  }
 
   return (
     <>
@@ -163,7 +167,7 @@ export function LettingGoModal({ isOpen, onClose, notes, tags }: LettingGoModalP
         isOpen={showReAuthModal}
         onSuccess={handleReAuthSuccess}
         onCancel={handleReAuthCancel}
-        actionDescription={actionDescription}
+        actionDescription={getActionDescription()}
       />
 
       <div

@@ -19,9 +19,12 @@ export function SettingsModal({ isOpen, onClose, theme, onThemeToggle, onLetGoCl
   const { user, updateProfile, updatePassword, verifyPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
-  // Check if user signed up with OAuth (Google, etc.)
-  const isOAuthUser = user?.app_metadata?.provider === 'google' ||
-    user?.identities?.some(identity => identity.provider !== 'email');
+  // Check if user signed up with OAuth (Google, GitHub, etc.)
+  const provider = user?.app_metadata?.provider;
+  const isOAuthUser =
+    provider === 'google' ||
+    provider === 'github' ||
+    user?.identities?.some((identity) => identity.provider !== 'email');
 
   // Profile state
   const [fullName, setFullName] = useState('');

@@ -306,15 +306,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isDeparting = Boolean(departingAt);
 
   // Computed: days until account release (null if not departing)
-  const daysUntilRelease = (() => {
+  function calculateDaysUntilRelease(): number | null {
     if (!departingAt) return null;
     const departureDate = new Date(departingAt);
     const releaseDate = new Date(departureDate.getTime() + 14 * 24 * 60 * 60 * 1000);
-    const now = new Date();
-    const msRemaining = releaseDate.getTime() - now.getTime();
+    const msRemaining = releaseDate.getTime() - Date.now();
     const daysRemaining = Math.ceil(msRemaining / (24 * 60 * 60 * 1000));
     return Math.max(0, daysRemaining);
-  })();
+  }
+  const daysUntilRelease = calculateDaysUntilRelease();
 
   return (
     <AuthContext.Provider value={{ user, session, loading, isPasswordRecovery, clearPasswordRecovery, signIn, signInWithGoogle, signInWithGitHub, signUp, signOut, resetPassword, updatePassword, updateProfile, initiateOffboarding, cancelOffboarding, isDeparting, daysUntilRelease, isHydrating, hydrateOfflineDb, verifyPassword, markReauth, lastReauthAt, isRecentlyReauthed }}>

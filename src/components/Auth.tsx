@@ -457,7 +457,9 @@ export function Auth({ theme, onThemeToggle, initialMode = 'login', onPasswordRe
                   e.currentTarget.style.background = 'var(--color-accent)';
                 }}
               >
-                {loading ? 'Sending...' : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend email'}
+                {loading && 'Sending...'}
+                {!loading && resendCooldown > 0 && `Resend in ${resendCooldown}s`}
+                {!loading && resendCooldown === 0 && 'Resend email'}
               </button>
               <button
                 type="button"
