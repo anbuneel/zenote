@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Masonry from 'react-masonry-css';
 import type { Note } from '../types';
 import type { ChapterKey } from '../utils/temporalGrouping';
@@ -28,7 +28,7 @@ const CHAPTER_OPACITY: Record<ChapterKey, number> = {
   archive: 0.80,
 };
 
-export function ChapterSection({
+export const ChapterSection = memo(function ChapterSection({
   chapterKey,
   label,
   notes,
@@ -219,4 +219,40 @@ export function ChapterSection({
       )}
     </section>
   );
+}, arePropsEqual);
+
+function arePropsEqual(prev: ChapterSectionProps, next: ChapterSectionProps) {
+  // Check primitive/simple props first
+  if (
+    prev.chapterKey !== next.chapterKey ||
+    prev.label !== next.label ||
+    prev.defaultExpanded !== next.defaultExpanded ||
+    prev.isPinned !== next.isPinned ||
+    prev.isCompact !== next.isCompact
+  ) {
+    return false;
+  }
+
+  // Check notes array
+  // If exact same array reference, we are good
+  if (prev.notes === next.notes) return true;
+
+  // If different lengths, definitely changed
+  if (prev.notes.length !== next.notes.length) return false;
+
+  // Shallow compare note items
+  // Since App recreates the notes array in groupNotesByChapter but keeps same note objects
+  // if content hasn't changed, this avoids re-rendering when other chapters change
+  for (let i = 0; i < prev.notes.length; i++) {
+    if (prev.notes[i] !== next.notes[i]) {
+      return false;
+    }
+  }
+
+  // We explicitly IGNORE onNoteClick, onNoteDelete, onTogglePin
+  // because App recreates these on every render, which would break memoization.
+  // NoteCard also uses React.memo and effectively captures these handlers from
+  // the render cycle where the note itself last changed.
+
+  return true;
 }
