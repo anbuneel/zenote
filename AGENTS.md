@@ -46,7 +46,8 @@ src/
 │   ├── ConflictModal.tsx  # "Two Paths" conflict resolution modal
 │   ├── RichTextEditor.tsx # Tiptap editor content wrapper (toolbar extracted to EditorToolbar)
 │   ├── RoadmapPage.tsx    # Public roadmap with status-grouped features
-│   ├── SettingsModal.tsx  # Settings modal (profile, password for non-OAuth, theme, offboarding)
+│   ├── SettingsModal.tsx  # Settings modal (profile, password, security tab, theme, offboarding)
+│   ├── ReAuthModal.tsx    # Re-authentication modal for sensitive actions (step-up auth)
 │   ├── TagBadge.tsx       # Small tag badge for note cards
 │   ├── TagFilterBar.tsx   # Horizontal tag filter strip with edit support
 │   ├── TagModal.tsx       # Modal for creating/editing/deleting tags
@@ -92,7 +93,8 @@ src/
 │   ├── useDemoState.ts      # React state management for demo mode (localStorage)
 │   ├── useSoftPrompt.ts     # Soft prompt trigger logic (note count + time thresholds)
 │   ├── useMobileDetect.ts   # Touch device detection (useMobileDetect, useTouchCapable)
-│   ├── useSessionTimeout.ts # Session inactivity monitor (30min timeout, 5min warning)
+│   ├── useSessionTimeout.ts # Session inactivity monitor (configurable timeout with warning)
+│   ├── useSessionSettings.ts # Session timeout & trusted device settings (per-user localStorage)
 │   └── useKeyboardHeight.ts # Visual Viewport API for keyboard height tracking
 ├── utils/
 │   ├── editorPosition.ts  # Cross-session cursor/scroll position persistence (localStorage)
@@ -514,7 +516,10 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - [x] iOS-style spring animations (--spring-bounce, --spring-smooth, --spring-snappy)
 - [x] Card entrance stagger animation (cascading reveal effect)
 - [x] Touch device detection hooks (useMobileDetect, useTouchCapable)
-- [x] Session timeout (30-minute inactivity auto-logout with 5-minute warning modal)
+- [x] Session timeout with configurable duration (30min, 1hr, 24hr, 1 week default, or never)
+- [x] Trusted device / "Keep me signed in" option (extends timeout to 14 days, 90-day TTL)
+- [x] Re-authentication for sensitive actions (full backup export, account deletion)
+- [x] Security tab in Settings modal (timeout dropdown, trusted device toggle)
 - [x] Keyboard shortcuts modal (press ? to view all shortcuts, slash commands, gestures)
 - [x] Full account backup export (includes profile, notes, tags, and share links)
 - [x] Rate limit handling (429 error detection with Retry-After header support)
@@ -676,10 +681,13 @@ The `AuthContext` provides these functions:
 - `daysUntilRelease` - Days remaining until account release (null if not departing)
 
 ## Settings Modal
-The Settings modal (`SettingsModal.tsx`) has two tabs:
+The Settings modal (`SettingsModal.tsx`) has three tabs:
 - **Profile Tab:** Email (read-only), display name input, theme toggle button
 - **Password Tab:** New password + confirmation with validation (min 8 chars)
   - Hidden for OAuth users (Google sign-in) since they authenticate via their provider
+- **Security Tab:** Session timeout dropdown, trusted device toggle
+  - Timeout options: 30 min, 1 hour, 24 hours, 1 week (default), Never (requires trusted device)
+  - Trusted device extends timeout to 14 days with 90-day TTL auto-expiration
 
 At the bottom of the modal is the "Let go of Yidhan" link that opens the offboarding modal.
 
