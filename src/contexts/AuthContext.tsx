@@ -57,6 +57,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Track the current user ID to prevent race conditions during hydration
   const hydrationUserIdRef = useRef<string | null>(null);
 
+  // Track previous user ID to clear re-auth grace window on user change
+  const prevUserIdRef = useRef<string | null>(null);
+
+  // Clear re-auth grace window when user changes (security: prevent carryover)
+  useEffect(() => {
+    if (prevUserIdRef.current !== null && prevUserIdRef.current !== userId) {
+      // User changed without explicit signOut - clear grace window
+      setLastReauthAt(null);
+    }
+    prevUserIdRef.current = userId;
+  }, [userId]);
+
   // Hydrate offline database from server
   const hydrateOfflineDb = useCallback(async () => {
     if (!userId) return;

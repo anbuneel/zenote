@@ -77,13 +77,22 @@ export interface UseSessionSettingsResult {
  *
  * @param userId - Current user's ID (null if not logged in)
  */
+interface LoadSettingsResult {
+  settings: SessionSettings;
+  /** True if trusted device status was expired and cleared during load */
+  trustExpired: boolean;
+}
+
 /** Load settings from localStorage for a given user */
-function loadSettingsFromStorage(userId: string | null): SessionSettings {
+function loadSettingsFromStorage(userId: string | null): LoadSettingsResult {
   if (!userId) {
     return {
-      timeoutMinutes: DEFAULT_TIMEOUT_MINUTES,
-      isTrustedDevice: false,
-      trustedAt: null,
+      settings: {
+        timeoutMinutes: DEFAULT_TIMEOUT_MINUTES,
+        isTrustedDevice: false,
+        trustedAt: null,
+      },
+      trustExpired: false,
     };
   }
 
@@ -96,7 +105,8 @@ function loadSettingsFromStorage(userId: string | null): SessionSettings {
   let timeoutMinutes: number | null = DEFAULT_TIMEOUT_MINUTES;
   if (storedTimeout !== null) {
     timeoutMinutes = storedTimeout === 'null' ? null : parseInt(storedTimeout, 10);
-    if (isNaN(timeoutMinutes as number)) {
+    // Fix: proper null guard for NaN check
+    if (timeoutMinutes !== null && isNaN(timeoutMinutes)) {
       timeoutMinutes = DEFAULT_TIMEOUT_MINUTES;
     }
   }
@@ -104,9 +114,11 @@ function loadSettingsFromStorage(userId: string | null): SessionSettings {
   // Parse trusted device status
   let isTrustedDevice = storedTrusted === 'true';
   let trustedAt = storedTrustedAt;
+  let trustExpired = false;
 
-  // Check if trust has expired (90-day TTL)
+  // Check if trust has expired (90-day TTL) - detect BEFORE clearing
   if (isTrustedDevice && isTrustExpired(trustedAt)) {
+    trustExpired = true;
     // Trust has expired - clear it
     isTrustedDevice = false;
     trustedAt = null;
@@ -121,17 +133,20 @@ function loadSettingsFromStorage(userId: string | null): SessionSettings {
   }
 
   return {
-    timeoutMinutes,
-    isTrustedDevice,
-    trustedAt,
+    settings: {
+      timeoutMinutes,
+      isTrustedDevice,
+      trustedAt,
+    },
+    trustExpired,
   };
 }
 
 export function useSessionSettings(userId: string | null): UseSessionSettingsResult {
   // Use useMemo to compute initial settings synchronously
-  const initialSettings = useMemo(() => loadSettingsFromStorage(userId), [userId]);
+  const initialResult = useMemo(() => loadSettingsFromStorage(userId), [userId]);
 
-  const [settings, setSettings] = useState<SessionSettings>(initialSettings);
+  const [settings, setSettings] = useState<SessionSettings>(initialResult.settings);
 
   // Track previous userId to detect changes
   const prevUserIdRef = useRef(userId);
@@ -142,12 +157,10 @@ export function useSessionSettings(userId: string | null): UseSessionSettingsRes
   useEffect(() => {
     if (prevUserIdRef.current !== userId) {
       prevUserIdRef.current = userId;
-      const newSettings = loadSettingsFromStorage(userId);
+      const result = loadSettingsFromStorage(userId);
 
-      // Check if trust expired and show toast (only on user change with expired trust)
-      const storedTrusted = userId ? localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.trustedDevice)) : null;
-      const storedTrustedAt = userId ? localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.trustedAt)) : null;
-      if (storedTrusted === 'true' && isTrustExpired(storedTrustedAt)) {
+      // Show toast if trust expired (detected before keys were cleared)
+      if (result.trustExpired) {
         toast('Your trusted device status has expired. Please re-enable in Settings if this is still your personal device.', {
           duration: 6000,
           style: {
@@ -160,7 +173,7 @@ export function useSessionSettings(userId: string | null): UseSessionSettingsRes
 
       // Sync state with external store - this is the intended use case
       // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync with localStorage
-      setSettings(newSettings);
+      setSettings(result.settings);
     }
   }, [userId]);
 
