@@ -669,12 +669,12 @@ function App() {
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
 
-  const handleNoteClick = (id: string) => {
+  const handleNoteClick = useCallback((id: string) => {
     startTransition(() => {
       setSelectedNoteId(id);
       setView('editor');
     });
-  };
+  }, [startTransition]);
 
   const handleBack = () => {
     startTransition(() => {
@@ -897,7 +897,7 @@ function App() {
     }
   };
 
-  const handleTogglePin = async (id: string, pinned: boolean) => {
+  const handleTogglePin = useCallback(async (id: string, pinned: boolean) => {
     if (!user) return;
 
     try {
@@ -914,7 +914,7 @@ function App() {
         prev.map((n) => (n.id === id ? { ...n, pinned: !pinned } : n))
       );
     }
-  };
+  }, [user]);
 
   const handleThemeToggle = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
