@@ -42,6 +42,26 @@ describe('sanitizeHtml', () => {
     const input = '<a href="https://example.com">Link</a>';
     expect(sanitizeHtml(input)).toContain('href="https://example.com"');
   });
+
+  it('should add rel="noopener noreferrer" to links with target="_blank"', () => {
+    const input = '<a href="https://example.com" target="_blank">Link</a>';
+    const output = sanitizeHtml(input);
+    expect(output).toContain('rel="noopener noreferrer"');
+    // Also check that it preserves the target
+    expect(output).toContain('target="_blank"');
+  });
+
+  it('should not allow malicious rel attributes', () => {
+     // If the user tries to overwrite it or add something else
+     const input = '<a href="https://example.com" target="_blank" rel="opener">Link</a>';
+     const output = sanitizeHtml(input);
+     // We want to ensure noopener noreferrer is present
+     expect(output).toContain('noreferrer');
+     // And prevent standalone "opener" or "rel=\"opener\""
+     // Note: "noopener" contains "opener" substring, so we check for exact attribute or surrounding spaces
+     expect(output).not.toContain('rel="opener"');
+     expect(output).toContain('rel="noopener noreferrer"');
+  });
 });
 
 describe('escapeHtml', () => {
