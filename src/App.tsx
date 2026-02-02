@@ -198,6 +198,11 @@ function App() {
   }, [conflicts, activeConflict]);
 
   const [notes, setNotes] = useState<Note[]>([]);
+  const notesRef = useRef(notes);
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
+
   const [loading, setLoading] = useState(true);
   const APP_LOADER_MIN_MS = 200;
   const appLoading = authLoading || loading;
@@ -669,12 +674,12 @@ function App() {
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
 
-  const handleNoteClick = (id: string) => {
+  const handleNoteClick = useCallback((id: string) => {
     startTransition(() => {
       setSelectedNoteId(id);
       setView('editor');
     });
-  };
+  }, [startTransition]);
 
   const handleBack = () => {
     startTransition(() => {
@@ -776,11 +781,12 @@ function App() {
 
   // Soft delete a note (move to Faded Notes)
   // Returns true on success, false on failure (for UI recovery in swipe gestures)
-  const handleNoteDelete = async (id: string): Promise<boolean> => {
+  const handleNoteDelete = useCallback(async (id: string): Promise<boolean> => {
     if (!user) return false;
 
     // Find the note before deleting (for potential undo)
-    const deletedNote = notes.find((n) => n.id === id);
+    // Use ref to avoid dependency on notes array
+    const deletedNote = notesRef.current.find((n) => n.id === id);
 
     try {
       await softDeleteNoteOffline(user.id, id);
@@ -828,7 +834,7 @@ function App() {
       toast.error('Failed to delete note');
       return false;
     }
-  };
+  }, [user, selectedNoteId]);
 
   // Restore a note from Faded Notes
   const handleRestoreNote = async (id: string) => {
@@ -897,7 +903,7 @@ function App() {
     }
   };
 
-  const handleTogglePin = async (id: string, pinned: boolean) => {
+  const handleTogglePin = useCallback(async (id: string, pinned: boolean) => {
     if (!user) return;
 
     try {
@@ -914,7 +920,7 @@ function App() {
         prev.map((n) => (n.id === id ? { ...n, pinned: !pinned } : n))
       );
     }
-  };
+  }, [user]);
 
   const handleThemeToggle = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
