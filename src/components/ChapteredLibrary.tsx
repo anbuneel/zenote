@@ -80,32 +80,34 @@ export function ChapteredLibrary({
   useEffect(() => {
     if (chapters.length === 0) return;
 
-    const observers: IntersectionObserver[] = [];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
+            // Extract key from ID: "chapter-{key}"
+            const key = entry.target.id.replace('chapter-', '');
+            // Only update if we have a valid key
+            if (key) {
+              setCurrentChapter(key as ChapterKey);
+            }
+          }
+        });
+      },
+      {
+        threshold: [0.1, 0.3, 0.5],
+        rootMargin: '-80px 0px -20% 0px',
+      }
+    );
 
     chapters.forEach((chapter) => {
       const element = document.getElementById(`chapter-${chapter.key}`);
-      if (!element) return;
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
-              setCurrentChapter(chapter.key as ChapterKey);
-            }
-          });
-        },
-        {
-          threshold: [0.1, 0.3, 0.5],
-          rootMargin: '-80px 0px -20% 0px',
-        }
-      );
-
-      observer.observe(element);
-      observers.push(observer);
+      if (element) {
+        observer.observe(element);
+      }
     });
 
     return () => {
-      observers.forEach((observer) => observer.disconnect());
+      observer.disconnect();
     };
   }, [chapters]);
 
