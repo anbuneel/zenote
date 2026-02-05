@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useMemo } from 'react';
 import type { Note } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { TagBadgeList } from './TagBadge';
@@ -12,13 +12,21 @@ interface NoteCardProps {
   isCompact?: boolean;
 }
 
+const MAX_PREVIEW_LENGTH = 1500;
+
 export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogglePin, isCompact = false }: NoteCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Optimize preview generation by truncating content first
+  const previewContent = useMemo(() => {
+    if (note.content.length <= MAX_PREVIEW_LENGTH) return note.content;
+    return note.content.slice(0, MAX_PREVIEW_LENGTH);
+  }, [note.content]);
 
   // Extract plain text preview for compact mode (no HTML escaping - React handles it)
   const compactPreview = (() => {
     if (!isCompact) return '';
-    const text = htmlToPlainText(note.content);
+    const text = htmlToPlainText(previewContent);
     return text.slice(0, 80) + (text.length > 80 ? '...' : '');
   })();
 
@@ -180,7 +188,7 @@ export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogg
         /* Preview - Rendered HTML content (sanitized to prevent XSS) */
         <div
           className="note-card-preview flex-1 overflow-hidden"
-          dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewContent) }}
         />
       )}
 
