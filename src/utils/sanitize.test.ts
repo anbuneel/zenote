@@ -42,6 +42,14 @@ describe('sanitizeHtml', () => {
     const input = '<a href="https://example.com">Link</a>';
     expect(sanitizeHtml(input)).toContain('href="https://example.com"');
   });
+
+  it('handles truncated HTML gracefully', () => {
+    // Truncated inside a tag and attribute
+    const input = '<p><strong>Bold text that gets cut off here...';
+    // DOMPurify should close the tags
+    const output = sanitizeHtml(input);
+    expect(output).toBe('<p><strong>Bold text that gets cut off here...</strong></p>');
+  });
 });
 
 describe('escapeHtml', () => {
