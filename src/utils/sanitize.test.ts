@@ -42,6 +42,20 @@ describe('sanitizeHtml', () => {
     const input = '<a href="https://example.com">Link</a>';
     expect(sanitizeHtml(input)).toContain('href="https://example.com"');
   });
+
+  it('enforces rel="noopener noreferrer" on target="_blank" links', () => {
+    const input = '<a href="https://example.com" target="_blank">Link</a>';
+    const output = sanitizeHtml(input);
+    expect(output).toContain('target="_blank"');
+    expect(output).toContain('rel="noopener noreferrer"');
+  });
+
+  it('preserves existing rel attributes while adding noopener noreferrer', () => {
+    const input = '<a href="https://example.com" target="_blank" rel="nofollow">Link</a>';
+    const output = sanitizeHtml(input);
+    expect(output).toContain('target="_blank"');
+    expect(output).toContain('rel="nofollow noopener noreferrer"');
+  });
 });
 
 describe('escapeHtml', () => {

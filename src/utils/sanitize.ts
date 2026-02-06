@@ -1,5 +1,17 @@
 import DOMPurify from 'dompurify';
 
+// Add a global hook to enforce rel="noopener noreferrer" for target="_blank" links
+// This prevents reverse tabnabbing attacks where the new page could access window.opener
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if ('getAttribute' in node && node.getAttribute('target') === '_blank') {
+    const currentRel = node.getAttribute('rel') || '';
+    const rels = new Set(currentRel.split(/\s+/).filter(Boolean));
+    rels.add('noopener');
+    rels.add('noreferrer');
+    node.setAttribute('rel', Array.from(rels).join(' '));
+  }
+});
+
 /**
  * Sanitize HTML content to prevent XSS attacks.
  * Allows safe HTML tags from Tiptap editor (formatting, lists, etc.)
