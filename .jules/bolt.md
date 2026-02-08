@@ -1,0 +1,3 @@
+## 2026-02-08 - HTML Sanitization on Large Inputs
+**Learning:** `DOMPurify.sanitize()` is computationally expensive on large HTML strings. The `NoteCard` component was sanitizing the full note content (up to 500,000 characters) just to generate a small preview, creating a significant performance bottleneck on large notes.
+**Action:** Always truncate large HTML content before passing it to sanitization functions for UI previews. A safety limit (e.g., 2000 characters) provides enough content for visual previews while preventing performance degradation. `DOMPurify` handles potentially unclosed tags gracefully.

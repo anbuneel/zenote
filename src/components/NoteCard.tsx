@@ -178,9 +178,14 @@ export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogg
         </p>
       ) : (
         /* Preview - Rendered HTML content (sanitized to prevent XSS) */
+        /* Truncate content before expensive sanitization - DOMPurify handles unclosed tags */
         <div
           className="note-card-preview flex-1 overflow-hidden"
-          dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHtml(
+              note.content.length > 2000 ? note.content.slice(0, 2000) : note.content
+            ),
+          }}
         />
       )}
 
