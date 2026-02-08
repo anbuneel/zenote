@@ -1,5 +1,20 @@
 import DOMPurify from 'dompurify';
 
+// Add a hook to prevent reverse tabnabbing attacks
+// This ensures all links opening in a new tab have rel="noopener noreferrer"
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if ('target' in node && node.getAttribute('target') === '_blank') {
+    let rel = node.getAttribute('rel') || '';
+    if (!rel.includes('noopener')) {
+      rel += ' noopener';
+    }
+    if (!rel.includes('noreferrer')) {
+      rel += ' noreferrer';
+    }
+    node.setAttribute('rel', rel.trim());
+  }
+});
+
 /**
  * Sanitize HTML content to prevent XSS attacks.
  * Allows safe HTML tags from Tiptap editor (formatting, lists, etc.)
