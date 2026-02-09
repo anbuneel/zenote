@@ -18,7 +18,9 @@ export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogg
   // Extract plain text preview for compact mode (no HTML escaping - React handles it)
   const compactPreview = (() => {
     if (!isCompact) return '';
-    const text = htmlToPlainText(note.content);
+    // Optimize: Truncate large content before expensive tag stripping
+    // 1000 chars is plenty to get 80 chars of text (unless extremely markup-heavy)
+    const text = htmlToPlainText(note.content.length > 1000 ? note.content.slice(0, 1000) : note.content);
     return text.slice(0, 80) + (text.length > 80 ? '...' : '');
   })();
 
@@ -178,9 +180,10 @@ export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogg
         </p>
       ) : (
         /* Preview - Rendered HTML content (sanitized to prevent XSS) */
+        /* Optimize: Truncate large content before expensive sanitization */
         <div
           className="note-card-preview flex-1 overflow-hidden"
-          dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content.length > 2000 ? note.content.slice(0, 2000) : note.content) }}
         />
       )}
 
