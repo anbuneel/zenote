@@ -356,4 +356,65 @@ describe('ChapteredLibrary', () => {
 
   // Note: IntersectionObserver behavior is tested implicitly via the global mock in test/setup.ts
   // The nav click tests verify scroll-to-chapter behavior which relies on the observer updating currentChapter
+
+  describe('performance', () => {
+    it('creates a single IntersectionObserver for all chapters', () => {
+      const observerInstances: any[] = [];
+      const OriginalObserver = window.IntersectionObserver;
+
+      class TrackingIntersectionObserver implements IntersectionObserver {
+        readonly root: Element | Document | null = null;
+        readonly rootMargin: string = '';
+        readonly thresholds: ReadonlyArray<number> = [];
+
+        constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+          observerInstances.push(this);
+        }
+
+        observe = vi.fn();
+        unobserve = vi.fn();
+        disconnect = vi.fn();
+        takeRecords = vi.fn().mockReturnValue([]);
+      }
+
+      // Overwrite window.IntersectionObserver
+      Object.defineProperty(window, 'IntersectionObserver', {
+        writable: true,
+        value: TrackingIntersectionObserver,
+      });
+
+      try {
+        const mockNotes = [
+          createMockNote({ id: 'note-1', title: 'Note 1', pinned: true }),
+          createMockNote({ id: 'note-2', title: 'Note 2' }),
+        ];
+
+        const mockChapters = [
+          { key: 'pinned', label: 'Pinned', notes: [mockNotes[0]], isPinned: true },
+          { key: 'thisWeek', label: 'This Week', notes: [mockNotes[1]], isPinned: false },
+        ];
+
+        vi.mocked(temporalGrouping.groupNotesByChapter).mockReturnValue(mockChapters);
+        vi.mocked(temporalGrouping.getDefaultExpansionState).mockReturnValue({
+          pinned: true,
+          thisWeek: true,
+          lastWeek: false,
+          thisMonth: false,
+          earlier: false,
+          archive: false,
+        });
+
+        render(<ChapteredLibrary {...defaultProps} notes={mockNotes} />);
+
+        // Should use a single observer for all chapters
+        expect(observerInstances.length).toBe(1);
+      } finally {
+        // Restore original mock
+        Object.defineProperty(window, 'IntersectionObserver', {
+          writable: true,
+          value: OriginalObserver,
+        });
+      }
+    });
+  });
 });
