@@ -1,5 +1,25 @@
 import DOMPurify from 'dompurify';
 
+// Add global hook to force safe link attributes to prevent reverse tabnabbing
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+    const rel = node.getAttribute('rel') || '';
+    const parts = rel.split(/\s+/).filter(Boolean);
+
+    // Add noopener if missing
+    if (!parts.includes('noopener')) {
+      parts.push('noopener');
+    }
+
+    // Add noreferrer if missing
+    if (!parts.includes('noreferrer')) {
+      parts.push('noreferrer');
+    }
+
+    node.setAttribute('rel', parts.join(' '));
+  }
+});
+
 /**
  * Sanitize HTML content to prevent XSS attacks.
  * Allows safe HTML tags from Tiptap editor (formatting, lists, etc.)
