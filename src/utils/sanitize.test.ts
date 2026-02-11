@@ -42,6 +42,28 @@ describe('sanitizeHtml', () => {
     const input = '<a href="https://example.com">Link</a>';
     expect(sanitizeHtml(input)).toContain('href="https://example.com"');
   });
+
+  it('adds rel="noopener noreferrer" to links with target="_blank"', () => {
+    const input = '<a href="https://example.com" target="_blank">Link</a>';
+    const output = sanitizeHtml(input);
+    expect(output).toContain('rel="noopener noreferrer"');
+    expect(output).toContain('target="_blank"');
+  });
+
+  it('preserves existing rel attributes while adding security attributes', () => {
+    const input = '<a href="https://example.com" target="_blank" rel="nofollow">Link</a>';
+    const output = sanitizeHtml(input);
+    expect(output).toContain('rel="nofollow noopener noreferrer"');
+  });
+
+  it('does not duplicate existing security attributes', () => {
+    const input = '<a href="https://example.com" target="_blank" rel="noopener">Link</a>';
+    const output = sanitizeHtml(input);
+    expect(output).toContain('rel="noopener noreferrer"');
+    // Ensure noopener appears only once
+    const matches = output.match(/noopener/g);
+    expect(matches?.length).toBe(1);
+  });
 });
 
 describe('escapeHtml', () => {
