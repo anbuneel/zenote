@@ -39,14 +39,17 @@ src/
 │   ├── LandingPage.tsx    # Split-screen landing page with interactive demo
 │   ├── LettingGoModal.tsx # Account departure modal with keepsakes export
 │   ├── LoadingFallback.tsx # Shared loading spinner for Suspense boundaries
+│   ├── Logo.tsx           # SVG logo image component (public asset reference)
 │   ├── NoteCard.tsx       # Individual note card with tag badges
 │   ├── ShareModal.tsx     # Modal for creating/managing share links
 │   ├── SharedNoteView.tsx # Public read-only view for shared notes
 │   ├── SyncIndicator.tsx  # Subtle offline/sync status indicator
 │   ├── ConflictModal.tsx  # "Two Paths" conflict resolution modal
+│   ├── ReloadPrompt.tsx   # PWA service worker update prompt (non-disruptive refresh banner)
 │   ├── RichTextEditor.tsx # Tiptap editor content wrapper (toolbar extracted to EditorToolbar)
 │   ├── RoadmapPage.tsx    # Public roadmap with status-grouped features
 │   ├── SettingsModal.tsx  # Settings modal (profile, password, security tab, theme, offboarding)
+│   ├── SlashCommand.tsx   # Tiptap slash command extension (/, timestamps, dividers)
 │   ├── ReAuthModal.tsx    # Re-authentication modal for sensitive actions (step-up auth)
 │   ├── TagBadge.tsx       # Small tag badge for note cards
 │   ├── TagFilterBar.tsx   # Horizontal tag filter strip with edit support
@@ -64,7 +67,8 @@ src/
 │       ├── ImpermanenceRibbon.tsx # Subtle banner reminding notes aren't saved to cloud
 │       └── InvitationModal.tsx    # Soft signup prompt ("A Gentle Invitation")
 ├── pages/
-│   └── DemoPage.tsx       # Full-featured demo experience at /demo route
+│   ├── DemoPage.tsx       # Full-featured demo experience at /demo route
+│   └── LogoTestPage.tsx   # Logo preview page for testing across themes
 ├── data/
 │   ├── changelog.ts       # Version history data
 │   └── roadmap.ts         # Roadmap items with status
@@ -103,6 +107,8 @@ src/
 │   ├── lazyWithRetry.ts   # Smart lazy loading with retry and auto-reload on version updates
 │   ├── sanitize.ts        # HTML/text sanitization (XSS prevention)
 │   ├── temporalGrouping.ts # Group notes by time (Pinned, This Week, Last Week, etc.)
+│   ├── updateBanner.ts    # Persistent update banner for chunk errors / app version updates
+│   ├── validation.ts      # Note title/content validation and length limits
 │   └── withRetry.ts       # Retry utility with exponential backoff and error discrimination
 ├── themes/
 │   ├── index.ts           # Theme exports and utilities
@@ -138,6 +144,7 @@ npm run preview  # Preview production build
 npm run typecheck # Type check without emitting
 npm run test     # Run tests in watch mode
 npm run test:run # Run tests once
+npm run test:coverage # Run tests with coverage report
 npm run check    # Full CI check: typecheck + lint + test + build
 npm run e2e      # Run Playwright E2E tests
 npm run e2e:ui   # Open Playwright UI for interactive testing
@@ -146,6 +153,9 @@ npm run e2e:report # View E2E test HTML report
 npm run theme:generate  # Generate CSS from active themes
 npm run theme:preview   # Preview theme CSS without updating
 npm run icons:generate  # Generate PWA icons from SVG source
+npm run splash:generate # Generate splash screens for native apps
+npm run docs:sync-agents      # Sync AGENTS.md from CLAUDE.md
+npm run docs:sync-agents:check # Check if AGENTS.md is in sync (CI)
 npm run cap:sync        # Build and sync to native platforms
 npm run cap:android     # Build, sync, and open Android Studio
 npm run cap:android:run # Build, sync, and run on Android device/emulator
@@ -365,31 +375,20 @@ content...
 
 ## Notes
 - Content is stored as HTML (from Tiptap's `getHTML()`)
-- Theme preference persists in localStorage (`yidhan-theme`)
 - Notes sync in real-time via Supabase subscriptions
 - All note/tag operations are scoped to authenticated user via RLS
 - Tags support many-to-many relationship with notes
 - Tag filtering uses AND logic (notes must have ALL selected tags)
-- Tag filtering clears active search to avoid confusion
 - User's full name is stored in Supabase `user_metadata.full_name`
-- Profile avatar shows initials (first+last name, or first letter of email)
 - Password recovery detected via Supabase `PASSWORD_RECOVERY` auth event
-- TagModal shows loading spinners during async create/update/delete operations
-- Import operations show a loading overlay with spinner
 - Google/GitHub OAuth use Supabase's `signInWithOAuth` with redirect back to app origin
 - OAuth-first layout: OAuth buttons appear FIRST, then "or continue with email" divider, then email form
-- ErrorBoundary wraps the entire app to catch and display runtime errors gracefully
-- Chunk loading errors (from deployments) show "New version available" and auto-refresh
 - Production OAuth requires Supabase Site URL and Redirect URLs to match deployment domain
-- Toast notifications use react-hot-toast with theme-aware styling
-- Network status monitored via useNetworkStatus hook (shows offline/online toasts)
-- Sentry error monitoring enabled when VITE_SENTRY_DSN is configured
 - Extensive code splitting reduces initial bundle (596KB → 332KB, -44%):
   - Editor: lazy-loaded (415KB chunk)
   - Views: ChangelogPage, RoadmapPage, FadedNotesView, SharedNoteView
   - Modals: SettingsModal, LettingGoModal, TagModal
   - Vendors: Supabase (189KB), Sentry (18KB), React (4KB) in separate chunks
-- Landing page shows for unauthenticated users with static preview cards and trust signals
 - Auth component supports modal mode (`isModal` prop) for landing page overlay
 
 ## Deployment
@@ -464,3 +463,5 @@ SQL migrations are stored in `supabase/migrations/`:
 - `add_pinned_column.sql` - Add pinned column to notes table
 - `add_soft_delete.sql` - Add deleted_at column for soft-delete feature
 - `add_note_shares.sql` - Add note_shares table for "Share as Letter" feature
+- `add_shared_note_public_access.sql` - RLS policy for unauthenticated shared note viewing
+- `add_faded_notes_cleanup_cron.sql` - Cron job for auto-deleting expired faded notes (requires Pro plan)
