@@ -272,40 +272,9 @@ When using the `frontend-design` skill, follow the AI-Generated Documentation St
 
 ## Documentation Structure
 
-The `docs/` folder is organized as follows. **See [docs/Index.md](docs/Index.md) for the master index.**
+See [docs/Index.md](docs/Index.md) for the full documentation index.
 
-```
-docs/
-├── Index.md          # Master index of all documentation (start here)
-├── prd.md            # Product Requirements Document
-├── technical-spec.md # Technical Specification
-├── ui-layout.md      # UI layout ASCII diagrams
-├── active/           # Current strategy and in-progress work
-├── analysis/         # Claude analysis docs (suffix: -claude.md)
-├── plans/            # Active implementation plans
-├── archive/
-│   ├── planning/     # Historical planning & analysis docs
-│   └── plans/        # Completed implementation plans
-├── codebase-snapshot/ # Point-in-time codebase snapshots
-├── conversations/    # Claude Code session logs
-├── reviews/          # External reviews (Codex, Gemini, code reviews)
-│   └── code-review/  # Code review reports
-└── setup/            # Configuration guides (OAuth, CI, testing)
-```
-
-**Key documents:**
-- **Index.md**: Master documentation index — all docs organized by category
-- **prd.md**: Product vision, personas, features, user flows, success metrics
-- **technical-spec.md**: Architecture, database schema, state management, security, deployment
-
-**Mobile documentation:**
-- **analysis/mobile-ios-gap-analysis-claude.md**: Comprehensive gap analysis (22 prioritized items)
-- **analysis/ios-native-competitive-analysis-claude.md**: Competitive analysis vs Bear, Craft, Apple Notes
-- **analysis/mobile-capability-spectrum-claude.md**: Visual progression Tier 1 (responsive) → Tier 5 (native)
-- **plans/pwa-native-feel-plan.md**: PWA-only plan (no macOS required, 5 weeks)
-- **plans/mobile-ios-overhaul-plan.md**: Full Capacitor plan (requires macOS, 9-13 weeks)
-
-**Placement guidelines:**
+**Placement guidelines for new docs:**
 - **analysis/**: AI-authored design analysis (`*-claude.md`)
 - **archive/plans/**: Implementation plans after feature is complete
 - **archive/planning/**: Old planning docs, tech comparisons
@@ -316,99 +285,18 @@ docs/
 
 ## Design System
 
-### Theme Configuration System
-Themes are defined in `src/themes/` as TypeScript files for easy backup and switching:
+### Themes
+Active: Kintsugi (light, terracotta #C25634), Midnight (dark **default**, gold #D4AF37). Also available: Washi, Mori.
+Config in `src/themes/`. Commands: `npm run theme:generate`, `npm run theme:preview`.
 
-```
-src/themes/
-├── index.ts      # Theme exports, active theme config, utilities
-├── types.ts      # ThemeConfig type definitions
-├── kintsugi.ts   # Light: Current default (warm paper + terracotta)
-├── midnight.ts   # Dark: Current default (forest green + gold)
-├── washi.ts      # Light: Proposed (handmade paper + kakishibu brown)
-└── mori.ts       # Dark: Proposed (deep forest + aged gold)
-```
+### CSS Variables
+Defined in `src/index.css`. Use `--color-*` for colors, `--font-display`/`--font-body` for fonts.
+Key convention: `--radius-card: 2px 24px 4px 24px` (asymmetric wabi-sabi corners).
+Tag colors: terracotta, gold, forest, stone, indigo, clay, sage, plum.
 
-**Quick Reference:**
-```bash
-npm run theme:generate -- --theme washi mori      # Try new wabi-sabi themes
-npm run theme:generate -- --theme kintsugi midnight  # Restore original themes
-npm run theme:preview                              # Preview without changing
-```
-
-### Active Themes
-- **Light (Kintsugi):** Warm paper backgrounds, terracotta accent (#C25634)
-- **Dark (Midnight):** Deep forest green, antique gold accent (#D4AF37) - **DEFAULT**
-
-### Available Themes
-| Theme | Mode | Description |
-|-------|------|-------------|
-| Kintsugi | Light | Warm aged paper, terracotta accents |
-| Washi | Light | Handmade paper, kakishibu brown accents |
-| Midnight | Dark | Deep forest green, antique gold accents |
-| Mori | Dark | Forest at dusk, aged kintsugi gold |
-
-### CSS Variables (defined in index.css)
-- `--color-bg-primary`, `--color-bg-secondary`, `--color-bg-tertiary`
-- `--color-text-primary`, `--color-text-secondary`
-- `--color-accent`, `--color-accent-hover`, `--color-accent-glow`
-- `--color-error`, `--color-error-light` (error states)
-- `--color-status-progress`, `--color-status-coming`, `--color-status-exploring`
-- `--color-change-improvement`, `--color-change-fix`
-- `--font-display` (Cormorant Garamond), `--font-body` (Inter)
-- `--radius-card: 2px 24px 4px 24px` (asymmetric wabi-sabi corners)
-
-### Tag Color Palette (Wabi-sabi)
-- `terracotta` (#C25634), `gold` (#D4AF37), `forest` (#3D5A3D)
-- `stone` (#8B8178), `indigo` (#4A5568), `clay` (#A67B5B)
-- `sage` (#87A878), `plum` (#6B4C5A)
-
-## Database Schema (Supabase)
-```sql
--- Notes table
-create table notes (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  title text not null default '',
-  content text not null default '',  -- Stores HTML from Tiptap
-  pinned boolean default false not null,  -- Pin notes to top of library
-  deleted_at timestamptz default null,  -- Soft-delete timestamp (null = active, set = faded)
-  created_at timestamptz default now() not null,
-  updated_at timestamptz default now() not null
-);
-
--- Tags table
-create table tags (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  name text not null,
-  color text not null default 'stone',
-  created_at timestamptz default now() not null,
-  unique(user_id, name)
-);
-
--- Junction table for many-to-many (notes <-> tags)
-create table note_tags (
-  note_id uuid references notes(id) on delete cascade not null,
-  tag_id uuid references tags(id) on delete cascade not null,
-  primary key (note_id, tag_id)
-);
-
--- Note shares table (for "Share as Letter" feature)
-create table note_shares (
-  id uuid default gen_random_uuid() primary key,
-  note_id uuid references notes(id) on delete cascade not null,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  share_token varchar(32) unique not null,  -- 32-char secure token
-  expires_at timestamptz,  -- null = never expires
-  created_at timestamptz default now() not null,
-  unique(note_id)  -- One active share per note
-);
-
--- Row Level Security on all tables
--- Users can only access their own notes and tags
--- Public can read share tokens for validation
-```
+## Database Schema
+See `docs/technical-spec.md` for full schema (notes, tags, note_tags, note_shares). Types in `src/types/database.ts`.
+RLS enabled on all tables — users can only access their own data.
 
 ## Environment Variables
 ```
@@ -417,134 +305,8 @@ VITE_SUPABASE_ANON_KEY=xxx
 VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty to disable
 ```
 
-## Features Implemented
-- [x] Wabi-sabi design with light/dark themes (dark default)
-- [x] Card-based note library with responsive grid
-- [x] Rich text editor (bold, italic, underline, headers, lists, quotes, code, task lists)
-- [x] User authentication (email/password + Google/GitHub OAuth) with full name capture
-- [x] Supabase database integration
-- [x] Real-time sync across tabs/devices
-- [x] Note creation, editing, deletion
-- [x] Delete notes directly from card view (with confirmation)
-- [x] Auto-save with debounce (1.5s after typing stops) and "Saving..." → "Saved ✓" indicator
-- [x] Search functionality (Cmd/Ctrl+K)
-- [x] Tag-based organization (multiple tags per note)
-- [x] Tag filtering (filter bar below header, clears search)
-- [x] Tag creation, editing, and deletion with color picker
-- [x] Profile avatar with user initials (from name or email)
-- [x] Export notes (JSON backup, Markdown) - bulk and single note
-- [x] Import notes (JSON restore, Markdown files) with progress indicator and batch inserts
-- [x] Rich HTML preview in note cards (preserves formatting)
-- [x] Breadcrumb navigation in editor (Yidhan / Note Title)
-- [x] Password reset flow (forgot password + email recovery)
-- [x] Settings modal (display name, password change, theme toggle)
-- [x] Loading states for tag operations (create/update/delete)
-- [x] Duplicate tag name prevention (client-side validation)
-- [x] Error boundary for graceful error handling
-- [x] Production deployment on Vercel
-- [x] Welcome note for new users (via database trigger)
-- [x] Security hardening (XSS prevention, input validation, error sanitization)
-- [x] Pin notes to top of library (pin button top-left, delete moved to bottom-right)
-- [x] Test coverage (Vitest + Testing Library)
-- [x] CI/CD pipeline (GitHub Actions)
-- [x] Code splitting (lazy load Editor, views, modals, vendor chunks)
-- [x] Error monitoring (Sentry)
-- [x] Toast notifications (react-hot-toast)
-- [x] Network connectivity detection (Zen-style offline/online messages)
-- [x] PWA support (installable, cached assets, offline app shell)
-- [x] Landing page with interactive demo (split-screen, localStorage persistence)
-- [x] Mobile responsive landing page and auth modal
-- [x] Sticky formatting toolbar in editor (stays visible while scrolling)
-- [x] Created/edited timestamps displayed below note title
-- [x] Smart cursor focus (title for new notes, end of content for existing, position preserved on tab switch)
-- [x] Slash commands (/date, /time, /now, /divider, headings, lists, etc.) with visual icons
-- [x] Keyboard shortcut Cmd/Ctrl+N to create new note
-- [x] Public changelog page (version history with categorized changes)
-- [x] Public roadmap page (status-grouped feature plans)
-- [x] Footer navigation (Changelog · Roadmap · GitHub links)
-- [x] Soft-delete notes ("Faded Notes" - 30-day recovery window)
-- [x] Faded Notes view with restore and permanent delete options
-- [x] Temporal Chapters (automatic grouping: Pinned, This Week, Last Week, This Month, Earlier, Archive)
-- [x] Collapsible chapter sections with note counts and preview titles
-- [x] Chapter navigation: Desktop dot sidebar + Mobile time ribbon scrubber
-- [x] Mobile-responsive header (compact search bar, reduced spacing)
-- [x] Tag filter bar with dynamic scroll fade indicators
-- [x] Compact tag pills on mobile screens
-- [x] Global overflow prevention for mobile devices
-- [x] Integrated editor breadcrumb (logo + note title in same zone for visual continuity)
-- [x] Organic footer in editor ("Return to notes" link at end of content)
-- [x] WhisperBack floating button (appears when scrolled, thumb-friendly on mobile)
-- [x] Demo-to-signup CTA ("Save this note" button appears after typing in demo editor)
-- [x] Demo content migration (notes typed in demo auto-saved as first note after signup)
-- [x] Email confirmation UX (resend email, change email options with 60s cooldown)
-- [x] Signup form polish (optional name label, password hint, modal dismiss confirmation)
-- [x] Enhanced empty library state (icon, CTA button, keyboard shortcut hint)
-- [x] Mobile sample note on landing page (shows what notes look like)
-- [x] Loading spinner on auth submit button
-- [x] Copy note to clipboard (plain text or with formatting) from export menu
-- [x] Keyboard shortcut Cmd/Ctrl+Shift+C to copy entire note
-- [x] Account offboarding ("Letting Go") with 14-day grace period
-- [x] Keepsakes export during offboarding (Markdown or JSON download)
-- [x] Return during grace period (sign in to cancel departure)
-- [x] Share as Letter (temporary, read-only share links for notes)
-- [x] Configurable share expiration (1 day, 7 days, 30 days, never)
-- [x] Public shared note view with preserved formatting and tags
-- [x] API retry with exponential backoff (3 attempts for failed saves)
-- [x] Smart error discrimination (4xx fail fast, 5xx/network retry)
-- [x] In-flight save tracking (navigation awaits pending saves)
-- [x] Sentry session replay privacy (note content masked)
-- [x] Error design tokens (--color-error in all themes)
-- [x] Space key accessibility (keyboard navigation for all interactive elements)
-- [x] Offline editing with IndexedDB (Dexie.js) - notes persist locally, sync when online
-- [x] Sync queue with conflict detection and resolution
-- [x] "Two Paths" conflict modal for concurrent edit resolution
-- [x] SyncIndicator component (shows offline/pending status, zen "absence is peace")
-- [x] View Transitions API for smooth page navigation (Chrome/Edge/Safari, graceful fallback)
-- [x] PWA Share Target API (receive shared text from other apps on mobile)
-- [x] Custom install prompt with engagement tracking (shows after 3+ notes or 2+ visits)
-- [x] Landing page install CTA (subtle install link in footer nav)
-- [x] Practice Space (/demo) - full-featured demo without signup
-- [x] Demo notes persist in localStorage (survives browser refresh)
-- [x] Soft signup prompts after 3+ notes and 5+ minutes (non-aggressive "invitation")
-- [x] ImpermanenceRibbon - gentle reminder that demo notes aren't synced to cloud
-- [x] Demo-to-account migration (demo notes auto-migrate on signup)
-- [x] "Explore without signing up" CTA on landing page
-- [x] iOS Safari install guide (visual 3-step tutorial for PWA installation)
-- [x] Apple splash screens (14 device-specific launch images for iOS PWAs)
-- [x] Swipe gestures on mobile (swipe left to delete, right to pin/unpin notes)
-- [x] Pull-to-refresh on mobile (pull down to sync notes)
-- [x] iOS-style spring animations (--spring-bounce, --spring-smooth, --spring-snappy)
-- [x] Card entrance stagger animation (cascading reveal effect)
-- [x] Touch device detection hooks (useMobileDetect, useTouchCapable)
-- [x] Session timeout with configurable duration (30min, 1hr, 24hr, 1 week default, or never)
-- [x] Trusted device / "Keep me signed in" option (extends timeout to 14 days, 90-day TTL)
-- [x] Re-authentication for sensitive actions (full backup export, account deletion)
-- [x] Security tab in Settings modal (timeout dropdown, trusted device toggle)
-- [x] Keyboard shortcuts modal (press ? to view all shortcuts, slash commands, gestures)
-- [x] Full account backup export (includes profile, notes, tags, and share links)
-- [x] Rate limit handling (429 error detection with Retry-After header support)
-- [x] Footer shortcuts link (easy access to keyboard shortcuts help)
-- [x] Landing page unified demo strategy (removed inline demo, surfaces /demo "Explore" mode)
-- [x] Trust signals on landing page (Open source, Works offline, Your data stays yours)
-- [x] OAuth-first auth modal layout (OAuth buttons first, then email form)
-- [x] Automatic condensed cards on mobile (compact view for screens <700px, full cards on desktop)
-- [x] Button press states (touch-press CSS class for tactile feedback on mobile)
-- [x] Visual Viewport API hook (useKeyboardHeight) for proper keyboard handling
-- [x] Gesture hint overlay - one-time swipe gesture tutorial on mobile
-- [x] iOS-style bottom sheet modals (SettingsModal slides up from bottom on mobile)
-- [x] iOS install guide non-Safari detection (shows "Open in Safari" for Chrome/Firefox/Edge)
-- [x] Cross-session editor position restoration (cursor + scroll persisted in localStorage)
-- [x] "Resume where you left off" chip for long notes (shown when reopening with saved position)
-- [x] Gold caret color (cursor matches brand accent for distinctive feel)
-- [x] Refined editor typography (font-weight 400, line-height 1.75, 1em paragraph spacing)
-- [x] Animated placeholder (rotates hints every 30s when editor is empty)
-- [x] Mobile toolbar overflow menu (compact toolbar with essential tools + "⋯" overflow for remaining)
-
-## Features Not Yet Implemented
-- [ ] Additional OAuth providers (Apple, etc.)
-- [ ] Image attachments
-- [ ] Virtual scrolling for large note lists
-- [ ] Analytics
+## Features
+See `src/data/changelog.ts` for full feature history. See `src/data/roadmap.ts` for planned features.
 
 ## Common Tasks
 
@@ -571,49 +333,11 @@ VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx  # Optional - leave empty t
 - Tag state is managed in `App.tsx`
 - Tag components: `TagPill`, `TagBadge`, `TagFilterBar`, `TagSelector`, `TagModal`
 
-### Soft-delete (Faded Notes) service functions
-Located in `src/services/notes.ts`:
-- `softDeleteNote(id)` - Set deleted_at timestamp (moves to Faded Notes)
-- `restoreNote(id)` - Clear deleted_at (restores to library)
-- `permanentDeleteNote(id)` - Hard delete from database
-- `fetchFadedNotes()` - Get all soft-deleted notes for current user
-- `countFadedNotes()` - Get count for badge display
-- `emptyFadedNotes()` - Permanently delete all faded notes
-- `cleanupExpiredFadedNotes()` - Auto-release notes older than 30 days (runs on app load)
-
-### Share as Letter service functions
-Located in `src/services/notes.ts`:
-- `createNoteShare(noteId, userId, expiresInDays)` - Create share link with optional expiration
-- `getNoteShare(noteId)` - Get existing share for a note (if any)
-- `updateNoteShareExpiration(noteId, expiresInDays)` - Update share expiration
-- `deleteNoteShare(noteId)` - Revoke share access
-- `fetchSharedNote(token)` - Fetch shared note by token (public, no auth required)
-
-### Demo Mode (Practice Space)
-The Practice Space at `/demo` provides a full-featured writing experience without requiring signup.
-
-**Architecture:**
-- `src/services/demoStorage.ts` - localStorage CRUD operations with `DemoNote` and `DemoTag` types
-- `src/hooks/useDemoState.ts` - React hook wrapper with type conversion to `Note`/`Tag`
-- `src/hooks/useSoftPrompt.ts` - Determines when to show signup prompts
-- `src/pages/DemoPage.tsx` - Main demo page with library/editor views
-
-**Key functions in demoStorage.ts:**
-- `getDemoState()` / `saveDemoState()` - Read/write complete state
-- `createDemoNote()` / `updateDemoNote()` / `deleteDemoNote()` - Note CRUD
-- `createDemoTag()` / `updateDemoTag()` / `deleteDemoTag()` - Tag CRUD
-- `getDemoDataForMigration()` - Export demo data for account migration
-- `clearDemoState()` - Clear all demo data
-
-**Soft prompt triggers (useSoftPrompt.ts):**
-- Minimum 3 notes created
-- Minimum 5 minutes since first visit
-- Not dismissed within last hour
-
-**Migration flow:**
-- On signup, `App.tsx` checks for `hasDemoState()`
-- Migrates demo notes/tags to Supabase via `createNotesBatch()`
-- Clears demo state after successful migration
+### Soft-delete, sharing, and demo mode
+- Soft-delete (Faded Notes) functions are in `src/services/notes.ts`
+- Share as Letter functions are in `src/services/notes.ts`
+- Demo/Practice Space (`/demo`): `src/services/demoStorage.ts`, `src/hooks/useDemoState.ts`, `src/pages/DemoPage.tsx`
+- Demo-to-account migration runs on signup in `App.tsx` via `createNotesBatch()`
 
 ## UI Layout
 
@@ -624,25 +348,9 @@ See [docs/ui-layout.md](docs/ui-layout.md) for detailed ASCII diagrams of all UI
 - Keyboard shortcuts and slash commands
 
 ## Copy & Export
+Functions in `src/utils/exportImport.ts`. Batch insert via `createNotesBatch()` in `src/services/notes.ts`.
 
-### Copy Options (Editor)
-- **Copy as text**: Plain text to clipboard (title + tags + content)
-- **Copy with formatting**: HTML-formatted for pasting into rich editors
-- Keyboard shortcut: `Cmd/Ctrl + Shift + C` copies as plain text
-
-### Export Options
-- **All Notes (JSON)**: Full backup with notes, tags, and metadata
-- **All Notes (Markdown)**: Combined `.md` file with all notes
-- **Single Note**: Export from editor via download button (Markdown or JSON)
-
-### Import Features
-- **JSON** (`.json`): Restore full backup, creates missing tags automatically
-- **Markdown** (`.md`): Imports single or multiple notes with tags preserved
-- **Batch import**: Uses efficient batch inserts with progress indicator
-- **Task lists**: Checkboxes preserved during import/export
-
-### Markdown Format
-All markdown exports use a unified format for consistency:
+Markdown export format (used by all export/import):
 ```markdown
 ---
 # Note Title
@@ -652,44 +360,9 @@ Tags: tag1, tag2
 content...
 ```
 
-### Utilities
-Export/import functions are in `src/utils/exportImport.ts`:
-- `copyNoteToClipboard()` / `copyNoteWithFormatting()` - Copy to clipboard
-- `htmlToPlainText()` / `formatNoteForClipboard()` - Plain text conversion
-- `exportNotesToJSON()` / `parseImportedJSON()` - JSON backup
-- `exportNoteToJSON()` / `exportNoteToMarkdown()` - Single note export
-- `parseMultiNoteMarkdown()` - Parse combined markdown exports
-- `htmlToMarkdown()` / `markdownToHtml()` - Format conversion
-- `downloadFile()` / `readFileAsText()` - File utilities
-- `createNotesBatch()` - Batch insert for efficient imports (in notes.ts)
-
-## AuthContext API
-The `AuthContext` provides these functions:
-- `signIn(email, password)` - Log in with email/password
-- `signInWithGoogle()` - Log in with Google OAuth (redirects to Google)
-- `signInWithGitHub()` - Log in with GitHub OAuth (redirects to GitHub)
-- `signUp(email, password, fullName)` - Create account with display name
-- `signOut()` - Log out current user
-- `resetPassword(email)` - Send password reset email
-- `updatePassword(newPassword)` - Update password (after recovery or authenticated)
-- `updateProfile(fullName)` - Update display name in user metadata
-- `isPasswordRecovery` - Boolean indicating if user arrived via recovery link
-- `clearPasswordRecovery()` - Clear recovery state after password update
-- `initiateOffboarding()` - Start account departure (sets departing_at in user_metadata)
-- `cancelOffboarding()` - Cancel departure and stay (clears departing_at)
-- `isDeparting` - Boolean indicating if user is in departure grace period
-- `daysUntilRelease` - Days remaining until account release (null if not departing)
-
-## Settings Modal
-The Settings modal (`SettingsModal.tsx`) has three tabs:
-- **Profile Tab:** Email (read-only), display name input, theme toggle button
-- **Password Tab:** New password + confirmation with validation (min 8 chars)
-  - Hidden for OAuth users (Google sign-in) since they authenticate via their provider
-- **Security Tab:** Session timeout dropdown, trusted device toggle
-  - Timeout options: 30 min, 1 hour, 24 hours, 1 week (default), Never (requires trusted device)
-  - Trusted device extends timeout to 14 days with 90-day TTL auto-expiration
-
-At the bottom of the modal is the "Let go of Yidhan" link that opens the offboarding modal.
+## Key Component Locations
+- **Auth:** `src/contexts/AuthContext.tsx` (login, signup, OAuth, offboarding, password reset)
+- **Settings:** `src/components/SettingsModal.tsx` (profile, password, security tabs + offboarding link)
 
 ## Notes
 - Content is stored as HTML (from Tiptap's `getHTML()`)
