@@ -195,7 +195,6 @@ The `check` script runs the same steps as GitHub Actions CI:
 **IMPORTANT:** When making significant enhancements, fixes, or changes, update these files:
 
 1. **`CLAUDE.md`** - Update relevant sections:
-   - Features Implemented (add new features)
    - Project Structure (add new files/components)
    - UI Layout (document new UI patterns)
    - Any affected documentation sections
