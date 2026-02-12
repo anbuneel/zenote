@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, memo } from 'react';
 import type { Note } from '../types';
 import { ChapterSection } from './ChapterSection';
 import { ChapterNav } from './ChapterNav';
@@ -25,7 +25,7 @@ interface ChapteredLibraryProps {
   searchQuery?: string;
 }
 
-export function ChapteredLibrary({
+export const ChapteredLibrary = memo(function ChapteredLibrary({
   notes,
   onNoteClick,
   onNoteDelete,
@@ -305,4 +305,4 @@ export function ChapteredLibrary({
       <GestureHint enabled={isMobile && notes.length > 0} />
     </>
   );
-}
+});
