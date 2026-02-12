@@ -1,5 +1,17 @@
 import DOMPurify from 'dompurify';
 
+// Add a hook to enforce security on links
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  // Check if it's a link
+  if ('target' in node && node.tagName === 'A') {
+    const target = node.getAttribute('target');
+    // If opening in a new tab, strictly enforce noopener noreferrer
+    if (target === '_blank') {
+      node.setAttribute('rel', 'noopener noreferrer');
+    }
+  }
+});
+
 /**
  * Sanitize HTML content to prevent XSS attacks.
  * Allows safe HTML tags from Tiptap editor (formatting, lists, etc.)
