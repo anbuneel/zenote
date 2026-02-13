@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useMemo } from 'react';
 import type { Note } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { TagBadgeList } from './TagBadge';
@@ -16,11 +16,18 @@ export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogg
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Extract plain text preview for compact mode (no HTML escaping - React handles it)
-  const compactPreview = (() => {
+  const compactPreview = useMemo(() => {
     if (!isCompact) return '';
     const text = htmlToPlainText(note.content);
     return text.slice(0, 80) + (text.length > 80 ? '...' : '');
-  })();
+  }, [note.content, isCompact]);
+
+  // Memoize sanitized content to avoid expensive DOMPurify calls on every render
+  // (e.g. when pinning/unpinning, which changes note reference but not content)
+  const sanitizedContent = useMemo(() => {
+    if (isCompact) return '';
+    return sanitizeHtml(note.content);
+  }, [note.content, isCompact]);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -180,7 +187,7 @@ export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogg
         /* Preview - Rendered HTML content (sanitized to prevent XSS) */
         <div
           className="note-card-preview flex-1 overflow-hidden"
-          dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
       )}
 
