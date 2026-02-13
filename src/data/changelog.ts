@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: '2.10.1',
+    date: '2026-02-12',
+    changes: [
+      { type: 'fix', text: 'Improved dark mode contrast for timestamps, icons, and tertiary text (WCAG AA compliant)' },
+      { type: 'improvement', text: 'Tighter list indentation for better readability in deeply nested lists' },
+    ],
+  },
+  {
     version: '2.10.0',
     date: '2026-01-31',
     changes: [

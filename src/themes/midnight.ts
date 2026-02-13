@@ -23,7 +23,7 @@ export const midnight: ThemeConfig = {
     // Typography: Warm off-white (secondary bumped ~12% brighter per Gemini feedback)
     textPrimary: '#EAE6D8',
     textSecondary: '#A3ABA3',
-    textTertiary: '#5A615A',
+    textTertiary: '#7A867A',
 
     // Accent: Antique Gold / Firefly Light
     accent: '#D4AF37',

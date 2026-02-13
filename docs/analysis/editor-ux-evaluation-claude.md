@@ -273,6 +273,12 @@ A gold cursor that subtly pulses, leaves a faint trail, or responds to typing rh
 - [x] Animated placeholder text (rotates every 30s: "Start writing..." → "What's on your mind?" → "Type / for commands")
 - [x] Mobile toolbar overflow menu (compact 7-button toolbar + overflow "⋯" menu with remaining 10 tools)
 
+### Codex Feedback (2026-02-12)
+- [x] Dark mode tertiary text contrast — bumped `#5A615A` → `#7A867A` (~3:1 → ~5:1, WCAG AA)
+- [ ] Background grain competing with text — deferred (already reduced to 0.05 opacity; "page presence" would address remaining concern)
+- [ ] Crowded header on desktop — disagreed (header is already minimal)
+- [x] List indentation too deep — reduced `padding-left` and nested margin from 1.5rem → 1.25rem
+
 ### Categories
 - [x] 1. Typography refinements *(partial - quick wins done)*
 - [x] 2. Toolbar redesign *(partial - mobile overflow menu done)*

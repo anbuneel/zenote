@@ -48,7 +48,7 @@
   --color-card-bg: rgba(20, 30, 20, 0.6);
   --color-text-primary: #EAE6D8;
   --color-text-secondary: #A3ABA3;
-  --color-text-tertiary: #5A615A;
+  --color-text-tertiary: #7A867A;
   --color-accent: #D4AF37;
   --color-accent-hover: #E5C44A;
   --color-accent-glow: rgba(212, 175, 55, 0.15);
@@ -501,7 +501,7 @@ body::before {
 /* Lists */
 .rich-text-editor .ProseMirror ul,
 .rich-text-editor .ProseMirror ol {
-  padding-left: 1.5rem;
+  padding-left: 1.25rem;
   margin: 0.75rem 0;
 }
 
@@ -654,7 +654,7 @@ body::before {
 
 /* Nested task lists */
 .rich-text-editor .ProseMirror ul[data-type="taskList"] ul[data-type="taskList"] {
-  margin-left: 1.5rem;
+  margin-left: 1.25rem;
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }
