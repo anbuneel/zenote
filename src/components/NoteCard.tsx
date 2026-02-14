@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useMemo } from 'react';
 import type { Note } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { TagBadgeList } from './TagBadge';
@@ -15,12 +15,24 @@ interface NoteCardProps {
 export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogglePin, isCompact = false }: NoteCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Memoize expensive sanitization operations to prevent blocking the main thread
+  // when only metadata (like pinned status) changes
+
+  const sanitizedTitle = useMemo(() => {
+    return sanitizeText(note.title) || 'Untitled';
+  }, [note.title]);
+
+  const sanitizedContent = useMemo(() => {
+    if (isCompact) return '';
+    return sanitizeHtml(note.content);
+  }, [note.content, isCompact]);
+
   // Extract plain text preview for compact mode (no HTML escaping - React handles it)
-  const compactPreview = (() => {
+  const compactPreview = useMemo(() => {
     if (!isCompact) return '';
     const text = htmlToPlainText(note.content);
     return text.slice(0, 80) + (text.length > 80 ? '...' : '');
-  })();
+  }, [note.content, isCompact]);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -161,7 +173,7 @@ export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogg
             fontFamily: 'var(--font-display)',
             color: 'var(--color-text-primary)',
           }}
-          dangerouslySetInnerHTML={{ __html: sanitizeText(note.title) || 'Untitled' }}
+          dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
       </div>
 
@@ -180,7 +192,7 @@ export const NoteCard = memo(function NoteCard({ note, onClick, onDelete, onTogg
         /* Preview - Rendered HTML content (sanitized to prevent XSS) */
         <div
           className="note-card-preview flex-1 overflow-hidden"
-          dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content) }}
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
       )}
 
