@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Masonry from 'react-masonry-css';
 import type { Note } from '../types';
 import type { ChapterKey } from '../utils/temporalGrouping';
@@ -28,7 +28,7 @@ const CHAPTER_OPACITY: Record<ChapterKey, number> = {
   archive: 0.80,
 };
 
-export function ChapterSection({
+export const ChapterSection = memo(function ChapterSection({
   chapterKey,
   label,
   notes,
@@ -219,4 +219,4 @@ export function ChapterSection({
       )}
     </section>
   );
-}
+});
