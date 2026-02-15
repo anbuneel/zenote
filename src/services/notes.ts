@@ -550,57 +550,40 @@ export async function deleteNoteShare(noteId: string): Promise<void> {
 // Fetch a shared note by token (public, no auth required)
 // Returns null if token is invalid or expired
 export async function fetchSharedNote(token: string): Promise<Note | null> {
-  // First, validate the share token and check expiration
-  const { data: shareData, error: shareError } = await supabase
-    .from('note_shares')
-    .select('note_id, expires_at')
-    .eq('share_token', token)
-    .maybeSingle();
+  // Use secure RPC to fetch shared note and tags in one go
+  // This prevents enumeration of share tokens via public table access
+  const { data, error } = await supabase.rpc('get_shared_note', { token });
 
-  if (shareError) {
-    console.error('Error fetching share:', shareError);
+  if (error) {
+    console.error('Error fetching shared note:', error);
     return null;
   }
 
-  if (!shareData) {
-    return null; // Invalid token
+  if (!data) {
+    return null; // Invalid token or note not found
   }
 
-  // Check if share has expired
-  if (shareData.expires_at && new Date(shareData.expires_at) < new Date()) {
-    return null; // Expired
-  }
+  // Parse JSON result to Note object
+  // The RPC returns dates as strings, so we need to convert them
+  const noteData = data as any;
 
-  // Fetch the note with its tags
-  const { data: noteData, error: noteError } = await supabase
-    .from('notes')
-    .select(`
-      *,
-      note_tags (
-        tag_id,
-        tags (*)
-      )
-    `)
-    .eq('id', shareData.note_id)
-    .is('deleted_at', null) // Don't show soft-deleted notes
-    .maybeSingle();
+  const tags = (noteData.tags || []).map((tag: any) => ({
+    id: tag.id,
+    name: tag.name,
+    color: tag.color,
+    createdAt: new Date(tag.createdAt),
+  }));
 
-  if (noteError) {
-    console.error('Error fetching shared note:', noteError);
-    return null;
-  }
-
-  if (!noteData) {
-    return null; // Note not found or deleted
-  }
-
-  // Transform the data
-  const tags = (noteData.note_tags || [])
-    .map((nt: { tags: DbTag | null }) => nt.tags)
-    .filter((tag): tag is DbTag => tag !== null)
-    .map(toTag);
-
-  return toNote(noteData as DbNote, tags);
+  return {
+    id: noteData.id,
+    title: noteData.title,
+    content: noteData.content,
+    createdAt: new Date(noteData.createdAt),
+    updatedAt: new Date(noteData.updatedAt),
+    tags,
+    pinned: noteData.pinned,
+    deletedAt: noteData.deletedAt ? new Date(noteData.deletedAt) : null,
+  };
 }
 
 // Share link export interface for full account backup
