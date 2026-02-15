@@ -40,6 +40,7 @@ vi.mock('../lib/supabase', () => {
   return {
     supabase: {
       from: vi.fn(() => createMockQueryBuilder()),
+      rpc: vi.fn(),
       channel: vi.fn(() => createMockChannel()),
       removeChannel: vi.fn().mockResolvedValue('ok'),
     },
@@ -1006,94 +1007,47 @@ describe('notes service', () => {
   });
 
   describe('fetchSharedNote', () => {
-    it('returns note for valid token', async () => {
-      const shareData = { note_id: 'note-123', expires_at: null };
-      const noteData = { ...createDbNote({ id: 'note-123' }), note_tags: [] };
-
-      // First call for share validation
-      const shareBuilder = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: shareData, error: null }),
+    it('returns note for valid token via RPC', async () => {
+      const rpcData = {
+        id: 'note-123',
+        title: 'Shared Note',
+        content: '<p>Content</p>',
+        createdAt: '2024-01-01T12:00:00Z',
+        updatedAt: '2024-01-02T12:00:00Z',
+        pinned: false,
+        deletedAt: null,
+        tags: [
+          {
+            id: 'tag-1',
+            name: 'Tag',
+            color: 'gold',
+            createdAt: '2024-01-01T12:00:00Z'
+          }
+        ]
       };
-      // Second call for note fetch
-      const noteBuilder = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        is: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: noteData, error: null }),
-      };
 
-      vi.mocked(supabase.from)
-        .mockReturnValueOnce(shareBuilder)
-        .mockReturnValueOnce(noteBuilder);
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: rpcData, error: null });
 
       const result = await fetchSharedNote('valid-token');
 
+      expect(supabase.rpc).toHaveBeenCalledWith('get_shared_note', { token: 'valid-token' });
       expect(result).toBeTruthy();
       expect(result!.id).toBe('note-123');
+      expect(result!.tags).toHaveLength(1);
+      expect(result!.createdAt).toBeInstanceOf(Date);
     });
 
-    it('returns null for invalid token', async () => {
-      const mockBuilder = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-      mockSupabaseFrom(mockBuilder);
+    it('returns null when RPC returns null (invalid/expired)', async () => {
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error: null });
 
       const result = await fetchSharedNote('invalid-token');
 
+      expect(supabase.rpc).toHaveBeenCalledWith('get_shared_note', { token: 'invalid-token' });
       expect(result).toBeNull();
     });
 
-    it('returns null for expired share', async () => {
-      const shareData = {
-        note_id: 'note-123',
-        expires_at: new Date(Date.now() - 1000).toISOString(), // Expired
-      };
-      const mockBuilder = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: shareData, error: null }),
-      };
-      mockSupabaseFrom(mockBuilder);
-
-      const result = await fetchSharedNote('expired-token');
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null for soft-deleted note', async () => {
-      const shareData = { note_id: 'note-123', expires_at: null };
-      const shareBuilder = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: shareData, error: null }),
-      };
-      const noteBuilder = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        is: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }), // Note not found (deleted)
-      };
-
-      vi.mocked(supabase.from)
-        .mockReturnValueOnce(shareBuilder)
-        .mockReturnValueOnce(noteBuilder);
-
-      const result = await fetchSharedNote('valid-token');
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null on share fetch error', async () => {
-      const mockBuilder = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error('Fetch error') }),
-      };
-      mockSupabaseFrom(mockBuilder);
+    it('returns null on RPC error', async () => {
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error: new Error('RPC error') });
 
       const result = await fetchSharedNote('token');
 
